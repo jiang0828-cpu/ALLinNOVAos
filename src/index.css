@@ -1,10 +1,92 @@
 :root {
-  color: #17211d;
-  background: #e9eee8;
+  --bg: #e9eee8;
+  --bg-veil: rgba(255, 255, 255, 0.78);
+  --surface: rgba(252, 253, 250, 0.86);
+  --surface-solid: #fcfdfa;
+  --border: rgba(23, 33, 29, 0.1);
+  --shadow: 0 12px 40px rgba(41, 52, 45, 0.07);
+  --shadow-hover: 0 16px 46px rgba(41, 52, 45, 0.13);
+  --text: #17211d;
+  --text-muted: #66706a;
+  --text-soft: #4f5b55;
+  --text-softer: #5f6d66;
+  --text-faint: #6d7b73;
+  --brand: #173a34;
+  --brand-contrast: #f9fbf7;
+  --brand-soft: #2d7768;
+  --accent: #178a6f;
+  --accent-gold: #d59a2f;
+  --gold-bg: #efd38f;
+  --gold-bg-strong: #f0d99f;
+  --gold-text: #573a0a;
+  --danger: #bb4d35;
+  --track-bg: #d8e2dc;
+  --progress-bg: #dfe7e2;
+  --chip-bg: #f2f5f1;
+  --chip-text: #435049;
+  --pill-bg: #e5eee8;
+  --pill-text: #2f4d45;
+  --ghost-bg: #e8f0eb;
+  --icon-bg: #173a34;
+  --icon-fg: #f9fbf7;
+  --focus-ring: #178a6f;
+  --command-bg: #16241f;
+  --command-text: #f4f8f4;
+  --command-muted: #9db6ac;
+  --command-border: rgba(255, 255, 255, 0.12);
+  --command-surface: rgba(255, 255, 255, 0.06);
+  --command-input-bg: rgba(255, 255, 255, 0.07);
+  --command-chip-text: #dce9e4;
+
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
   font-family:
     Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1613;
+  --bg-veil: rgba(255, 255, 255, 0.04);
+  --surface: rgba(23, 33, 29, 0.72);
+  --surface-solid: #16211c;
+  --border: rgba(255, 255, 255, 0.09);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 16px 46px rgba(0, 0, 0, 0.45);
+  --text: #eaf1ec;
+  --text-muted: #9fb3a9;
+  --text-soft: #b7c6bd;
+  --text-softer: #a6b8ae;
+  --text-faint: #93a69c;
+  --brand: #2bbd9a;
+  --brand-contrast: #05110d;
+  --brand-soft: #6fd7bd;
+  --accent: #35d1ab;
+  --accent-gold: #e8b85a;
+  --gold-bg: #4a3a16;
+  --gold-bg-strong: #55411a;
+  --gold-text: #f6dfa8;
+  --danger: #ff8a6c;
+  --track-bg: rgba(255, 255, 255, 0.1);
+  --progress-bg: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.06);
+  --chip-text: #cfe0d8;
+  --pill-bg: rgba(53, 209, 171, 0.16);
+  --pill-text: #8fe3c9;
+  --ghost-bg: rgba(53, 209, 171, 0.14);
+  --icon-bg: #1d3a32;
+  --icon-fg: #9fe9cf;
+  --focus-ring: #35d1ab;
+  --command-bg: #14211b;
+  --command-text: #eef7f2;
+  --command-muted: #86a89b;
+  --command-border: rgba(255, 255, 255, 0.14);
+  --command-surface: rgba(255, 255, 255, 0.05);
+  --command-input-bg: rgba(255, 255, 255, 0.06);
+  --command-chip-text: #cfe3da;
 }
 
 * {
@@ -16,8 +98,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0)),
-    #e9eee8;
+    linear-gradient(180deg, var(--bg-veil), rgba(255, 255, 255, 0)),
+    var(--bg);
+  transition: background-color 0.25s ease;
 }
 
 button,
@@ -27,6 +110,17 @@ input {
 
 button {
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .appShell {
@@ -54,9 +148,13 @@ button {
 .dataCard,
 .commandCenter,
 .roadmap {
-  border: 1px solid rgba(23, 33, 29, 0.1);
-  background: rgba(252, 253, 250, 0.86);
-  box-shadow: 0 12px 40px rgba(41, 52, 45, 0.07);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.2s ease;
 }
 
 .brand {
@@ -77,8 +175,11 @@ button {
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  color: #f9fbf7;
-  background: #173a34;
+  color: var(--icon-fg);
+  background: var(--icon-bg);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
 .brand p,
@@ -99,7 +200,7 @@ button {
 
 .brand span {
   display: block;
-  color: #66706a;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -113,11 +214,29 @@ button {
 }
 
 .globalSearch input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: 0;
   outline: 0;
   background: transparent;
-  color: #17211d;
+  color: var(--text);
+}
+
+.clearSearch {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.clearSearch:hover {
+  background: var(--ghost-bg);
+  color: var(--text);
 }
 
 .topActions {
@@ -141,7 +260,7 @@ button {
   gap: 8px;
   padding: 0 12px;
   font-size: 13px;
-  color: #4f5b55;
+  color: var(--text-soft);
   box-shadow: none;
 }
 
@@ -150,8 +269,15 @@ button {
   place-items: center;
   width: 36px;
   border: 0;
-  color: #173a34;
-  background: #ecf3ee;
+  color: var(--brand);
+  background: var(--pill-bg);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.iconButton:hover {
+  background: var(--ghost-bg);
 }
 
 .heroGrid {
@@ -177,7 +303,7 @@ button {
 
 .sectionEyebrow {
   display: block;
-  color: #6d7b73;
+  color: var(--text-faint);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
@@ -230,12 +356,13 @@ button {
 }
 
 .dialTrack {
-  stroke: #d8e2dc;
+  stroke: var(--track-bg);
 }
 
 .dialValue {
-  stroke: #178a6f;
+  stroke: var(--accent);
   stroke-linecap: round;
+  transition: stroke 0.25s ease;
 }
 
 .scoreValue {
@@ -255,7 +382,7 @@ button {
 .scoreValue span {
   display: block;
   margin-top: 4px;
-  color: #64716a;
+  color: var(--text-softer);
   font-size: 12px;
 }
 
@@ -268,12 +395,12 @@ button {
   display: flex;
   justify-content: space-between;
   margin-bottom: 5px;
-  color: #4f5b55;
+  color: var(--text-soft);
   font-size: 13px;
 }
 
 .breakdownItem strong {
-  color: #17211d;
+  color: var(--text);
 }
 
 .progress {
@@ -281,14 +408,24 @@ button {
   width: 100%;
   height: 7px;
   border-radius: 999px;
-  background: #dfe7e2;
+  background: var(--progress-bg);
 }
 
 .progress span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #178a6f, #d59a2f);
+  background: linear-gradient(90deg, var(--accent), var(--accent-gold));
+}
+
+.emptyState {
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
 }
 
 .focusList {
@@ -314,16 +451,16 @@ button {
   color: #fff;
   font-size: 12px;
   font-weight: 800;
-  background: #173a34;
+  background: var(--brand);
 }
 
 .priority.p1 {
-  background: #2d7768;
+  background: var(--brand-soft);
 }
 
 .priority.p2 {
-  color: #573a0a;
-  background: #efd38f;
+  color: var(--gold-text);
+  background: var(--gold-bg);
 }
 
 .focusItem h3,
@@ -353,7 +490,7 @@ button {
 .alertItem p,
 .insightPanel p,
 .aiOutput p {
-  color: #5f6d66;
+  color: var(--text-softer);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -361,21 +498,22 @@ button {
 .alertPanel {
   display: grid;
   gap: 12px;
+  align-content: start;
 }
 
 .alertItem {
-  border-left: 3px solid #d59a2f;
+  border-left: 3px solid var(--accent-gold);
   padding-left: 12px;
 }
 
 .alertItem.high {
-  border-left-color: #bb4d35;
+  border-left-color: var(--danger);
 }
 
 .alertItem strong {
   display: block;
   margin-top: 6px;
-  color: #173a34;
+  color: var(--brand);
   font-size: 13px;
 }
 
@@ -396,12 +534,21 @@ button {
   border: 0;
   border-radius: 8px;
   font-weight: 700;
+  transition:
+    filter 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.primaryButton:hover:not(:disabled),
+.ghostButton:hover,
+.commandInput button:hover {
+  filter: brightness(1.08);
 }
 
 .primaryButton {
   margin-top: auto;
-  color: #f9fbf7;
-  background: #173a34;
+  color: var(--brand-contrast);
+  background: var(--brand);
 }
 
 .systemsSection,
@@ -416,13 +563,13 @@ button {
 }
 
 .sectionTitle > span {
-  color: #65726b;
+  color: var(--text-soft);
   font-size: 13px;
 }
 
 .systemsGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
 }
 
@@ -433,11 +580,20 @@ button {
   padding: 16px;
 }
 
+.systemCard:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.systemCard.isClickable {
+  cursor: pointer;
+}
+
 .systemTop span {
   border-radius: 999px;
   padding: 5px 9px;
-  color: #2f4d45;
-  background: #e5eee8;
+  color: var(--pill-text);
+  background: var(--pill-bg);
   font-size: 12px;
   font-weight: 700;
 }
@@ -460,8 +616,8 @@ button {
 .metricGrid span {
   border-radius: 8px;
   padding: 8px;
-  color: #435049;
-  background: #f2f5f1;
+  color: var(--chip-text);
+  background: var(--chip-bg);
   font-size: 12px;
   line-height: 1.2;
 }
@@ -469,13 +625,13 @@ button {
 .ghostButton {
   width: 100%;
   margin-top: auto;
-  color: #173a34;
-  background: #e8f0eb;
+  color: var(--brand);
+  background: var(--ghost-bg);
 }
 
 .dataGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
@@ -491,11 +647,11 @@ button {
 .dataIcon {
   width: 36px;
   height: 36px;
-  background: #274f46;
+  background: var(--brand-soft);
 }
 
 .dataCard p {
-  color: #5c6962;
+  color: var(--text-softer);
   font-size: 13px;
 }
 
@@ -508,7 +664,7 @@ button {
 
 .dataCard strong span {
   margin-left: 5px;
-  color: #6c7871;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -519,8 +675,8 @@ button {
   right: 14px;
   border-radius: 999px;
   padding: 4px 8px;
-  color: #573a0a;
-  background: #f0d99f;
+  color: var(--gold-text);
+  background: var(--gold-bg-strong);
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
@@ -528,12 +684,12 @@ button {
 
 .commandCenter {
   padding: 18px;
-  background: #16241f;
-  color: #f4f8f4;
+  background: var(--command-bg);
+  color: var(--command-text);
 }
 
 .commandCenter .sectionEyebrow {
-  color: #9db6ac;
+  color: var(--command-muted);
 }
 
 .commandInput {
@@ -545,17 +701,17 @@ button {
 
 .commandInput input {
   min-height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--command-border);
   border-radius: 8px;
   outline: 0;
   padding: 0 14px;
-  color: #f4f8f4;
-  background: rgba(255, 255, 255, 0.07);
+  color: var(--command-text);
+  background: var(--command-input-bg);
 }
 
 .commandInput button {
   color: #13221d;
-  background: #abd9c8;
+  background: var(--brand-soft);
 }
 
 .quickCommands,
@@ -567,36 +723,52 @@ button {
 
 .quickCommands button,
 .taskChips button {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--command-border);
   border-radius: 8px;
   padding: 8px 10px;
-  color: #dce9e4;
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--command-chip-text);
+  background: var(--command-surface);
+  transition: border-color 0.15s ease;
+}
+
+.quickCommands button:hover,
+.taskChips button:hover {
+  border-color: var(--brand-soft);
 }
 
 .quickCommands button.active {
-  color: #13221d;
-  background: #f0d99f;
+  color: var(--gold-text);
+  background: var(--gold-bg-strong);
+  border-color: transparent;
+}
+
+.taskChips button.done {
+  color: var(--command-muted);
+  text-decoration: line-through;
+}
+
+.taskChips button.done svg {
+  color: var(--accent);
 }
 
 .aiOutput {
   margin-top: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--command-border);
   border-radius: 8px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--command-surface);
 }
 
 .aiOutput p {
   margin: 10px 0 14px;
-  color: #eef5f1;
+  color: var(--command-text);
 }
 
 .outputBadge {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #abd9c8;
+  color: var(--brand-soft);
   font-size: 13px;
   font-weight: 800;
 }
@@ -625,15 +797,137 @@ button {
   border-radius: 8px;
   padding: 12px 10px;
   text-align: center;
-  color: #54615a;
-  background: #eef3ef;
+  color: var(--text-soft);
+  background: var(--chip-bg);
   font-size: 13px;
   font-weight: 700;
 }
 
 .roadmapTrack .current {
-  color: #fff;
-  background: #173a34;
+  color: var(--brand-contrast);
+  background: var(--brand);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(6, 12, 10, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modalCard {
+  width: min(480px, 100%);
+  max-height: min(80vh, 640px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-hover);
+  color: var(--text);
+}
+
+.modalHeader {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.modalHeader h2 {
+  margin: 2px 0 0;
+  font-size: 19px;
+}
+
+.modalSummary {
+  margin: 16px 0 14px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modalMetrics {
+  margin-top: 14px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.modalNote {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.workModal .modalNote {
+  display: none;
+}
+
+.workSectionGrid {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.workSectionCard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 12px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 13px 14px;
+  color: var(--text);
+  background: var(--chip-bg);
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.workSectionCard:hover {
+  border-color: var(--brand-soft);
+  background: var(--ghost-bg);
+  transform: translateY(-1px);
+}
+
+.workSectionCard strong {
+  font-size: 15px;
+}
+
+.workSectionCard span {
+  grid-column: 1 / -1;
+  color: var(--text-softer);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.workSectionCard em {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-self: end;
+  color: var(--brand);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.workSectionCard.disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.workSectionCard.disabled:hover {
+  border-color: var(--border);
+  background: var(--chip-bg);
+  transform: none;
 }
 
 @media (max-width: 1180px) {
@@ -646,11 +940,6 @@ button {
   .globalSearch {
     order: 3;
     grid-column: 1 / -1;
-  }
-
-  .systemsGrid,
-  .dataGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roadmapTrack {
@@ -694,5 +983,11 @@ button {
 
   .commandInput {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
   }
 }
