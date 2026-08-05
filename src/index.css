@@ -282,18 +282,20 @@ button:disabled {
 
 .commandHub {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .commandHubHeader {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  padding: 0 2px;
 }
 
 .commandHubHeader h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 800;
 }
 
 .heroGrid {
@@ -305,20 +307,24 @@ button:disabled {
 
 .heroGrid > .panel,
 .heroGrid > .scorePanel {
-  min-height: 440px;
+  min-height: 460px;
   display: flex;
   flex-direction: column;
+  padding: 20px;
 }
 
 .heroGrid > .panel > .panelHeader,
 .heroGrid > .scorePanel > .panelHeader {
   flex-shrink: 0;
+  margin-bottom: 12px;
 }
 
 .heroGrid > .panel > :not(.panelHeader),
 .heroGrid > .scorePanel > :not(.panelHeader) {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel,
@@ -364,19 +370,17 @@ button:disabled {
 }
 
 .scoreGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 18px;
-  align-items: start;
-  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   flex: 1;
   min-height: 0;
 }
 
 .scoreDial {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 130px;
+  height: 130px;
   margin: 0 auto;
 }
 
@@ -412,29 +416,29 @@ button:disabled {
 
 .scoreValue strong {
   display: block;
-  font-size: 34px;
+  font-size: 32px;
   line-height: 1;
 }
 
 .scoreValue span {
   display: block;
-  margin-top: 4px;
+  margin-top: 6px;
   color: var(--text-softer);
   font-size: 12px;
 }
 
 .breakdown {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .breakdownItem > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .breakdownItem strong {
@@ -445,7 +449,7 @@ button:disabled {
 .progress {
   overflow: hidden;
   width: 100%;
-  height: 7px;
+  height: 6px;
   border-radius: 999px;
   background: var(--progress-bg);
 }
@@ -458,8 +462,8 @@ button:disabled {
 }
 
 .emptyState {
-  margin-top: 14px;
-  padding: 18px;
+  margin-top: 10px;
+  padding: 16px;
   border: 1px dashed var(--border);
   border-radius: 8px;
   color: var(--text-muted);
@@ -469,27 +473,36 @@ button:disabled {
 
 .focusList {
   display: grid;
-  gap: 12px;
-  margin-top: 14px;
-  align-content: start;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .focusItem {
   display: grid;
-  grid-template-columns: 42px 1fr;
+  grid-template-columns: 38px 1fr;
   gap: 10px;
   align-items: center;
-  min-height: 50px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--chip-bg);
+  transition: background-color 0.15s ease;
+}
+
+.focusItem:hover {
+  background: var(--ghost-bg);
 }
 
 .priority {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 28px;
-  border-radius: 8px;
+  width: 32px;
+  height: 26px;
+  border-radius: 6px;
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   background: var(--brand);
 }
@@ -520,7 +533,7 @@ button:disabled {
 .focusItem h3,
 .alertItem h3,
 .systemCard h3 {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.3;
 }
 
@@ -531,8 +544,8 @@ button:disabled {
 .insightPanel p,
 .aiOutput p {
   color: var(--text-softer);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .alertPanel {
@@ -563,26 +576,32 @@ button:disabled {
   gap: 14px;
 }
 
+.insightPanel p {
+  flex: 1;
+  line-height: 1.6;
+}
+
 .feedsPanel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .feedsTabs {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   background: var(--chip-bg);
   border-radius: 8px;
-  padding: 4px;
+  padding: 3px;
+  flex-shrink: 0;
 }
 
 .feedTab {
   flex: 1;
   border: none;
   border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 5px 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--text-muted);
@@ -613,7 +632,7 @@ button:disabled {
 .ideasList,
 .plansList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .feedItem,
@@ -651,8 +670,8 @@ button:disabled {
 .feedItem h3,
 .ideaItem h3,
 .planItem h3 {
-  margin: 0 0 4px;
-  font-size: 14px;
+  margin: 0 0 3px;
+  font-size: 13px;
   line-height: 1.3;
 }
 
@@ -661,15 +680,15 @@ button:disabled {
 .planItem p {
   margin: 0;
   color: var(--text-softer);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 .feedMeta {
   display: flex;
   gap: 8px;
-  margin-bottom: 4px;
-  font-size: 11px;
+  margin-bottom: 3px;
+  font-size: 10px;
   color: var(--text-faint);
 }
 
@@ -680,14 +699,14 @@ button:disabled {
 .ideaTags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 5px;
+  margin-top: 5px;
 }
 
 .ideaTag {
   border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 11px;
+  padding: 1px 7px;
+  font-size: 10px;
   color: var(--pill-text);
   background: var(--pill-bg);
 }
@@ -696,7 +715,7 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .planHeader h3 {
@@ -704,7 +723,7 @@ button:disabled {
 }
 
 .planProgress {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent);
 }
@@ -716,10 +735,11 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 38px;
+  min-height: 36px;
   border: 0;
   border-radius: 8px;
   font-weight: 700;
+  font-size: 13px;
   transition:
     filter 0.15s ease,
     background-color 0.15s ease;
@@ -735,6 +755,7 @@ button:disabled {
   margin-top: auto;
   color: var(--brand-contrast);
   background: var(--brand);
+  width: 100%;
 }
 
 .systemsSection,
@@ -1131,6 +1152,11 @@ button:disabled {
   .roadmapTrack {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  .heroGrid > .panel,
+  .heroGrid > .scorePanel {
+    min-height: 420px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1157,6 +1183,11 @@ button:disabled {
   .datePill {
     flex: 1;
     justify-content: center;
+  }
+
+  .heroGrid > .panel,
+  .heroGrid > .scorePanel {
+    min-height: auto;
   }
 
   .scoreGrid {

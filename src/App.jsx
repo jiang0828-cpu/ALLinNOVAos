@@ -148,6 +148,14 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
 }
 
 function LifeScore() {
+  const score = dashboard.lifeScore;
+  const getScoreColor = (s) => {
+    if (s >= 80) return '#178a6f';
+    if (s >= 60) return '#d59a2f';
+    return '#bb4d35';
+  };
+  const ringColor = getScoreColor(score);
+
   return (
     <section className="scorePanel">
       <div className="panelHeader">
@@ -158,7 +166,7 @@ function LifeScore() {
       </div>
       <div className="scoreGrid">
         <div className="scoreDial">
-          <svg viewBox="0 0 120 120" role="img" aria-label={`Life Score ${dashboard.lifeScore}`}>
+          <svg viewBox="0 0 120 120" role="img" aria-label={`Life Score ${score}`}>
             <circle cx="60" cy="60" r="50" className="dialTrack" />
             <circle
               cx="60"
@@ -166,11 +174,12 @@ function LifeScore() {
               r="50"
               className="dialValue"
               pathLength="100"
-              strokeDasharray={`${dashboard.lifeScore} 100`}
+              strokeDasharray={`${score} 100`}
+              style={{ stroke: ringColor }}
             />
           </svg>
           <div className="scoreValue">
-            <strong>{dashboard.lifeScore}</strong>
+            <strong style={{ color: ringColor }}>{score}</strong>
             <span>目标达成</span>
           </div>
         </div>
