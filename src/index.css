@@ -714,58 +714,78 @@ button:disabled {
   align-content: start;
 }
 
-.feedsTabs {
-  display: flex;
-  gap: 4px;
-  background: var(--chip-bg);
-  border-radius: 8px;
-  padding: 4px;
-}
-
-.feedTab {
-  flex: 1;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  background: transparent;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.feedTab:hover {
-  color: var(--text);
-}
-
-.feedTab.active {
-  background: var(--surface-solid);
-  color: var(--accent);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
 .feedsContent {
-  min-height: 260px;
+  display: grid;
+  gap: 10px;
+  min-height: 300px;
+}
+
+.feedsSection {
+  display: grid;
+  gap: 6px;
+}
+
+.feedsSectionTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.feedsSectionTitle.news {
+  color: var(--accent);
+}
+
+.feedsSectionTitle.ideas {
+  color: var(--accent-gold);
+}
+
+.feedsSectionTitle.plans {
+  color: var(--brand-soft);
 }
 
 .feedsList,
 .ideasList,
 .plansList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .feedItem,
 .ideaItem,
 .planItem {
   border-left: 3px solid var(--accent);
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--chip-bg);
   border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.feedItem:hover,
+.ideaItem:hover,
+.planItem:hover {
+  background: var(--ghost-bg);
+  transform: translateY(-1px);
+}
+
+.feedItem.news {
+  border-left-color: var(--accent);
+}
+
+.ideaItem.ideas {
+  border-left-color: var(--accent-gold);
+  background: linear-gradient(135deg, rgba(213, 154, 47, 0.08), var(--chip-bg));
+}
+
+.planItem.plans {
+  border-left-color: var(--brand-soft);
+  background: linear-gradient(135deg, rgba(45, 119, 104, 0.08), var(--chip-bg));
 }
 
 .feedItem h3,

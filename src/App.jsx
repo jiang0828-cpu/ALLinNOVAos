@@ -256,85 +256,60 @@ function TodayFocus({ items }) {
 }
 
 function FeedsPanel() {
-  const [activeTab, setActiveTab] = useState("news");
-
   return (
     <section className="panel feedsPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">FEEDS</span>
-          <h2>情报流</h2>
+          <h2>资讯情报</h2>
         </div>
         <BookOpen size={20} />
       </div>
-      <div className="feedsTabs">
-        <button
-          className={`feedTab ${activeTab === "news" ? "active" : ""}`}
-          onClick={() => setActiveTab("news")}
-        >
-          NEWS
-        </button>
-        <button
-          className={`feedTab ${activeTab === "ideas" ? "active" : ""}`}
-          onClick={() => setActiveTab("ideas")}
-        >
-          IDEAS
-        </button>
-        <button
-          className={`feedTab ${activeTab === "plans" ? "active" : ""}`}
-          onClick={() => setActiveTab("plans")}
-        >
-          PLANS
-        </button>
-      </div>
       <div className="feedsContent">
-        {activeTab === "news" && (
+        <div className="feedsSection">
+          <h4 className="feedsSectionTitle news">NEWS</h4>
           <div className="feedsList">
-            {dashboard.feeds.map((feed, index) => (
-              <article key={index} className="feedItem">
+            {dashboard.feeds.slice(0, 2).map((feed, index) => (
+              <a key={index} href="#" className="feedItem news" onClick={(e) => e.preventDefault()}>
                 <div className="feedMeta">
                   <span className="feedSource">{feed.source}</span>
                   <span className="feedTime">{feed.time}</span>
                 </div>
                 <h3>{feed.title}</h3>
                 <p>{feed.summary}</p>
-              </article>
+              </a>
             ))}
           </div>
-        )}
-        {activeTab === "ideas" && (
+        </div>
+        <div className="feedsSection">
+          <h4 className="feedsSectionTitle ideas">IDEAS</h4>
           <div className="ideasList">
-            {dashboard.ideas.map((idea, index) => (
-              <article key={index} className="ideaItem">
+            {dashboard.ideas.slice(0, 2).map((idea, index) => (
+              <a key={index} href="#" className="ideaItem ideas" onClick={(e) => e.preventDefault()}>
                 <h3>{idea.title}</h3>
                 <div className="ideaTags">
                   {idea.tags.map((tag, tagIndex) => (
                     <span key={tagIndex} className="ideaTag">{tag}</span>
                   ))}
                 </div>
-                <span className={`ideaStatus status-${idea.status}`}>{idea.status}</span>
-              </article>
+              </a>
             ))}
           </div>
-        )}
-        {activeTab === "plans" && (
+        </div>
+        <div className="feedsSection">
+          <h4 className="feedsSectionTitle plans">PLANS</h4>
           <div className="plansList">
-            {dashboard.plans.map((plan, index) => (
-              <article key={index} className="planItem">
+            {dashboard.plans.slice(0, 1).map((plan, index) => (
+              <a key={index} href="#" className="planItem plans" onClick={(e) => e.preventDefault()}>
                 <div className="planHeader">
                   <h3>{plan.title}</h3>
                   <span className="planProgress">{plan.progress}%</span>
                 </div>
                 <Progress value={plan.progress} className={plan.progress >= 70 ? "score-high" : plan.progress >= 40 ? "score-mid" : "score-low"} />
-                <ul className="planItems">
-                  {plan.items.map((item, itemIndex) => (
-                    <li key={itemIndex}>{item}</li>
-                  ))}
-                </ul>
-              </article>
+              </a>
             ))}
           </div>
-        )}
+        </div>
       </div>
     </section>
   );
