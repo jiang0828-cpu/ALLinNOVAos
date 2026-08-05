@@ -469,9 +469,23 @@ function Roadmap() {
   );
 }
 
+function calculateProgress(target, achieved) {
+  const t = parseFloat(target);
+  const a = parseFloat(achieved);
+  if (isNaN(t) || isNaN(a) || t <= 0) return null;
+  return Math.min(100, Math.round((a / t) * 100));
+}
+
 function CategoryModal({ category, onClose }) {
   const closeButtonRef = useRef(null);
   const Icon = cardIcons[category?.label] ?? Database;
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    if (category?.subItems) {
+      setItems(category.subItems.map((s) => ({ ...s })));
+    }
+  }, [category]);
 
   useEffect(() => {
     if (!category) return undefined;
@@ -488,6 +502,16 @@ function CategoryModal({ category, onClose }) {
   }, [category, onClose]);
 
   if (!category) return null;
+
+  function updateItem(index, field, value) {
+    setItems((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  }
+
+  const overallProgress = calculateProgress(category.target, category.achieved);
 
   return (
     <div className="modalOverlay" onClick={onClose}>
@@ -511,25 +535,41 @@ function CategoryModal({ category, onClose }) {
           </button>
         </div>
 
-        <div className="categoryScoreRow">
-          <span>目标达成评分</span>
-          <strong>{category.value}</strong>
-        </div>
-        <Progress value={category.value} />
-
         <h3 className="subItemsTitle">子项详情</h3>
-        {category.subItems && category.subItems.length > 0 ? (
+        {items.length > 0 ? (
           <div className="subItemsList">
-            {category.subItems.map((sub) => (
-              <div key={sub.label} className="subItemCard">
-                <div className="subItemRow">
-                  <span>{sub.label}</span>
-                  <strong>{sub.value}</strong>
+            {items.map((sub, index) => {
+              const progress = calculateProgress(sub.target, sub.achieved);
+              return (
+                <div key={sub.label} className="subItemCard">
+                  <div className="subItemCardHeader">
+                    <strong>{sub.label}</strong>
+                    {progress !== null && <span className="progressBadge">{progress}%</span>}
+                  </div>
+                  <div className="subItemInputs">
+                    <div className="inputGroup">
+                      <label>目标</label>
+                      <input
+                        type="text"
+                        value={sub.target}
+                        onChange={(e) => updateItem(index, "target", e.target.value)}
+                        placeholder="输入目标值"
+                      />
+                    </div>
+                    <div className="inputGroup">
+                      <label>达成</label>
+                      <input
+                        type="text"
+                        value={sub.achieved}
+                        onChange={(e) => updateItem(index, "achieved", e.target.value)}
+                        placeholder="输入达成值"
+                      />
+                    </div>
+                  </div>
+                  {progress !== null && <Progress value={progress} />}
                 </div>
-                <Progress value={sub.value} />
-                <small>{sub.detail}</small>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="emptyState">暂无子项数据</p>

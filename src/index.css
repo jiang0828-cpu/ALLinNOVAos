@@ -331,16 +331,16 @@ button:disabled {
 
 .scoreGrid {
   display: grid;
-  grid-template-columns: 126px 1fr;
-  gap: 16px;
+  grid-template-columns: 160px 1fr;
+  gap: 18px;
   align-items: center;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .scoreDial {
   position: relative;
-  width: 126px;
-  height: 126px;
+  width: 160px;
+  height: 160px;
 }
 
 .scoreDial svg {
@@ -352,7 +352,7 @@ button:disabled {
 .dialTrack,
 .dialValue {
   fill: none;
-  stroke-width: 10;
+  stroke-width: 11;
 }
 
 .dialTrack {
@@ -375,15 +375,18 @@ button:disabled {
 
 .scoreValue strong {
   display: block;
-  font-size: 34px;
+  font-size: 42px;
+  font-weight: 800;
   line-height: 1;
+  color: var(--brand);
 }
 
 .scoreValue span {
   display: block;
-  margin-top: 4px;
-  color: var(--text-softer);
+  margin-top: 6px;
+  color: var(--text-muted);
   font-size: 12px;
+  font-weight: 600;
 }
 
 .breakdown {
@@ -444,67 +447,90 @@ button:disabled {
 }
 
 .categoryModal {
-  width: min(520px, 100%);
-}
-
-.categoryScoreRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 16px 0 6px;
-}
-
-.categoryScoreRow span {
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.categoryScoreRow strong {
-  font-size: 28px;
-  color: var(--accent);
+  width: min(560px, 100%);
+  max-height: min(85vh, 720px);
+  overflow-y: auto;
 }
 
 .subItemsTitle {
-  margin: 20px 0 12px;
+  margin: 16px 0 12px;
   font-size: 15px;
   color: var(--text);
 }
 
 .subItemsList {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .subItemCard {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 14px 16px;
   background: var(--chip-bg);
 }
 
-.subItemRow {
+.subItemCardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
-.subItemRow span {
+.subItemCardHeader strong {
+  font-size: 14px;
   color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
 }
 
-.subItemRow strong {
-  color: var(--accent);
-  font-size: 14px;
+.progressBadge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--brand-contrast);
+  background: var(--accent);
 }
 
-.subItemCard small {
-  display: block;
-  margin-top: 6px;
+.subItemInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inputGroup label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inputGroup input {
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface-solid);
+  transition: border-color 0.15s ease;
+}
+
+.inputGroup input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.inputGroup input::placeholder {
   color: var(--text-faint);
-  font-size: 12px;
 }
 
 .progress {

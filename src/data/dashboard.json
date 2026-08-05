@@ -8,11 +8,11 @@
       "value": 78,
       "tone": "good",
       "subItems": [
-        { "label": "体重", "value": 82, "detail": "目标区间内" },
-        { "label": "睡眠", "value": 72, "detail": "平均 6.8h" },
-        { "label": "运动", "value": 85, "detail": "本周 4 次" },
-        { "label": "血糖", "value": 76, "detail": "空腹 6.4" },
-        { "label": "胰岛素", "value": 78, "detail": "按计划执行" }
+        { "label": "体重", "target": "68kg", "achieved": "67.5kg", "unit": "kg" },
+        { "label": "睡眠", "target": "8h", "achieved": "6.8h", "unit": "h" },
+        { "label": "运动", "target": "5次", "achieved": "4次", "unit": "次" },
+        { "label": "血糖", "target": "6.0", "achieved": "6.4", "unit": "" },
+        { "label": "胰岛素", "target": "执行", "achieved": "执行", "unit": "" }
       ]
     },
     {
@@ -20,9 +20,9 @@
       "value": 84,
       "tone": "good",
       "subItems": [
-        { "label": "收入", "value": 88, "detail": "本月 ¥12,500" },
-        { "label": "支出", "value": 82, "detail": "本月 ¥4,200" },
-        { "label": "周度汇总", "value": 84, "detail": "结余良好" }
+        { "label": "收入", "target": "15000", "achieved": "12500", "unit": "¥" },
+        { "label": "支出", "target": "5000", "achieved": "4200", "unit": "¥" },
+        { "label": "周度汇总", "target": "结余", "achieved": "结余", "unit": "" }
       ]
     },
     {
@@ -30,9 +30,9 @@
       "value": 72,
       "tone": "watch",
       "subItems": [
-        { "label": "市场业务", "value": 70, "detail": "2 个项目进行中" },
-        { "label": "广和业务", "value": 75, "detail": "本周 3 次会议" },
-        { "label": "其他业务", "value": 72, "detail": "预留入口" }
+        { "label": "市场业务", "target": "3个", "achieved": "2个", "unit": "个" },
+        { "label": "广和业务", "target": "5次", "achieved": "3次", "unit": "次" },
+        { "label": "其他业务", "target": "1个", "achieved": "1个", "unit": "个" }
       ]
     },
     {
@@ -40,9 +40,9 @@
       "value": 88,
       "tone": "strong",
       "subItems": [
-        { "label": "自媒体发布", "value": 90, "detail": "本周 5 篇" },
-        { "label": "内容制作", "value": 86, "detail": "3 条视频" },
-        { "label": "数据分析", "value": 85, "detail": "增长 12%" }
+        { "label": "自媒体发布", "target": "7篇", "achieved": "5篇", "unit": "篇" },
+        { "label": "内容制作", "target": "5条", "achieved": "3条", "unit": "条" },
+        { "label": "数据分析", "target": "周度", "achieved": "周度", "unit": "" }
       ]
     },
     {
@@ -50,10 +50,10 @@
       "value": 76,
       "tone": "watch",
       "subItems": [
-        { "label": "健康医疗", "value": 78, "detail": "阅读 2 篇" },
-        { "label": "AI 工具", "value": 82, "detail": "实验 3 个" },
-        { "label": "商业管理", "value": 74, "detail": "笔记 5 条" },
-        { "label": "其他", "value": 70, "detail": "探索中" }
+        { "label": "健康医疗", "target": "5篇", "achieved": "2篇", "unit": "篇" },
+        { "label": "AI工具", "target": "5个", "achieved": "3个", "unit": "个" },
+        { "label": "商业管理", "target": "10条", "achieved": "5条", "unit": "条" },
+        { "label": "其他", "target": "探索", "achieved": "探索", "unit": "" }
       ]
     },
     {
@@ -61,8 +61,8 @@
       "value": 80,
       "tone": "good",
       "subItems": [
-        { "label": "家庭生活", "value": 84, "detail": "陪伴充足" },
-        { "label": "个人事务", "value": 76, "detail": "3 项待办" }
+        { "label": "家庭生活", "target": "每周", "achieved": "每周", "unit": "" },
+        { "label": "个人事务", "target": "5项", "achieved": "3项", "unit": "项" }
       ]
     }
   ],
