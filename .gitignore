@@ -4,3 +4,4 @@ dist
 .env.*
 .openai/.sites-credential*
 *.docx
+.deploy-gh-pages
