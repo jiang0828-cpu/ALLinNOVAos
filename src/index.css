@@ -727,48 +727,56 @@ button:disabled {
   align-content: start;
 }
 
-.feedsContent {
-  display: grid;
-  gap: 8px;
-  min-height: 0;
+.feedsTabs {
+  display: flex;
+  gap: 4px;
+  background: var(--chip-bg);
+  border-radius: 8px;
+  padding: 4px;
 }
 
-.feedsSection {
-  display: grid;
-  gap: 6px;
-}
-
-.feedsSectionTitle {
-  margin: 0;
+.feedTab {
+  flex: 1;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.feedsSectionTitle.news {
+.feedTab:hover {
+  color: var(--text);
+}
+
+.feedTab.active {
+  background: var(--surface-solid);
   color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.feedsSectionTitle.ideas {
-  color: var(--accent-gold);
-}
-
-.feedsSectionTitle.plans {
-  color: var(--brand-soft);
+.feedsContent {
+  min-height: 260px;
 }
 
 .feedsList,
 .ideasList,
 .plansList {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .feedItem,
 .ideaItem,
 .planItem {
   border-left: 3px solid var(--accent);
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: var(--chip-bg);
   border-radius: 6px;
   text-decoration: none;
@@ -776,15 +784,13 @@ button:disabled {
   display: block;
   cursor: pointer;
   transition:
-    background-color 0.15s ease,
-    transform 0.1s ease;
+    background-color 0.15s ease;
 }
 
 .feedItem:hover,
 .ideaItem:hover,
 .planItem:hover {
   background: var(--ghost-bg);
-  transform: translateY(-1px);
 }
 
 .feedItem.news {
@@ -793,12 +799,10 @@ button:disabled {
 
 .ideaItem.ideas {
   border-left-color: var(--accent-gold);
-  background: linear-gradient(135deg, rgba(213, 154, 47, 0.08), var(--chip-bg));
 }
 
 .planItem.plans {
   border-left-color: var(--brand-soft);
-  background: linear-gradient(135deg, rgba(45, 119, 104, 0.08), var(--chip-bg));
 }
 
 .feedItem h3,

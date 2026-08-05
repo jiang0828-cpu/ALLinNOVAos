@@ -256,20 +256,41 @@ function TodayFocus({ items }) {
 }
 
 function FeedsPanel() {
+  const [activeTab, setActiveTab] = useState("news");
+
   return (
     <section className="panel feedsPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">FEEDS</span>
-          <h2>资讯情报</h2>
+          <h2>情报流</h2>
         </div>
         <BookOpen size={20} />
       </div>
+      <div className="feedsTabs">
+        <button
+          className={`feedTab ${activeTab === "news" ? "active" : ""}`}
+          onClick={() => setActiveTab("news")}
+        >
+          NEWS
+        </button>
+        <button
+          className={`feedTab ${activeTab === "ideas" ? "active" : ""}`}
+          onClick={() => setActiveTab("ideas")}
+        >
+          IDEAS
+        </button>
+        <button
+          className={`feedTab ${activeTab === "plans" ? "active" : ""}`}
+          onClick={() => setActiveTab("plans")}
+        >
+          PLANS
+        </button>
+      </div>
       <div className="feedsContent">
-        <div className="feedsSection">
-          <h4 className="feedsSectionTitle news">NEWS</h4>
+        {activeTab === "news" && (
           <div className="feedsList">
-            {dashboard.feeds.slice(0, 2).map((feed, index) => (
+            {dashboard.feeds.map((feed, index) => (
               <a key={index} href="#" className="feedItem news" onClick={(e) => e.preventDefault()}>
                 <div className="feedMeta">
                   <span className="feedSource">{feed.source}</span>
@@ -280,11 +301,10 @@ function FeedsPanel() {
               </a>
             ))}
           </div>
-        </div>
-        <div className="feedsSection">
-          <h4 className="feedsSectionTitle ideas">IDEAS</h4>
+        )}
+        {activeTab === "ideas" && (
           <div className="ideasList">
-            {dashboard.ideas.slice(0, 2).map((idea, index) => (
+            {dashboard.ideas.map((idea, index) => (
               <a key={index} href="#" className="ideaItem ideas" onClick={(e) => e.preventDefault()}>
                 <h3>{idea.title}</h3>
                 <div className="ideaTags">
@@ -295,11 +315,10 @@ function FeedsPanel() {
               </a>
             ))}
           </div>
-        </div>
-        <div className="feedsSection">
-          <h4 className="feedsSectionTitle plans">PLANS</h4>
+        )}
+        {activeTab === "plans" && (
           <div className="plansList">
-            {dashboard.plans.slice(0, 1).map((plan, index) => (
+            {dashboard.plans.map((plan, index) => (
               <a key={index} href="#" className="planItem plans" onClick={(e) => e.preventDefault()}>
                 <div className="planHeader">
                   <h3>{plan.title}</h3>
@@ -309,7 +328,7 @@ function FeedsPanel() {
               </a>
             ))}
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
