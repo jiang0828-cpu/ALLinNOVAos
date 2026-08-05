@@ -165,10 +165,36 @@ function LifeScore({ onSelectCategory }) {
               className="dialValue"
               pathLength="100"
               strokeDasharray={`${dashboard.lifeScore} 100`}
+              style={{
+                stroke:
+                  dashboard.lifeScore >= 80
+                    ? "#178a6f"
+                    : dashboard.lifeScore >= 60
+                      ? "#d59a2f"
+                      : "#bb4d35",
+                filter: `drop-shadow(0 0 6px ${
+                  dashboard.lifeScore >= 80
+                    ? "rgba(23,138,111,0.35)"
+                    : dashboard.lifeScore >= 60
+                      ? "rgba(213,154,47,0.35)"
+                      : "rgba(187,77,53,0.35)"
+                })`,
+              }}
             />
           </svg>
           <div className="scoreValue">
-            <strong>{dashboard.lifeScore}</strong>
+            <strong
+              style={{
+                backgroundImage:
+                  dashboard.lifeScore >= 80
+                    ? "linear-gradient(135deg, #173a34 0%, #178a6f 60%, #d59a2f 100%)"
+                    : dashboard.lifeScore >= 60
+                      ? "linear-gradient(135deg, #574010 0%, #d59a2f 60%, #e8b85a 100%)"
+                      : "linear-gradient(135deg, #5a1e12 0%, #bb4d35 60%, #d66b50 100%)",
+              }}
+            >
+              {dashboard.lifeScore}
+            </strong>
             <span>目标达成</span>
           </div>
         </div>

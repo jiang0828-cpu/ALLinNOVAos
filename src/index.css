@@ -365,7 +365,6 @@ button:disabled {
   stroke: var(--accent);
   stroke-linecap: round;
   transition: stroke 0.25s ease;
-  filter: drop-shadow(0 0 6px rgba(23, 138, 111, 0.35));
 }
 
 .scoreValue {
