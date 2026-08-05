@@ -169,7 +169,7 @@ function LifeScore({ onSelectCategory }) {
           </svg>
           <div className="scoreValue">
             <strong>{dashboard.lifeScore}</strong>
-            <span>目标达成评分</span>
+            <span>目标达成</span>
           </div>
         </div>
         <div className="breakdown">
