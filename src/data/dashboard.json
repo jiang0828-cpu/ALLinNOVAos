@@ -1,13 +1,70 @@
 {
   "updatedAt": "2026-08-05T09:30:00+08:00",
   "lifeScore": 82,
-  "lifeScoreTrend": "演示",
+  "lifeScoreTrend": "本周",
   "statusBreakdown": [
-    { "label": "健康", "value": 78, "tone": "good" },
-    { "label": "财富", "value": 84, "tone": "good" },
-    { "label": "工作", "value": 72, "tone": "watch" },
-    { "label": "内容", "value": 88, "tone": "strong" },
-    { "label": "学习", "value": 76, "tone": "watch" }
+    {
+      "label": "健康",
+      "value": 78,
+      "tone": "good",
+      "subItems": [
+        { "label": "体重", "value": 82, "detail": "目标区间内" },
+        { "label": "睡眠", "value": 72, "detail": "平均 6.8h" },
+        { "label": "运动", "value": 85, "detail": "本周 4 次" },
+        { "label": "血糖", "value": 76, "detail": "空腹 6.4" },
+        { "label": "胰岛素", "value": 78, "detail": "按计划执行" }
+      ]
+    },
+    {
+      "label": "财富",
+      "value": 84,
+      "tone": "good",
+      "subItems": [
+        { "label": "收入", "value": 88, "detail": "本月 ¥12,500" },
+        { "label": "支出", "value": 82, "detail": "本月 ¥4,200" },
+        { "label": "周度汇总", "value": 84, "detail": "结余良好" }
+      ]
+    },
+    {
+      "label": "工作",
+      "value": 72,
+      "tone": "watch",
+      "subItems": [
+        { "label": "市场业务", "value": 70, "detail": "2 个项目进行中" },
+        { "label": "广和业务", "value": 75, "detail": "本周 3 次会议" },
+        { "label": "其他业务", "value": 72, "detail": "预留入口" }
+      ]
+    },
+    {
+      "label": "内容",
+      "value": 88,
+      "tone": "strong",
+      "subItems": [
+        { "label": "自媒体发布", "value": 90, "detail": "本周 5 篇" },
+        { "label": "内容制作", "value": 86, "detail": "3 条视频" },
+        { "label": "数据分析", "value": 85, "detail": "增长 12%" }
+      ]
+    },
+    {
+      "label": "学习",
+      "value": 76,
+      "tone": "watch",
+      "subItems": [
+        { "label": "健康医疗", "value": 78, "detail": "阅读 2 篇" },
+        { "label": "AI 工具", "value": 82, "detail": "实验 3 个" },
+        { "label": "商业管理", "value": 74, "detail": "笔记 5 条" },
+        { "label": "其他", "value": 70, "detail": "探索中" }
+      ]
+    },
+    {
+      "label": "其他",
+      "value": 80,
+      "tone": "good",
+      "subItems": [
+        { "label": "家庭生活", "value": 84, "detail": "陪伴充足" },
+        { "label": "个人事务", "value": 76, "detail": "3 项待办" }
+      ]
+    }
   ],
   "todayFocus": [
     {
@@ -122,6 +179,13 @@
       "unit": "新增笔记",
       "detail": "学习主题与笔记数量预留为真实 API 字段",
       "delta": "演示"
+    },
+    {
+      "title": "其他",
+      "value": "80",
+      "unit": "/100",
+      "detail": "家庭生活与个人事务概览",
+      "delta": "+2"
     }
   ],
   "commands": [

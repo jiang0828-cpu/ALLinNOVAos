@@ -6,11 +6,14 @@ import {
   BrainCircuit,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   CircleDollarSign,
   Command,
   Database,
   Dumbbell,
   FileText,
+  Home,
   LayoutDashboard,
   Lightbulb,
   ListChecks,
@@ -38,6 +41,7 @@ const cardIcons = {
   工作: ListChecks,
   内容: FileText,
   学习: BrainCircuit,
+  其他: Home,
 };
 
 const workSections = [
@@ -147,9 +151,15 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
 }
 
 function LifeScore() {
+  const [expanded, setExpanded] = useState(null);
+
+  function toggleItem(label) {
+    setExpanded((prev) => (prev === label ? null : label));
+  }
+
   return (
     <section className="scorePanel">
-      <div className="sectionEyebrow">CORE STATE</div>
+      <div className="sectionEyebrow">周度工作重点</div>
       <div className="scoreGrid">
         <div className="scoreDial">
           <svg viewBox="0 0 120 120" role="img" aria-label={`Life Score ${dashboard.lifeScore}`}>
@@ -165,19 +175,47 @@ function LifeScore() {
           </svg>
           <div className="scoreValue">
             <strong>{dashboard.lifeScore}</strong>
-            <span>{dashboard.lifeScoreTrend} 本周</span>
+            <span>目标达成评分</span>
           </div>
         </div>
         <div className="breakdown">
-          {dashboard.statusBreakdown.map((item) => (
-            <div key={item.label} className="breakdownItem">
-              <div>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
+          {dashboard.statusBreakdown.map((item) => {
+            const isOpen = expanded === item.label;
+            return (
+              <div key={item.label} className="breakdownItem">
+                <button
+                  className="breakdownHeader"
+                  onClick={() => toggleItem(item.label)}
+                  aria-expanded={isOpen}
+                >
+                  <div className="breakdownHeaderLeft">
+                    <span>{item.label}</span>
+                    <Progress value={item.value} />
+                  </div>
+                  <div className="breakdownHeaderRight">
+                    <strong>{item.value}</strong>
+                    {item.subItems && item.subItems.length > 0 && (
+                      isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                    )}
+                  </div>
+                </button>
+                {isOpen && item.subItems && (
+                  <div className="subItems">
+                    {item.subItems.map((sub) => (
+                      <div key={sub.label} className="subItem">
+                        <div className="subItemHeader">
+                          <span>{sub.label}</span>
+                          <strong>{sub.value}</strong>
+                        </div>
+                        <Progress value={sub.value} />
+                        <small>{sub.detail}</small>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <Progress value={item.value} />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
