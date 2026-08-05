@@ -1,0 +1,152 @@
+{
+  "updatedAt": "2026-08-05T09:30:00+08:00",
+  "lifeScore": 82,
+  "lifeScoreTrend": "演示",
+  "statusBreakdown": [
+    { "label": "健康", "value": 78, "tone": "good" },
+    { "label": "财富", "value": 84, "tone": "good" },
+    { "label": "工作", "value": 72, "tone": "watch" },
+    { "label": "内容", "value": 88, "tone": "strong" },
+    { "label": "学习", "value": 76, "tone": "watch" }
+  ],
+  "todayFocus": [
+    {
+      "title": "完成 NOVA OS MVP 首页验收",
+      "system": "AGI OS",
+      "priority": "P0",
+      "eta": "示例"
+    },
+    {
+      "title": "整理示例重点项目",
+      "system": "Work OS",
+      "priority": "P1",
+      "eta": "示例"
+    },
+    {
+      "title": "安排示例健康行动",
+      "system": "Life OS",
+      "priority": "P1",
+      "eta": "示例"
+    },
+    {
+      "title": "复盘示例内容节奏",
+      "system": "Media OS",
+      "priority": "P2",
+      "eta": "示例"
+    }
+  ],
+  "alerts": [
+    {
+      "level": "high",
+      "title": "示例健康风险",
+      "reason": "演示数据提示恢复时间不足，适合在真实接入后替换为个人指标。",
+      "action": "预留提醒动作：安排休息或降低任务密度。"
+    },
+    {
+      "level": "medium",
+      "title": "示例任务风险",
+      "reason": "演示数据提示任务上下文较多，适合在真实接入后替换为项目指标。",
+      "action": "预留提醒动作：锁定一个深度工作块。"
+    }
+  ],
+  "aiInsight": "演示建议：先完成最关键交付，再处理维护型任务；健康行动保持低门槛，确保系统每天可持续使用。",
+  "systems": [
+    {
+      "name": "Life OS",
+      "summary": "健康、财富、家庭与个人事务",
+      "status": "稳定",
+      "progress": 78,
+      "metrics": ["睡眠 示例", "步数 示例", "消费 示例", "待办 示例"]
+    },
+    {
+      "name": "Work OS",
+      "summary": "项目、客户、任务与商业机会",
+      "status": "需聚焦",
+      "progress": 64,
+      "metrics": ["重点项目 示例", "今日任务 示例", "客户跟进 示例", "进度 示例"]
+    },
+    {
+      "name": "Media OS",
+      "summary": "选题、生产、发布计划与数据复盘",
+      "status": "增长",
+      "progress": 88,
+      "metrics": ["今日选题 示例", "待发布 示例", "增长 示例", "复盘 示例"]
+    },
+    {
+      "name": "Knowledge OS",
+      "summary": "学习计划、阅读记录、知识库与笔记",
+      "status": "积累中",
+      "progress": 72,
+      "metrics": ["今日学习 示例", "阅读 示例", "新增笔记 示例", "主题 示例"]
+    },
+    {
+      "name": "AGI OS",
+      "summary": "AI 实验、工具清单与商业探索",
+      "status": "实验中",
+      "progress": 81,
+      "metrics": ["当前实验 示例", "待验证 示例", "工具调用 示例", "下一步 示例"]
+    }
+  ],
+  "dataCards": [
+    {
+      "title": "健康",
+      "value": "78",
+      "unit": "/100",
+      "detail": "睡眠低于目标，运动计划可执行",
+      "delta": "-4"
+    },
+    {
+      "title": "财富",
+      "value": "示例",
+      "unit": "消费",
+      "detail": "预算与支出状态预留为真实 API 字段",
+      "delta": "演示"
+    },
+    {
+      "title": "工作",
+      "value": "示例",
+      "unit": "今日任务",
+      "detail": "任务数量与优先级预留为真实 API 字段",
+      "delta": "演示"
+    },
+    {
+      "title": "内容",
+      "value": "示例",
+      "unit": "本周增长",
+      "detail": "内容复盘与增长指标预留为真实 API 字段",
+      "delta": "演示"
+    },
+    {
+      "title": "学习",
+      "value": "5",
+      "unit": "新增笔记",
+      "detail": "学习主题与笔记数量预留为真实 API 字段",
+      "delta": "演示"
+    }
+  ],
+  "commands": [
+    {
+      "label": "帮我规划今天",
+      "output": "演示建议：按 3 段推进，先完成关键交付，再处理项目整理，最后安排一个低门槛健康行动。"
+    },
+    {
+      "label": "总结本周重点",
+      "output": "演示总结：本周主线是把 NOVA OS 从想法推进到可运行系统，并记录每天的系统改进点。"
+    },
+    {
+      "label": "分析任务优先级",
+      "output": "演示分析：P0 是可交付成果，P1 是状态维护，P2 是增益项。先处理关键交付，再安排复盘任务。"
+    },
+    {
+      "label": "生成明日行动清单",
+      "output": "演示清单：1. 补充二级系统页面草图；2. 定义 API 数据字段；3. 复盘 Dashboard 使用体验；4. 安排健康与学习时段。"
+    }
+  ],
+  "roadmap": [
+    "Local JSON",
+    "REST API",
+    "Database",
+    "AI Agent",
+    "Automation Engine"
+  ]
+}
