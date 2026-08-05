@@ -311,8 +311,7 @@ button:disabled {
 }
 
 .heroGrid > .panel > .panelHeader,
-.heroGrid > .scorePanel > .panelHeader,
-.heroGrid > .scorePanel > div:first-child {
+.heroGrid > .scorePanel > .panelHeader {
   flex-shrink: 0;
 }
 
@@ -320,6 +319,9 @@ button:disabled {
 .heroGrid > .scorePanel > :not(.panelHeader) {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .panel,
@@ -664,7 +666,6 @@ button:disabled {
   display: grid;
   gap: 10px;
   margin-top: 14px;
-  flex: 1;
   align-content: start;
 }
 
@@ -734,7 +735,6 @@ button:disabled {
   display: grid;
   gap: 8px;
   min-height: 0;
-  flex: 1;
   align-content: start;
 }
 
@@ -896,10 +896,6 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-
-.insightPanel p {
-  flex: 1;
 }
 
 .primaryButton,
