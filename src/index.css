@@ -341,6 +341,7 @@ button:disabled {
   position: relative;
   width: 160px;
   height: 160px;
+  filter: drop-shadow(0 4px 12px rgba(23, 138, 111, 0.15));
 }
 
 .scoreDial svg {
@@ -357,12 +358,14 @@ button:disabled {
 
 .dialTrack {
   stroke: var(--track-bg);
+  opacity: 0.6;
 }
 
 .dialValue {
   stroke: var(--accent);
   stroke-linecap: round;
   transition: stroke 0.25s ease;
+  filter: drop-shadow(0 0 6px rgba(23, 138, 111, 0.35));
 }
 
 .scoreValue {
@@ -378,7 +381,10 @@ button:disabled {
   font-size: 42px;
   font-weight: 800;
   line-height: 1;
-  color: var(--brand);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 60%, var(--accent-gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .scoreValue span {
@@ -400,20 +406,27 @@ button:disabled {
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  border: 0;
-  border-radius: 6px;
-  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 9px 12px;
   background: transparent;
   cursor: pointer;
   text-align: left;
   transition:
-    background-color 0.15s ease,
-    transform 0.1s ease;
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
 }
 
 .breakdownItem:hover {
   background: var(--ghost-bg);
+  border-color: rgba(23, 138, 111, 0.2);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(23, 138, 111, 0.08);
+}
+
+.breakdownItem:active {
+  transform: translateY(0);
 }
 
 .breakdownHeaderLeft {
@@ -439,6 +452,19 @@ button:disabled {
 .breakdownHeaderRight strong {
   color: var(--text);
   font-size: 14px;
+  font-weight: 700;
+}
+
+.breakdownItem.score-high .breakdownHeaderRight strong {
+  color: var(--accent);
+}
+
+.breakdownItem.score-mid .breakdownHeaderRight strong {
+  color: var(--accent-gold);
+}
+
+.breakdownItem.score-low .breakdownHeaderRight strong {
+  color: var(--danger);
 }
 
 .breakdownHeaderRight svg {
@@ -468,6 +494,16 @@ button:disabled {
   border-radius: 10px;
   padding: 14px 16px;
   background: var(--chip-bg);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.subItemCard:hover {
+  border-color: rgba(23, 138, 111, 0.25);
+  box-shadow: 0 4px 16px rgba(23, 138, 111, 0.08);
+  transform: translateY(-1px);
 }
 
 .subItemCardHeader {
@@ -485,11 +521,25 @@ button:disabled {
 .progressBadge {
   display: inline-block;
   border-radius: 999px;
-  padding: 3px 10px;
+  padding: 3px 12px;
   font-size: 13px;
   font-weight: 800;
   color: var(--brand-contrast);
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--brand-soft));
+  box-shadow: 0 2px 8px rgba(23, 138, 111, 0.25);
+}
+
+.progressBadge.score-high {
+  background: linear-gradient(135deg, #2d7768, #178a6f);
+}
+
+.progressBadge.score-mid {
+  background: linear-gradient(135deg, #d59a2f, #e8b85a);
+  color: #3a2a08;
+}
+
+.progressBadge.score-low {
+  background: linear-gradient(135deg, #bb4d35, #d66b50);
 }
 
 .subItemInputs {
@@ -536,9 +586,10 @@ button:disabled {
 .progress {
   overflow: hidden;
   width: 100%;
-  height: 7px;
+  height: 8px;
   border-radius: 999px;
   background: var(--progress-bg);
+  position: relative;
 }
 
 .progress span {
@@ -546,6 +597,19 @@ button:disabled {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), var(--accent-gold));
+  transition: width 0.5s ease;
+}
+
+.progress.score-high span {
+  background: linear-gradient(90deg, #2d7768, #178a6f);
+}
+
+.progress.score-mid span {
+  background: linear-gradient(90deg, #d59a2f, #e8b85a);
+}
+
+.progress.score-low span {
+  background: linear-gradient(90deg, #bb4d35, #d66b50);
 }
 
 .emptyState {
@@ -946,7 +1010,14 @@ button:disabled {
   place-items: center;
   padding: 20px;
   background: rgba(6, 12, 10, 0.55);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modalCard {
@@ -954,11 +1025,19 @@ button:disabled {
   max-height: min(80vh, 640px);
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 22px;
   background: var(--surface-solid);
-  box-shadow: var(--shadow-hover);
+  box-shadow:
+    0 24px 80px rgba(41, 52, 45, 0.22),
+    0 2px 8px rgba(41, 52, 45, 0.08);
   color: var(--text);
+  animation: modalSlideUp 0.25s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modalHeader {

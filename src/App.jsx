@@ -77,9 +77,9 @@ function matches(query, ...fields) {
   return fields.join(" ").toLowerCase().includes(query);
 }
 
-function Progress({ value }) {
+function Progress({ value, className = "" }) {
   return (
-    <div className="progress" aria-label={`进度 ${value}%`}>
+    <div className={`progress ${className}`.trim()} aria-label={`进度 ${value}%`}>
       <span style={{ width: `${value}%` }} />
     </div>
   );
@@ -173,22 +173,25 @@ function LifeScore({ onSelectCategory }) {
           </div>
         </div>
         <div className="breakdown">
-          {dashboard.statusBreakdown.map((item) => (
-            <button
-              key={item.label}
-              className="breakdownItem"
-              onClick={() => onSelectCategory(item)}
-            >
-              <div className="breakdownHeaderLeft">
-                <span>{item.label}</span>
-                <Progress value={item.value} />
-              </div>
-              <div className="breakdownHeaderRight">
-                <strong>{item.value}</strong>
-                <ChevronDown size={14} />
-              </div>
-            </button>
-          ))}
+          {dashboard.statusBreakdown.map((item) => {
+            const scoreLevel = item.value >= 80 ? "score-high" : item.value >= 70 ? "score-mid" : "score-low";
+            return (
+              <button
+                key={item.label}
+                className={`breakdownItem ${scoreLevel}`}
+                onClick={() => onSelectCategory(item)}
+              >
+                <div className="breakdownHeaderLeft">
+                  <span>{item.label}</span>
+                  <Progress value={item.value} className={scoreLevel} />
+                </div>
+                <div className="breakdownHeaderRight">
+                  <strong>{item.value}</strong>
+                  <ChevronDown size={14} />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -540,11 +543,14 @@ function CategoryModal({ category, onClose }) {
           <div className="subItemsList">
             {items.map((sub, index) => {
               const progress = calculateProgress(sub.target, sub.achieved);
+              const scoreLevel = progress !== null
+                ? (progress >= 80 ? "score-high" : progress >= 60 ? "score-mid" : "score-low")
+                : "";
               return (
                 <div key={sub.label} className="subItemCard">
                   <div className="subItemCardHeader">
                     <strong>{sub.label}</strong>
-                    {progress !== null && <span className="progressBadge">{progress}%</span>}
+                    {progress !== null && <span className={`progressBadge ${scoreLevel}`}>{progress}%</span>}
                   </div>
                   <div className="subItemInputs">
                     <div className="inputGroup">
@@ -566,7 +572,7 @@ function CategoryModal({ category, onClose }) {
                       />
                     </div>
                   </div>
-                  {progress !== null && <Progress value={progress} />}
+                  {progress !== null && <Progress value={progress} className={scoreLevel} />}
                 </div>
               );
             })}
