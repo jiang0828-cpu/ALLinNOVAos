@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
-  AlertTriangle,
   ArrowRight,
+  BookOpen,
   BrainCircuit,
   CalendarDays,
   CheckCircle2,
@@ -255,23 +255,85 @@ function TodayFocus({ items }) {
   );
 }
 
-function Alerts() {
+function Feeds() {
   return (
-    <section className="panel alertPanel">
+    <section className="panel feedsPanel">
       <div className="panelHeader">
         <div>
-          <span className="sectionEyebrow">RISK</span>
-          <h2>风险提醒</h2>
+          <span className="sectionEyebrow">FEEDS</span>
+          <h2>情报流</h2>
         </div>
-        <AlertTriangle size={20} />
+        <BookOpen size={20} />
       </div>
-      {dashboard.alerts.map((alert) => (
-        <article key={alert.title} className={`alertItem ${alert.level}`}>
-          <h3>{alert.title}</h3>
-          <p>{alert.reason}</p>
-          <strong>{alert.action}</strong>
-        </article>
-      ))}
+      <div className="feedsList">
+        {dashboard.feeds.map((feed, index) => (
+          <article key={index} className="feedItem">
+            <div className="feedMeta">
+              <span className="feedSource">{feed.source}</span>
+              <span className="feedTime">{feed.time}</span>
+            </div>
+            <h3>{feed.title}</h3>
+            <p>{feed.summary}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Ideas() {
+  return (
+    <section className="panel ideasPanel">
+      <div className="panelHeader">
+        <div>
+          <span className="sectionEyebrow">IDEAS</span>
+          <h2>灵感池</h2>
+        </div>
+        <Lightbulb size={20} />
+      </div>
+      <div className="ideasList">
+        {dashboard.ideas.map((idea, index) => (
+          <article key={index} className="ideaItem">
+            <h3>{idea.title}</h3>
+            <div className="ideaTags">
+              {idea.tags.map((tag, tagIndex) => (
+                <span key={tagIndex} className="ideaTag">{tag}</span>
+              ))}
+            </div>
+            <span className={`ideaStatus status-${idea.status}`}>{idea.status}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Plans() {
+  return (
+    <section className="panel plansPanel">
+      <div className="panelHeader">
+        <div>
+          <span className="sectionEyebrow">PLANS</span>
+          <h2>计划台</h2>
+        </div>
+        <ListChecks size={20} />
+      </div>
+      <div className="plansList">
+        {dashboard.plans.map((plan, index) => (
+          <article key={index} className="planItem">
+            <div className="planHeader">
+              <h3>{plan.title}</h3>
+              <span className="planProgress">{plan.progress}%</span>
+            </div>
+            <Progress value={plan.progress} className={plan.progress >= 70 ? "score-high" : plan.progress >= 40 ? "score-mid" : "score-low"} />
+            <ul className="planItems">
+              {plan.items.map((item, itemIndex) => (
+                <li key={itemIndex}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }
@@ -753,7 +815,9 @@ export default function App() {
       <section className="heroGrid">
         <LifeScore onSelectCategory={setActiveCategory} />
         <TodayFocus items={filteredFocus} />
-        <Alerts />
+        <Feeds />
+        <Ideas />
+        <Plans />
         <AiSuggestion added={insightAdded} onConvert={handleConvertInsight} />
       </section>
 

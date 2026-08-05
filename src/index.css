@@ -282,9 +282,9 @@ button:disabled {
 
 .heroGrid {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .panel,
@@ -662,9 +662,6 @@ button:disabled {
 
 .focusItem h3,
 .focusItem p,
-.alertItem h3,
-.alertItem p,
-.alertItem strong,
 .systemCard h3,
 .systemCard p,
 .dataCard p,
@@ -675,7 +672,6 @@ button:disabled {
 }
 
 .focusItem h3,
-.alertItem h3,
 .systemCard h3 {
   font-size: 15px;
   line-height: 1.3;
@@ -684,7 +680,6 @@ button:disabled {
 .focusItem p,
 .systemCard p,
 .dataCard small,
-.alertItem p,
 .insightPanel p,
 .aiOutput p {
   color: var(--text-softer);
@@ -692,26 +687,114 @@ button:disabled {
   line-height: 1.5;
 }
 
-.alertPanel {
+.feedsPanel,
+.ideasPanel,
+.plansPanel {
   display: grid;
   gap: 12px;
   align-content: start;
 }
 
-.alertItem {
-  border-left: 3px solid var(--accent-gold);
-  padding-left: 12px;
+.feedsList,
+.ideasList,
+.plansList {
+  display: grid;
+  gap: 10px;
 }
 
-.alertItem.high {
-  border-left-color: var(--danger);
+.feedItem,
+.ideaItem,
+.planItem {
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  background: var(--chip-bg);
+  border-radius: 6px;
 }
 
-.alertItem strong {
-  display: block;
-  margin-top: 6px;
-  color: var(--brand);
+.feedItem h3,
+.ideaItem h3,
+.planItem h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.feedItem p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.feedMeta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.feedSource {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.feedTime {
+  color: var(--text-faint);
+}
+
+.ideaTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.ideaTag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ideaStatus {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+
+.ideaStatus.status-设计中,
+.ideaStatus.status-待评估 {
+  color: var(--accent-gold);
+}
+
+.ideaStatus.status-灵感 {
+  color: var(--accent);
+}
+
+.planHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.planProgress {
   font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.planItems {
+  margin: 8px 0 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: var(--text-softer);
+  line-height: 1.6;
 }
 
 .insightPanel {
