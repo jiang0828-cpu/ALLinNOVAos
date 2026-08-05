@@ -150,13 +150,7 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
   );
 }
 
-function LifeScore() {
-  const [expanded, setExpanded] = useState(null);
-
-  function toggleItem(label) {
-    setExpanded((prev) => (prev === label ? null : label));
-  }
-
+function LifeScore({ onSelectCategory }) {
   return (
     <section className="scorePanel">
       <div className="sectionEyebrow">周度工作重点</div>
@@ -179,43 +173,22 @@ function LifeScore() {
           </div>
         </div>
         <div className="breakdown">
-          {dashboard.statusBreakdown.map((item) => {
-            const isOpen = expanded === item.label;
-            return (
-              <div key={item.label} className="breakdownItem">
-                <button
-                  className="breakdownHeader"
-                  onClick={() => toggleItem(item.label)}
-                  aria-expanded={isOpen}
-                >
-                  <div className="breakdownHeaderLeft">
-                    <span>{item.label}</span>
-                    <Progress value={item.value} />
-                  </div>
-                  <div className="breakdownHeaderRight">
-                    <strong>{item.value}</strong>
-                    {item.subItems && item.subItems.length > 0 && (
-                      isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </button>
-                {isOpen && item.subItems && (
-                  <div className="subItems">
-                    {item.subItems.map((sub) => (
-                      <div key={sub.label} className="subItem">
-                        <div className="subItemHeader">
-                          <span>{sub.label}</span>
-                          <strong>{sub.value}</strong>
-                        </div>
-                        <Progress value={sub.value} />
-                        <small>{sub.detail}</small>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          {dashboard.statusBreakdown.map((item) => (
+            <button
+              key={item.label}
+              className="breakdownItem"
+              onClick={() => onSelectCategory(item)}
+            >
+              <div className="breakdownHeaderLeft">
+                <span>{item.label}</span>
+                <Progress value={item.value} />
               </div>
-            );
-          })}
+              <div className="breakdownHeaderRight">
+                <strong>{item.value}</strong>
+                <ChevronDown size={14} />
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </section>
@@ -496,6 +469,76 @@ function Roadmap() {
   );
 }
 
+function CategoryModal({ category, onClose }) {
+  const closeButtonRef = useRef(null);
+  const Icon = cardIcons[category?.label] ?? Database;
+
+  useEffect(() => {
+    if (!category) return undefined;
+    closeButtonRef.current?.focus();
+    function handleKeyDown(event) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [category, onClose]);
+
+  if (!category) return null;
+
+  return (
+    <div className="modalOverlay" onClick={onClose}>
+      <div
+        className="modalCard categoryModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="categoryModalTitle"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modalHeader">
+          <div className="systemIcon">
+            <Icon size={20} />
+          </div>
+          <div>
+            <span className="sectionEyebrow">周度工作重点</span>
+            <h2 id="categoryModalTitle">{category.label}</h2>
+          </div>
+          <button ref={closeButtonRef} className="iconButton" aria-label="关闭" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="categoryScoreRow">
+          <span>目标达成评分</span>
+          <strong>{category.value}</strong>
+        </div>
+        <Progress value={category.value} />
+
+        <h3 className="subItemsTitle">子项详情</h3>
+        {category.subItems && category.subItems.length > 0 ? (
+          <div className="subItemsList">
+            {category.subItems.map((sub) => (
+              <div key={sub.label} className="subItemCard">
+                <div className="subItemRow">
+                  <span>{sub.label}</span>
+                  <strong>{sub.value}</strong>
+                </div>
+                <Progress value={sub.value} />
+                <small>{sub.detail}</small>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="emptyState">暂无子项数据</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SystemModal({ system, onClose }) {
   const closeButtonRef = useRef(null);
 
@@ -590,6 +633,7 @@ export default function App() {
   const [focusItems, setFocusItems] = useState(dashboard.todayFocus);
   const [insightAdded, setInsightAdded] = useState(false);
   const [activeSystem, setActiveSystem] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -635,7 +679,7 @@ export default function App() {
       />
 
       <section className="heroGrid">
-        <LifeScore />
+        <LifeScore onSelectCategory={setActiveCategory} />
         <TodayFocus items={filteredFocus} />
         <Alerts />
         <AiSuggestion added={insightAdded} onConvert={handleConvertInsight} />
@@ -647,6 +691,7 @@ export default function App() {
       <Roadmap />
 
       <SystemModal system={activeSystem} onClose={() => setActiveSystem(null)} />
+      <CategoryModal category={activeCategory} onClose={() => setActiveCategory(null)} />
     </main>
   );
 }

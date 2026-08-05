@@ -388,30 +388,29 @@ button:disabled {
 
 .breakdown {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .breakdownItem {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-}
-
-.breakdownItem:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-.breakdownHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   width: 100%;
   border: 0;
-  padding: 0;
+  border-radius: 6px;
+  padding: 8px 10px;
   background: transparent;
   cursor: pointer;
   text-align: left;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.breakdownItem:hover {
+  background: var(--ghost-bg);
+  transform: translateY(-1px);
 }
 
 .breakdownHeaderLeft {
@@ -444,40 +443,68 @@ button:disabled {
   transition: transform 0.2s ease;
 }
 
-.subItems {
-  display: grid;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--chip-bg);
+.categoryModal {
+  width: min(520px, 100%);
 }
 
-.subItem {
-  display: grid;
-  gap: 3px;
-}
-
-.subItemHeader {
+.categoryScoreRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  margin: 16px 0 6px;
 }
 
-.subItemHeader span {
-  color: var(--text-soft);
+.categoryScoreRow span {
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
-.subItemHeader strong {
+.categoryScoreRow strong {
+  font-size: 28px;
+  color: var(--accent);
+}
+
+.subItemsTitle {
+  margin: 20px 0 12px;
+  font-size: 15px;
   color: var(--text);
-  font-size: 12px;
 }
 
-.subItem small {
+.subItemsList {
+  display: grid;
+  gap: 10px;
+}
+
+.subItemCard {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--chip-bg);
+}
+
+.subItemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.subItemRow span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.subItemRow strong {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.subItemCard small {
+  display: block;
+  margin-top: 6px;
   color: var(--text-faint);
-  font-size: 11px;
-  line-height: 1.3;
+  font-size: 12px;
 }
 
 .progress {
