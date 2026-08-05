@@ -298,14 +298,28 @@ button:disabled {
 
 .heroGrid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .heroGrid > .panel,
 .heroGrid > .scorePanel {
-  min-height: 380px;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+.heroGrid > .panel > .panelHeader,
+.heroGrid > .scorePanel > .panelHeader,
+.heroGrid > .scorePanel > div:first-child {
+  flex-shrink: 0;
+}
+
+.heroGrid > .panel > :not(.panelHeader),
+.heroGrid > .scorePanel > :not(.panelHeader) {
+  flex: 1;
+  min-height: 0;
 }
 
 .panel,
@@ -650,6 +664,8 @@ button:disabled {
   display: grid;
   gap: 10px;
   margin-top: 14px;
+  flex: 1;
+  align-content: start;
 }
 
 .focusItem {
@@ -709,15 +725,17 @@ button:disabled {
 }
 
 .feedsPanel {
-  display: grid;
-  gap: 12px;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .feedsContent {
   display: grid;
-  gap: 10px;
-  min-height: 300px;
+  gap: 8px;
+  min-height: 0;
+  flex: 1;
+  align-content: start;
 }
 
 .feedsSection {
@@ -878,6 +896,10 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.insightPanel p {
+  flex: 1;
 }
 
 .primaryButton,
