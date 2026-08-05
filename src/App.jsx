@@ -814,11 +814,17 @@ export default function App() {
         onToggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
       />
 
-      <section className="heroGrid">
-        <LifeScore onSelectCategory={setActiveCategory} />
-        <TodayFocus items={filteredFocus} />
-        <FeedsPanel />
-        <AiSuggestion added={insightAdded} onConvert={handleConvertInsight} />
+      <section className="commandHub">
+        <div className="commandHubHeader">
+          <span className="sectionEyebrow">COMMANDHUB</span>
+          <h2>全局指挥台</h2>
+        </div>
+        <div className="heroGrid">
+          <LifeScore onSelectCategory={setActiveCategory} />
+          <TodayFocus items={filteredFocus} />
+          <FeedsPanel />
+          <AiSuggestion added={insightAdded} onConvert={handleConvertInsight} />
+        </div>
       </section>
 
       <SystemGrid systems={filteredSystems} onOpenSystem={setActiveSystem} />
