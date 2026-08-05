@@ -589,64 +589,70 @@ button:disabled {
 .feedsPanel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.feedsTabs {
-  display: flex;
-  gap: 3px;
-  background: var(--chip-bg);
-  border-radius: 8px;
-  padding: 3px;
-  flex-shrink: 0;
-}
-
-.feedTab {
-  flex: 1;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  background: transparent;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.feedTab:hover {
-  color: var(--text);
-}
-
-.feedTab.active {
-  background: var(--surface-solid);
-  color: var(--accent);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.feedsContent {
+.feedsAllContent {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+}
+
+.feedsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.feedsSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.feedsSectionTitle {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--text-faint);
+}
+
+.feedsSectionDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.feedsSectionDot.news {
+  background: var(--accent);
+}
+
+.feedsSectionDot.ideas {
+  background: var(--accent-gold);
+}
+
+.feedsSectionDot.plans {
+  background: var(--brand-soft);
 }
 
 .feedsList,
 .ideasList,
 .plansList {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .feedItem,
 .ideaItem,
 .planItem {
-  border-left: 3px solid var(--accent);
-  padding: 10px 12px;
+  border-left: 2px solid var(--accent);
+  padding: 6px 10px;
   background: var(--chip-bg);
-  border-radius: 6px;
+  border-radius: 4px;
   text-decoration: none;
   color: inherit;
   display: block;
@@ -675,25 +681,16 @@ button:disabled {
 .feedItem h3,
 .ideaItem h3,
 .planItem h3 {
-  margin: 0 0 3px;
-  font-size: 13px;
-  line-height: 1.3;
-}
-
-.feedItem p,
-.ideaItem p,
-.planItem p {
   margin: 0;
-  color: var(--text-softer);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .feedMeta {
   display: flex;
-  gap: 8px;
-  margin-bottom: 3px;
-  font-size: 10px;
+  gap: 6px;
+  margin-bottom: 2px;
+  font-size: 9px;
   color: var(--text-faint);
 }
 
@@ -701,26 +698,11 @@ button:disabled {
   font-weight: 700;
 }
 
-.ideaTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 5px;
-}
-
-.ideaTag {
-  border-radius: 999px;
-  padding: 1px 7px;
-  font-size: 10px;
-  color: var(--pill-text);
-  background: var(--pill-bg);
-}
-
 .planHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .planHeader h3 {
@@ -728,7 +710,7 @@ button:disabled {
 }
 
 .planProgress {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--accent);
 }
