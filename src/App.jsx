@@ -1,19 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   BookOpen,
   BrainCircuit,
   CalendarDays,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   CircleDollarSign,
   Command,
   Database,
   Dumbbell,
   FileText,
-  Home,
   LayoutDashboard,
   Lightbulb,
   ListChecks,
@@ -41,7 +39,6 @@ const cardIcons = {
   工作: ListChecks,
   内容: FileText,
   学习: BrainCircuit,
-  其他: Home,
 };
 
 const workSections = [
@@ -77,9 +74,9 @@ function matches(query, ...fields) {
   return fields.join(" ").toLowerCase().includes(query);
 }
 
-function Progress({ value, className = "" }) {
+function Progress({ value }) {
   return (
-    <div className={`progress ${className}`.trim()} aria-label={`进度 ${value}%`}>
+    <div className="progress" aria-label={`进度 ${value}%`}>
       <span style={{ width: `${value}%` }} />
     </div>
   );
@@ -150,10 +147,15 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
   );
 }
 
-function LifeScore({ onSelectCategory }) {
+function LifeScore() {
   return (
     <section className="scorePanel">
-      <div className="sectionEyebrow">STATE / TARGET</div>
+      <div className="panelHeader">
+        <div>
+          <span className="sectionEyebrow">STATE / TARGET</span>
+          <h2>目标达成</h2>
+        </div>
+      </div>
       <div className="scoreGrid">
         <div className="scoreDial">
           <svg viewBox="0 0 120 120" role="img" aria-label={`Life Score ${dashboard.lifeScore}`}>
@@ -165,59 +167,23 @@ function LifeScore({ onSelectCategory }) {
               className="dialValue"
               pathLength="100"
               strokeDasharray={`${dashboard.lifeScore} 100`}
-              style={{
-                stroke:
-                  dashboard.lifeScore >= 80
-                    ? "#178a6f"
-                    : dashboard.lifeScore >= 60
-                      ? "#d59a2f"
-                      : "#bb4d35",
-                filter: `drop-shadow(0 0 6px ${
-                  dashboard.lifeScore >= 80
-                    ? "rgba(23,138,111,0.35)"
-                    : dashboard.lifeScore >= 60
-                      ? "rgba(213,154,47,0.35)"
-                      : "rgba(187,77,53,0.35)"
-                })`,
-              }}
             />
           </svg>
           <div className="scoreValue">
-            <strong
-              style={{
-                backgroundImage:
-                  dashboard.lifeScore >= 80
-                    ? "linear-gradient(135deg, #173a34 0%, #178a6f 60%, #d59a2f 100%)"
-                    : dashboard.lifeScore >= 60
-                      ? "linear-gradient(135deg, #574010 0%, #d59a2f 60%, #e8b85a 100%)"
-                      : "linear-gradient(135deg, #5a1e12 0%, #bb4d35 60%, #d66b50 100%)",
-              }}
-            >
-              {dashboard.lifeScore}
-            </strong>
+            <strong>{dashboard.lifeScore}</strong>
             <span>目标达成</span>
           </div>
         </div>
         <div className="breakdown">
-          {dashboard.statusBreakdown.map((item) => {
-            const scoreLevel = item.value >= 80 ? "score-high" : item.value >= 70 ? "score-mid" : "score-low";
-            return (
-              <button
-                key={item.label}
-                className={`breakdownItem ${scoreLevel}`}
-                onClick={() => onSelectCategory(item)}
-              >
-                <div className="breakdownHeaderLeft">
-                  <span>{item.label}</span>
-                  <Progress value={item.value} className={scoreLevel} />
-                </div>
-                <div className="breakdownHeaderRight">
-                  <strong>{item.value}</strong>
-                  <ChevronDown size={14} />
-                </div>
-              </button>
-            );
-          })}
+          {dashboard.statusBreakdown.map((item) => (
+            <div key={item.label} className="breakdownItem">
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+              <Progress value={item.value} />
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -556,119 +522,6 @@ function Roadmap() {
   );
 }
 
-function calculateProgress(target, achieved) {
-  const t = parseFloat(target);
-  const a = parseFloat(achieved);
-  if (isNaN(t) || isNaN(a) || t <= 0) return null;
-  return Math.min(100, Math.round((a / t) * 100));
-}
-
-function CategoryModal({ category, onClose }) {
-  const closeButtonRef = useRef(null);
-  const Icon = cardIcons[category?.label] ?? Database;
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
-    if (category?.subItems) {
-      setItems(category.subItems.map((s) => ({ ...s })));
-    }
-  }, [category]);
-
-  useEffect(() => {
-    if (!category) return undefined;
-    closeButtonRef.current?.focus();
-    function handleKeyDown(event) {
-      if (event.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [category, onClose]);
-
-  if (!category) return null;
-
-  function updateItem(index, field, value) {
-    setItems((prev) => {
-      const next = [...prev];
-      next[index] = { ...next[index], [field]: value };
-      return next;
-    });
-  }
-
-  const overallProgress = calculateProgress(category.target, category.achieved);
-
-  return (
-    <div className="modalOverlay" onClick={onClose}>
-      <div
-        className="modalCard categoryModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="categoryModalTitle"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="modalHeader">
-          <div className="systemIcon">
-            <Icon size={20} />
-          </div>
-          <div>
-            <span className="sectionEyebrow">STATE / TARGET</span>
-            <h2 id="categoryModalTitle">{category.label}</h2>
-          </div>
-          <button ref={closeButtonRef} className="iconButton" aria-label="关闭" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
-
-        <h3 className="subItemsTitle">子项详情</h3>
-        {items.length > 0 ? (
-          <div className="subItemsList">
-            {items.map((sub, index) => {
-              const progress = calculateProgress(sub.target, sub.achieved);
-              const scoreLevel = progress !== null
-                ? (progress >= 80 ? "score-high" : progress >= 60 ? "score-mid" : "score-low")
-                : "";
-              return (
-                <div key={sub.label} className="subItemCard">
-                  <div className="subItemCardHeader">
-                    <strong>{sub.label}</strong>
-                    {progress !== null && <span className={`progressBadge ${scoreLevel}`}>{progress}%</span>}
-                  </div>
-                  <div className="subItemInputs">
-                    <div className="inputGroup">
-                      <label>目标</label>
-                      <input
-                        type="text"
-                        value={sub.target}
-                        onChange={(e) => updateItem(index, "target", e.target.value)}
-                        placeholder="输入目标值"
-                      />
-                    </div>
-                    <div className="inputGroup">
-                      <label>达成</label>
-                      <input
-                        type="text"
-                        value={sub.achieved}
-                        onChange={(e) => updateItem(index, "achieved", e.target.value)}
-                        placeholder="输入达成值"
-                      />
-                    </div>
-                  </div>
-                  {progress !== null && <Progress value={progress} className={scoreLevel} />}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="emptyState">暂无子项数据</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function SystemModal({ system, onClose }) {
   const closeButtonRef = useRef(null);
 
@@ -763,7 +616,6 @@ export default function App() {
   const [focusItems, setFocusItems] = useState(dashboard.todayFocus);
   const [insightAdded, setInsightAdded] = useState(false);
   const [activeSystem, setActiveSystem] = useState(null);
-  const [activeCategory, setActiveCategory] = useState(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -813,12 +665,12 @@ export default function App() {
           <span className="sectionEyebrow">COMMANDHUB</span>
           <h2>全局指挥台</h2>
         </div>
-        <div className="heroGrid">
-          <LifeScore onSelectCategory={setActiveCategory} />
+        <section className="heroGrid">
+          <LifeScore />
           <TodayFocus items={filteredFocus} />
           <FeedsPanel />
           <AiSuggestion added={insightAdded} onConvert={handleConvertInsight} />
-        </div>
+        </section>
       </section>
 
       <SystemGrid systems={filteredSystems} onOpenSystem={setActiveSystem} />
@@ -827,7 +679,6 @@ export default function App() {
       <Roadmap />
 
       <SystemModal system={activeSystem} onClose={() => setActiveSystem(null)} />
-      <CategoryModal category={activeCategory} onClose={() => setActiveCategory(null)} />
     </main>
   );
 }

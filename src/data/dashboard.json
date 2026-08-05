@@ -1,70 +1,13 @@
 {
   "updatedAt": "2026-08-05T09:30:00+08:00",
   "lifeScore": 82,
-  "lifeScoreTrend": "本周",
+  "lifeScoreTrend": "演示",
   "statusBreakdown": [
-    {
-      "label": "健康",
-      "value": 78,
-      "tone": "good",
-      "subItems": [
-        { "label": "体重", "target": "68kg", "achieved": "67.5kg", "unit": "kg" },
-        { "label": "睡眠", "target": "8h", "achieved": "6.8h", "unit": "h" },
-        { "label": "运动", "target": "5次", "achieved": "4次", "unit": "次" },
-        { "label": "血糖", "target": "6.0", "achieved": "6.4", "unit": "" },
-        { "label": "胰岛素", "target": "执行", "achieved": "执行", "unit": "" }
-      ]
-    },
-    {
-      "label": "财富",
-      "value": 84,
-      "tone": "good",
-      "subItems": [
-        { "label": "收入", "target": "15000", "achieved": "12500", "unit": "¥" },
-        { "label": "支出", "target": "5000", "achieved": "4200", "unit": "¥" },
-        { "label": "周度汇总", "target": "结余", "achieved": "结余", "unit": "" }
-      ]
-    },
-    {
-      "label": "工作",
-      "value": 72,
-      "tone": "watch",
-      "subItems": [
-        { "label": "市场业务", "target": "3个", "achieved": "2个", "unit": "个" },
-        { "label": "广和业务", "target": "5次", "achieved": "3次", "unit": "次" },
-        { "label": "其他业务", "target": "1个", "achieved": "1个", "unit": "个" }
-      ]
-    },
-    {
-      "label": "内容",
-      "value": 88,
-      "tone": "strong",
-      "subItems": [
-        { "label": "自媒体发布", "target": "7篇", "achieved": "5篇", "unit": "篇" },
-        { "label": "内容制作", "target": "5条", "achieved": "3条", "unit": "条" },
-        { "label": "数据分析", "target": "周度", "achieved": "周度", "unit": "" }
-      ]
-    },
-    {
-      "label": "学习",
-      "value": 76,
-      "tone": "watch",
-      "subItems": [
-        { "label": "健康医疗", "target": "5篇", "achieved": "2篇", "unit": "篇" },
-        { "label": "AI工具", "target": "5个", "achieved": "3个", "unit": "个" },
-        { "label": "商业管理", "target": "10条", "achieved": "5条", "unit": "条" },
-        { "label": "其他", "target": "探索", "achieved": "探索", "unit": "" }
-      ]
-    },
-    {
-      "label": "其他",
-      "value": 80,
-      "tone": "good",
-      "subItems": [
-        { "label": "家庭生活", "target": "每周", "achieved": "每周", "unit": "" },
-        { "label": "个人事务", "target": "5项", "achieved": "3项", "unit": "项" }
-      ]
-    }
+    { "label": "健康", "value": 78, "tone": "good" },
+    { "label": "财富", "value": 84, "tone": "good" },
+    { "label": "工作", "value": 72, "tone": "watch" },
+    { "label": "内容", "value": 88, "tone": "strong" },
+    { "label": "学习", "value": 76, "tone": "watch" }
   ],
   "todayFocus": [
     {
@@ -92,61 +35,62 @@
       "eta": "示例"
     }
   ],
+  "alerts": [
+    {
+      "level": "high",
+      "title": "示例健康风险",
+      "reason": "演示数据提示恢复时间不足，适合在真实接入后替换为个人指标。",
+      "action": "预留提醒动作：安排休息或降低任务密度。"
+    },
+    {
+      "level": "medium",
+      "title": "示例任务风险",
+      "reason": "演示数据提示任务上下文较多，适合在真实接入后替换为项目指标。",
+      "action": "预留提醒动作：锁定一个深度工作块。"
+    }
+  ],
   "feeds": [
     {
-      "title": "AI 行业动态",
       "source": "TechCrunch",
       "time": "今日",
+      "title": "AI 行业动态",
       "summary": "生成式AI应用持续增长，企业级落地案例增多"
     },
     {
-      "title": "健康生活趋势",
       "source": "医学界",
       "time": "昨日",
+      "title": "健康生活趋势",
       "summary": "间歇性断食研究新进展，适合繁忙人群的轻量方案"
     },
     {
-      "title": "商业洞察",
       "source": "Harvard Business Review",
       "time": "本周",
+      "title": "商业洞察",
       "summary": "个人品牌在数字经济中的变现路径分析"
     }
   ],
   "ideas": [
     {
-      "title": "NOVA OS 移动端",
-      "tags": ["产品", "MVP"],
-      "status": "待评估"
+      "title": "健康数据可视化",
+      "tags": ["设计", "健康", "数据"]
     },
     {
-      "title": "AI 健康教练集成",
-      "tags": ["健康", "AI"],
-      "status": "设计中"
+      "title": "AI 周报自动生成",
+      "tags": ["AI", "自动化", "效率"]
     },
     {
-      "title": "知识付费课程",
-      "tags": ["商业", "内容"],
-      "status": "灵感"
+      "title": "社群运营新玩法",
+      "tags": ["社群", "增长", "内容"]
     }
   ],
   "plans": [
     {
-      "title": "本周冲刺",
-      "items": [
-        "完成 NOVA OS V1.0 发布",
-        "整理健康数据基线",
-        "发布 3 篇自媒体内容"
-      ],
-      "progress": 40
+      "title": "NOVA OS V2 路线图",
+      "progress": 65
     },
     {
-      "title": "本月目标",
-      "items": [
-        "产品 MVP 上线",
-        "建立健康管理习惯",
-        "积累 10 个商业创意"
-      ],
-      "progress": 65
+      "title": "Q3 内容规划",
+      "progress": 40
     }
   ],
   "aiInsight": "演示建议：先完成最关键交付，再处理维护型任务；健康行动保持低门槛，确保系统每天可持续使用。",
@@ -222,13 +166,6 @@
       "unit": "新增笔记",
       "detail": "学习主题与笔记数量预留为真实 API 字段",
       "delta": "演示"
-    },
-    {
-      "title": "其他",
-      "value": "80",
-      "unit": "/100",
-      "detail": "家庭生活与个人事务概览",
-      "delta": "+2"
     }
   ],
   "commands": [
