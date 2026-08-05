@@ -93,7 +93,46 @@
       "progress": 40
     }
   ],
-  "aiInsight": "演示建议：先完成最关键交付，再处理维护型任务；健康行动保持低门槛，确保系统每天可持续使用。",
+  "aiInsight": "基于当前目标状态和情报输入，生成以下行动建议",
+  "constraints": [
+    { "label": "时间约束", "value": "今日可用 4 小时深度工作" },
+    { "label": "精力约束", "value": "当前精力指数 72%，适合高专注任务" },
+    { "label": "资源约束", "value": "AI 工具就绪，团队支持" }
+  ],
+  "actions": [
+    { 
+      "id": 1, 
+      "title": "推进 NOVA OS V2 核心功能", 
+      "source": "目标达成 + PLANS",
+      "reason": "V2 路线图进度 65%，今日可完成核心模块验收",
+      "priority": "P0",
+      "time": "90 分钟"
+    },
+    { 
+      "id": 2, 
+      "title": "订阅 AI 行业动态周报", 
+      "source": "NEWS + IDEAS",
+      "reason": "AI 行业资讯密集，自动化收集可节省 2 小时/周",
+      "priority": "P1",
+      "time": "20 分钟"
+    },
+    { 
+      "id": 3, 
+      "title": "完成健康数据日报", 
+      "source": "目标达成 + NEWS",
+      "reason": "健康评分 78，低于 80 基准线，需加强监测",
+      "priority": "P1",
+      "time": "15 分钟"
+    },
+    { 
+      "id": 4, 
+      "title": "整理 Q3 内容框架", 
+      "source": "PLANS + IDEAS",
+      "reason": "内容规划进度 40%，本周需确定主题方向",
+      "priority": "P2",
+      "time": "30 分钟"
+    }
+  ],
   "systems": [
     {
       "name": "Life OS",

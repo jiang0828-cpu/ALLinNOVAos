@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   CircleDollarSign,
   Command,
   Database,
@@ -293,21 +294,103 @@ function FeedsPanel() {
   );
 }
 
-function AiSuggestion({ added, onConvert }) {
+function AiSuggestion({ addedActions, onConvert }) {
+  const [expandedId, setExpandedId] = useState(null);
+
+  const handleConvert = (action) => {
+    if (addedActions.includes(action.id)) return;
+    onConvert(action);
+  };
+
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
   return (
     <section className="panel insightPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">AI SUGGESTION</span>
-          <h2>下一步建议</h2>
+          <h2>智能行动</h2>
         </div>
         <Lightbulb size={20} />
       </div>
-      <p>{dashboard.aiInsight}</p>
-      <button className="primaryButton" onClick={onConvert} disabled={added}>
-        {added ? "已加入今日重点" : "转为行动"}
-        {added ? <CheckCircle2 size={16} /> : <ArrowRight size={16} />}
-      </button>
+      
+      <div className="aiSection">
+        <div className="aiSectionTitle">
+          <span className="aiDot goal" /> 目标输入
+        </div>
+        <div className="aiSectionContent">
+          <span className="aiTag">目标达成 {dashboard.lifeScore}分</span>
+          <span className="aiTag">健康 ↓2</span>
+          <span className="aiTag">工作 ↓8</span>
+        </div>
+      </div>
+
+      <div className="aiSection">
+        <div className="aiSectionTitle">
+          <span className="aiDot info" /> 信息输入
+        </div>
+        <div className="aiSectionContent">
+          <span className="aiTag">{dashboard.feeds[0].title}</span>
+          <span className="aiTag">{dashboard.ideas[0].title}</span>
+        </div>
+      </div>
+
+      <div className="aiSection">
+        <div className="aiSectionTitle">
+          <span className="aiDot constraint" /> 约束条件
+        </div>
+        <div className="aiSectionContent constraintsList">
+          {dashboard.constraints.map((c, i) => (
+            <div key={i} className="constraintItem">
+              <span className="constraintLabel">{c.label}</span>
+              <span className="constraintValue">{c.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="aiActionsHeader">
+        <span className="aiDot action" /> 建议行动
+        <span className="actionsCount">{dashboard.actions.length} 项</span>
+      </div>
+
+      <div className="aiActionsList">
+        {dashboard.actions.map((action) => (
+          <div key={action.id} className={`aiAction ${addedActions.includes(action.id) ? 'done' : ''}`}>
+            <div 
+              className="aiActionHeader"
+              onClick={() => toggleExpand(action.id)}
+            >
+              <span className={`priority ${action.priority.toLowerCase()}`}>{action.priority}</span>
+              <div className="aiActionInfo">
+                <h4>{action.title}</h4>
+                <span className="aiActionMeta">
+                  {action.source} · {action.time}
+                </span>
+              </div>
+              <ChevronDown size={14} className={`chevron ${expandedId === action.id ? 'expanded' : ''}`} />
+            </div>
+            {expandedId === action.id && (
+              <div className="aiActionDetail">
+                <p>{action.reason}</p>
+                <button 
+                  className="convertButton"
+                  onClick={() => handleConvert(action)}
+                  disabled={addedActions.includes(action.id)}
+                >
+                  {addedActions.includes(action.id) ? (
+                    <>已加入 <CheckCircle2 size={14} /></>
+                  ) : (
+                    <>转为行动 <ArrowRight size={14} /></>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -607,7 +690,7 @@ export default function App() {
   });
   const [query, setQuery] = useState("");
   const [focusItems, setFocusItems] = useState(dashboard.todayFocus);
-  const [insightAdded, setInsightAdded] = useState(false);
+  const [addedActions, setAddedActions] = useState([]);
   const [activeSystem, setActiveSystem] = useState(null);
 
   useEffect(() => {
@@ -635,13 +718,13 @@ export default function App() {
     [normalizedQuery],
   );
 
-  function handleConvertInsight() {
-    if (insightAdded) return;
+  function handleConvertAction(action) {
+    if (addedActions.includes(action.id)) return;
     setFocusItems((prev) => [
-      { title: dashboard.aiInsight, system: "AGI OS", priority: "P1", eta: "AI 建议" },
+      { title: action.title, system: "AI Action", priority: action.priority, eta: action.time },
       ...prev,
     ]);
-    setInsightAdded(true);
+    setAddedActions((prev) => [...prev, action.id]);
   }
 
   return (
@@ -662,7 +745,7 @@ export default function App() {
           <LifeScore />
           <TodayFocus items={filteredFocus} />
           <FeedsPanel />
-          <AiSuggestion added={insightAdded} onConvert={handleConvertInsight} />
+          <AiSuggestion addedActions={addedActions} onConvert={handleConvertAction} />
         </section>
       </section>
 
