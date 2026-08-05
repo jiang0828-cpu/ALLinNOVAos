@@ -153,7 +153,7 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
 function LifeScore({ onSelectCategory }) {
   return (
     <section className="scorePanel">
-      <div className="sectionEyebrow">周度工作重点</div>
+      <div className="sectionEyebrow">STATE / TARGET</div>
       <div className="scoreGrid">
         <div className="scoreDial">
           <svg viewBox="0 0 120 120" role="img" aria-label={`Life Score ${dashboard.lifeScore}`}>
@@ -503,7 +503,7 @@ function CategoryModal({ category, onClose }) {
             <Icon size={20} />
           </div>
           <div>
-            <span className="sectionEyebrow">周度工作重点</span>
+            <span className="sectionEyebrow">STATE / TARGET</span>
             <h2 id="categoryModalTitle">{category.label}</h2>
           </div>
           <button ref={closeButtonRef} className="iconButton" aria-label="关闭" onClick={onClose}>
