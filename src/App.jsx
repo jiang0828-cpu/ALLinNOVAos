@@ -295,15 +295,9 @@ function FeedsPanel() {
 }
 
 function AiSuggestion({ addedActions, onConvert }) {
-  const [expandedId, setExpandedId] = useState(null);
-
   const handleConvert = (action) => {
     if (addedActions.includes(action.id)) return;
     onConvert(action);
-  };
-
-  const toggleExpand = (id) => {
-    setExpandedId(expandedId === id ? null : id);
   };
 
   return (
@@ -311,83 +305,32 @@ function AiSuggestion({ addedActions, onConvert }) {
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">AI SUGGESTION</span>
-          <h2>智能行动</h2>
+          <h2>行动建议</h2>
         </div>
         <Lightbulb size={20} />
-      </div>
-      
-      <div className="aiSection">
-        <div className="aiSectionTitle">
-          <span className="aiDot goal" /> 目标输入
-        </div>
-        <div className="aiSectionContent">
-          <span className="aiTag">目标达成 {dashboard.lifeScore}分</span>
-          <span className="aiTag">健康 ↓2</span>
-          <span className="aiTag">工作 ↓8</span>
-        </div>
-      </div>
-
-      <div className="aiSection">
-        <div className="aiSectionTitle">
-          <span className="aiDot info" /> 信息输入
-        </div>
-        <div className="aiSectionContent">
-          <span className="aiTag">{dashboard.feeds[0].title}</span>
-          <span className="aiTag">{dashboard.ideas[0].title}</span>
-        </div>
-      </div>
-
-      <div className="aiSection">
-        <div className="aiSectionTitle">
-          <span className="aiDot constraint" /> 约束条件
-        </div>
-        <div className="aiSectionContent constraintsList">
-          {dashboard.constraints.map((c, i) => (
-            <div key={i} className="constraintItem">
-              <span className="constraintLabel">{c.label}</span>
-              <span className="constraintValue">{c.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="aiActionsHeader">
-        <span className="aiDot action" /> 建议行动
-        <span className="actionsCount">{dashboard.actions.length} 项</span>
       </div>
 
       <div className="aiActionsList">
         {dashboard.actions.map((action) => (
           <div key={action.id} className={`aiAction ${addedActions.includes(action.id) ? 'done' : ''}`}>
-            <div 
-              className="aiActionHeader"
-              onClick={() => toggleExpand(action.id)}
-            >
+            <div className="aiActionHeader">
               <span className={`priority ${action.priority.toLowerCase()}`}>{action.priority}</span>
               <div className="aiActionInfo">
                 <h4>{action.title}</h4>
-                <span className="aiActionMeta">
-                  {action.source} · {action.time}
-                </span>
+                <span className="aiActionMeta">{action.reason}</span>
               </div>
-              <ChevronDown size={14} className={`chevron ${expandedId === action.id ? 'expanded' : ''}`} />
+              <button 
+                className="convertButton"
+                onClick={() => handleConvert(action)}
+                disabled={addedActions.includes(action.id)}
+              >
+                {addedActions.includes(action.id) ? (
+                  <CheckCircle2 size={14} />
+                ) : (
+                  <ArrowRight size={14} />
+                )}
+              </button>
             </div>
-            {expandedId === action.id && (
-              <div className="aiActionDetail">
-                <p>{action.reason}</p>
-                <button 
-                  className="convertButton"
-                  onClick={() => handleConvert(action)}
-                  disabled={addedActions.includes(action.id)}
-                >
-                  {addedActions.includes(action.id) ? (
-                    <>已加入 <CheckCircle2 size={14} /></>
-                  ) : (
-                    <>转为行动 <ArrowRight size={14} /></>
-                  )}
-                </button>
-              </div>
-            )}
           </div>
         ))}
       </div>

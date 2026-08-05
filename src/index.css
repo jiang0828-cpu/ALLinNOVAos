@@ -579,99 +579,6 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow-y: auto;
-}
-
-.insightPanel p {
-  flex: 1;
-  line-height: 1.6;
-}
-
-.aiSection {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.aiSectionTitle,
-.aiActionsHeader {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-soft);
-}
-
-.aiDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.aiDot.goal {
-  background: var(--accent);
-}
-
-.aiDot.info {
-  background: var(--accent-gold);
-}
-
-.aiDot.constraint {
-  background: var(--brand-soft);
-}
-
-.aiDot.action {
-  background: var(--danger);
-}
-
-.aiSectionContent {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.aiTag {
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 10px;
-  color: var(--text-soft);
-  background: var(--chip-bg);
-}
-
-.constraintsList {
-  flex-direction: column;
-  gap: 4px;
-}
-
-.constraintItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: var(--chip-bg);
-  font-size: 10px;
-}
-
-.constraintLabel {
-  color: var(--text-faint);
-  font-weight: 600;
-}
-
-.constraintValue {
-  color: var(--text-soft);
-}
-
-.aiActionsHeader {
-  justify-content: space-between;
-  margin-top: 4px;
-}
-
-.actionsCount {
-  font-size: 10px;
-  color: var(--text-faint);
-  font-weight: 500;
 }
 
 .aiActionsList {
@@ -680,13 +587,11 @@ button:disabled {
   gap: 6px;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
 }
 
 .aiAction {
   border-radius: 6px;
   background: var(--chip-bg);
-  overflow: hidden;
   transition: background-color 0.15s ease;
 }
 
@@ -698,16 +603,11 @@ button:disabled {
   opacity: 0.65;
 }
 
-.aiAction.done .aiActionTitle {
-  text-decoration: line-through;
-}
-
 .aiActionHeader {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  cursor: pointer;
 }
 
 .aiActionInfo {
@@ -724,50 +624,25 @@ button:disabled {
 
 .aiActionMeta {
   display: block;
-  margin-top: 2px;
-  font-size: 9px;
+  margin-top: 3px;
+  font-size: 10px;
   color: var(--text-faint);
-}
-
-.chevron {
-  color: var(--text-faint);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-}
-
-.chevron.expanded {
-  transform: rotate(180deg);
-}
-
-.aiActionDetail {
-  padding: 0 10px 10px 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.aiActionDetail p {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--text-softer);
+  line-height: 1.4;
 }
 
 .convertButton {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  align-self: flex-start;
-  padding: 5px 12px;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
   color: var(--brand-contrast);
   background: var(--brand);
   cursor: pointer;
   transition: filter 0.15s ease;
+  flex-shrink: 0;
 }
 
 .convertButton:hover:not(:disabled) {
