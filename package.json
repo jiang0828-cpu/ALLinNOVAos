@@ -1,20 +1,37 @@
 {
-  "name": "nova-os-mvp",
+  "name": "nova-os",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
+  "description": "NOVA OS - Personal Command System based on PDCAr methodology",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/prepare-sites-dist.mjs",
-    "preview": "vite preview --host 0.0.0.0"
+    "dev:api": "pnpm --filter @nova-os/api dev",
+    "dev:web": "pnpm --filter @nova-os/web dev",
+    "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
+    "build": "pnpm -r --filter='./apps/*' --filter='./packages/*' build",
+    "build:api": "pnpm --filter @nova-os/api build",
+    "build:web": "pnpm --filter @nova-os/web build",
+    "build:database": "pnpm --filter @nova-os/database build",
+    "start": "pnpm -r --filter='./apps/*' start",
+    "start:api": "pnpm --filter @nova-os/api start:prod",
+    "start:web": "pnpm --filter @nova-os/web start",
+    "db:generate": "pnpm --filter @nova-os/database db:generate",
+    "db:migrate": "pnpm --filter @nova-os/database db:migrate",
+    "db:seed": "pnpm --filter @nova-os/database db:seed",
+    "db:studio": "pnpm --filter @nova-os/database db:studio",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker-compose.yml down"
   },
-  "dependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.7",
-    "typescript": "^5.6.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "lucide-react": "^0.468.0"
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.6.0",
+    "turbo": "^2.1.0"
   },
-  "devDependencies": {}
+  "engines": {
+    "node": ">=18.17.0",
+    "pnpm": ">=8.15.0"
+  },
+  "packageManager": "pnpm@9.1.0"
 }

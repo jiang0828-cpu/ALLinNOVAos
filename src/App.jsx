@@ -1,93 +1,28 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  BookOpen,
-  BrainCircuit,
-  CalendarDays,
-  CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
-  Command,
-  Database,
-  Dumbbell,
-  FileText,
-  LayoutDashboard,
-  Lightbulb,
-  ListChecks,
-  Moon,
-  Search,
-  Sparkles,
-  Sun,
-  Target,
-  Workflow,
-  X,
-} from "lucide-react";
-import dashboard from "./data/dashboard.json";
-
-const systemIcons = {
-  "Life OS": Dumbbell,
-  "Work OS": Workflow,
-  "Media OS": FileText,
-  "Knowledge OS": BrainCircuit,
-  "AGI OS": Sparkles,
-};
-
-const cardIcons = {
-  健康: Activity,
-  财富: CircleDollarSign,
-  工作: ListChecks,
-  内容: FileText,
-  学习: BrainCircuit,
-};
-
-const workSections = [
-  {
-    title: "市场工作",
-    description: "营销云、市场项目、内容与活动工作台",
-    href: "https://m0-marketingcloud.pages.dev/",
-  },
-  {
-    title: "广和事业",
-    description: "广和中安健康业务会议与协同入口",
-    href: "https://guanghe-zhongan-healthcare.pages.dev/meeting",
-  },
-  {
-    title: "其他业务",
-    description: "预留业务入口，后续接入新的项目系统",
-    href: "",
-  },
-];
+import { useEffect, useState } from 'react';
+import { CalendarDays, Command, LayoutDashboard, Moon, Search, Sparkles, Sun, X } from 'lucide-react';
+import dashboard from './data/dashboard.json';
+import { CommandHub } from './components/CommandHub';
 
 function formatDate(value) {
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "2-digit",
-    day: "2-digit",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(value));
 }
 
 function matches(query, ...fields) {
   if (!query) return true;
-  return fields.join(" ").toLowerCase().includes(query);
-}
-
-function Progress({ value }) {
-  return (
-    <div className="progress" aria-label={`进度 ${value}%`}>
-      <span style={{ width: `${value}%` }} />
-    </div>
-  );
+  return fields.join(' ').toLowerCase().includes(query);
 }
 
 function Header({ query, onQueryChange, theme, onToggleTheme }) {
   function scrollToCommandCenter() {
     document
-      .getElementById("commandCenter")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      .getElementById('commandCenter')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
@@ -115,7 +50,7 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
             type="button"
             className="clearSearch"
             aria-label="清除搜索"
-            onClick={() => onQueryChange("")}
+            onClick={() => onQueryChange('')}
           >
             <X size={14} />
           </button>
@@ -137,538 +72,29 @@ function Header({ query, onQueryChange, theme, onToggleTheme }) {
         </button>
         <button
           className="iconButton"
-          aria-label={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"}
+          aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
           title="切换主题"
           onClick={onToggleTheme}
         >
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
       </div>
     </header>
   );
 }
 
-function LifeScore() {
-  const score = dashboard.lifeScore;
-  const getScoreColor = (s) => {
-    if (s >= 80) return '#178a6f';
-    if (s >= 60) return '#d59a2f';
-    return '#bb4d35';
-  };
-  const ringColor = getScoreColor(score);
-
-  return (
-    <section className="scorePanel">
-      <div className="panelHeader">
-        <div>
-          <span className="sectionEyebrow">STATE / TARGET</span>
-          <h2>目标达成</h2>
-        </div>
-      </div>
-      <div className="scoreGrid">
-        <div className="scoreDial">
-          <svg viewBox="0 0 120 120" role="img" aria-label={`Life Score ${score}`}>
-            <circle cx="60" cy="60" r="50" className="dialTrack" />
-            <circle
-              cx="60"
-              cy="60"
-              r="50"
-              className="dialValue"
-              pathLength="100"
-              strokeDasharray={`${score} 100`}
-              style={{ stroke: ringColor }}
-            />
-          </svg>
-          <div className="scoreValue">
-            <strong style={{ color: ringColor }}>{score}</strong>
-            <span>目标达成</span>
-          </div>
-        </div>
-        <div className="breakdown">
-          {dashboard.statusBreakdown.map((item) => (
-            <div key={item.label} className="breakdownItem">
-              <div>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-              <Progress value={item.value} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TodayFocus({ items }) {
-  return (
-    <section className="panel">
-      <div className="panelHeader">
-        <div>
-          <span className="sectionEyebrow">TODAY</span>
-          <h2>今日重点</h2>
-        </div>
-        <Target size={20} />
-      </div>
-      {items.length === 0 ? (
-        <p className="emptyState">没有匹配的重点任务。</p>
-      ) : (
-        <div className="focusList">
-          {items.map((item) => (
-            <article key={item.title} className="focusItem">
-              <span className={`priority ${item.priority.toLowerCase()}`}>{item.priority}</span>
-              <div>
-                <h3>{item.title}</h3>
-                <p>
-                  {item.system} · {item.eta}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function FeedsPanel() {
-  return (
-    <section className="panel feedsPanel">
-      <div className="panelHeader">
-        <div>
-          <span className="sectionEyebrow">FEEDS</span>
-          <h2>信息资讯</h2>
-        </div>
-        <BookOpen size={20} />
-      </div>
-      <div className="feedsAllContent">
-        <div className="feedsSection">
-          <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">NEWS</span>
-            <span className="feedsSectionDot news" />
-          </div>
-          <div className="feedsList">
-            {dashboard.feeds.slice(0, 2).map((feed, index) => (
-              <a key={index} href="#" className="feedItem news" onClick={(e) => e.preventDefault()}>
-                <div className="feedMeta">
-                  <span className="feedSource">{feed.source}</span>
-                  <span className="feedTime">{feed.time}</span>
-                </div>
-                <h3>{feed.title}</h3>
-              </a>
-            ))}
-          </div>
-        </div>
-        <div className="feedsSection">
-          <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">IDEAS</span>
-            <span className="feedsSectionDot ideas" />
-          </div>
-          <div className="ideasList">
-            {dashboard.ideas.slice(0, 2).map((idea, index) => (
-              <a key={index} href="#" className="ideaItem ideas" onClick={(e) => e.preventDefault()}>
-                <h3>{idea.title}</h3>
-              </a>
-            ))}
-          </div>
-        </div>
-        <div className="feedsSection">
-          <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">PLANS</span>
-            <span className="feedsSectionDot plans" />
-          </div>
-          <div className="plansList">
-            {dashboard.plans.slice(0, 2).map((plan, index) => (
-              <a key={index} href="#" className="planItem plans" onClick={(e) => e.preventDefault()}>
-                <div className="planHeader">
-                  <h3>{plan.title}</h3>
-                  <span className="planProgress">{plan.progress}%</span>
-                </div>
-                <Progress value={plan.progress} />
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function AiSuggestion({ addedActions, onConvert }) {
-  const handleConvert = (action) => {
-    if (addedActions.includes(action.id)) return;
-    onConvert(action);
-  };
-
-  return (
-    <section className="panel insightPanel">
-      <div className="panelHeader">
-        <div>
-          <span className="sectionEyebrow">AI SUGGESTION</span>
-          <h2>行动建议</h2>
-        </div>
-        <Lightbulb size={20} />
-      </div>
-
-      <div className="aiActionsList">
-        {dashboard.actions.map((action) => (
-          <div key={action.id} className={`aiAction ${addedActions.includes(action.id) ? 'done' : ''}`}>
-            <div className="aiActionHeader">
-              <span className={`priority ${action.priority.toLowerCase()}`}>{action.priority}</span>
-              <div className="aiActionInfo">
-                <h4>{action.title}</h4>
-                <span className="aiActionMeta">{action.reason}</span>
-              </div>
-              <button 
-                className="convertButton"
-                onClick={() => handleConvert(action)}
-                disabled={addedActions.includes(action.id)}
-              >
-                {addedActions.includes(action.id) ? (
-                  <CheckCircle2 size={14} />
-                ) : (
-                  <ArrowRight size={14} />
-                )}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function SystemGrid({ systems, onOpenSystem }) {
-  return (
-    <section className="systemsSection">
-      <div className="sectionTitle">
-        <div>
-          <span className="sectionEyebrow">SYSTEMS</span>
-          <h2>五大系统入口</h2>
-        </div>
-        <span>{dashboard.systems.length} 个系统在线</span>
-      </div>
-      {systems.length === 0 ? (
-        <p className="emptyState">没有匹配的系统。</p>
-      ) : (
-        <div className="systemsGrid">
-          {systems.map((system) => {
-            const Icon = systemIcons[system.name] ?? Database;
-            return (
-              <article
-                className={`systemCard ${system.name === "Work OS" ? "isClickable" : ""}`}
-                key={system.name}
-                onClick={() => {
-                  if (system.name === "Work OS") onOpenSystem(system);
-                }}
-                role={system.name === "Work OS" ? "button" : undefined}
-                tabIndex={system.name === "Work OS" ? 0 : undefined}
-                onKeyDown={(event) => {
-                  if (system.name !== "Work OS") return;
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onOpenSystem(system);
-                  }
-                }}
-              >
-                <div className="systemTop">
-                  <div className="systemIcon">
-                    <Icon size={20} />
-                  </div>
-                  <span>{system.status}</span>
-                </div>
-                <h3>{system.name}</h3>
-                <p>{system.summary}</p>
-                <Progress value={system.progress} />
-                <div className="metricGrid">
-                  {system.metrics.map((metric) => (
-                    <span key={metric}>{metric}</span>
-                  ))}
-                </div>
-                <button
-                  className="ghostButton"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onOpenSystem(system);
-                  }}
-                >
-                  进入系统
-                  <ArrowRight size={15} />
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function DataCards({ cards }) {
-  return (
-    <section className="dataSection">
-      <div className="sectionTitle">
-        <div>
-          <span className="sectionEyebrow">DATA</span>
-          <h2>核心数据卡片</h2>
-        </div>
-      </div>
-      {cards.length === 0 ? (
-        <p className="emptyState">没有匹配的数据卡片。</p>
-      ) : (
-        <div className="dataGrid">
-          {cards.map((card) => {
-            const Icon = cardIcons[card.title] ?? Database;
-            return (
-              <article className="dataCard" key={card.title}>
-                <div className="dataIcon">
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <p>{card.title}</p>
-                  <strong>
-                    {card.value}
-                    <span>{card.unit}</span>
-                  </strong>
-                  <small>{card.detail}</small>
-                </div>
-                <em>{card.delta}</em>
-              </article>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function AICommand() {
-  const [selected, setSelected] = useState(dashboard.commands[0]);
-  const [draft, setDraft] = useState("");
-  const [tasks, setTasks] = useState([
-    { label: "锁定 90 分钟深度工作块", done: false },
-    { label: "23:30 前结束屏幕任务", done: false },
-    { label: "记录一次 Dashboard 使用反馈", done: false },
-  ]);
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    if (!draft.trim()) return;
-    setSelected({
-      label: draft.trim(),
-      output: `已收到「${draft.trim()}」。MVP 阶段先返回模拟建议：把它拆成一个 30 分钟可执行动作，并在完成后记录结果。`,
-    });
-    setDraft("");
-  }
-
-  function toggleTask(label) {
-    setTasks((prev) =>
-      prev.map((task) => (task.label === label ? { ...task, done: !task.done } : task)),
-    );
-  }
-
-  return (
-    <section className="commandCenter" id="commandCenter">
-      <div className="commandHeader">
-        <div>
-          <span className="sectionEyebrow">AI COMMAND CENTER</span>
-          <h2>模拟 AI 指令区</h2>
-        </div>
-        <Command size={22} />
-      </div>
-
-      <form className="commandInput" onSubmit={handleSubmit}>
-        <input
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="输入一个指令，例如：帮我压缩今天任务"
-          aria-label="AI 指令输入"
-        />
-        <button type="submit">运行</button>
-      </form>
-
-      <div className="quickCommands">
-        {dashboard.commands.map((command) => (
-          <button
-            key={command.label}
-            className={selected.label === command.label ? "active" : ""}
-            onClick={() => setSelected(command)}
-          >
-            {command.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="aiOutput">
-        <div className="outputBadge">
-          <Sparkles size={16} />
-          NOVA 模拟输出
-        </div>
-        <p>{selected.output}</p>
-        <div className="taskChips">
-          {tasks.map((task) => (
-            <button
-              key={task.label}
-              className={task.done ? "done" : ""}
-              aria-pressed={task.done}
-              onClick={() => toggleTask(task.label)}
-            >
-              <CheckCircle2 size={15} />
-              {task.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Roadmap() {
-  return (
-    <section className="roadmap">
-      <div>
-        <span className="sectionEyebrow">DATA EVOLUTION</span>
-        <h2>API 接入预留</h2>
-      </div>
-      <div className="roadmapTrack">
-        {dashboard.roadmap.map((step, index) => (
-          <span key={step} className={index === 0 ? "current" : ""}>
-            {step}
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function SystemModal({ system, onClose }) {
-  const closeButtonRef = useRef(null);
-
-  useEffect(() => {
-    if (!system) return undefined;
-    closeButtonRef.current?.focus();
-    function handleKeyDown(event) {
-      if (event.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [system, onClose]);
-
-  if (!system) return null;
-  const Icon = systemIcons[system.name] ?? Database;
-
-  return (
-    <div className="modalOverlay" onClick={onClose}>
-      <div
-        className={`modalCard ${system.name === "Work OS" ? "workModal" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="systemModalTitle"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="modalHeader">
-          <div className="systemIcon">
-            <Icon size={20} />
-          </div>
-          <div>
-            <span className="sectionEyebrow">{system.status}</span>
-            <h2 id="systemModalTitle">{system.name}</h2>
-          </div>
-          <button ref={closeButtonRef} className="iconButton" aria-label="关闭" onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
-        <p className="modalSummary">{system.summary}</p>
-        <Progress value={system.progress} />
-        <div className="metricGrid modalMetrics">
-          {system.metrics.map((metric) => (
-            <span key={metric}>{metric}</span>
-          ))}
-        </div>
-        {system.name === "Work OS" && (
-          <div className="workSectionGrid" aria-label="Work OS 子板块">
-            {workSections.map((section) =>
-              section.href ? (
-                <a
-                  className="workSectionCard"
-                  href={section.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  key={section.title}
-                >
-                  <strong>{section.title}</strong>
-                  <span>{section.description}</span>
-                  <em>
-                    打开
-                    <ArrowRight size={14} />
-                  </em>
-                </a>
-              ) : (
-                <div className="workSectionCard disabled" key={section.title}>
-                  <strong>{section.title}</strong>
-                  <span>{section.description}</span>
-                  <em>预留</em>
-                </div>
-              ),
-            )}
-          </div>
-        )}
-        <p className="modalNote">
-          二级系统页面尚未接入，当前展示的是该系统的概览数据。后续将替换为真实模块入口。
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [theme, setTheme] = useState(() => {
-    const saved = window.localStorage.getItem("nova-theme");
-    if (saved === "light" || saved === "dark") return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const saved = window.localStorage.getItem('nova-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
-  const [query, setQuery] = useState("");
-  const [focusItems, setFocusItems] = useState(dashboard.todayFocus);
-  const [addedActions, setAddedActions] = useState([]);
-  const [activeSystem, setActiveSystem] = useState(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    window.localStorage.setItem("nova-theme", theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('nova-theme', theme);
   }, [theme]);
-
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const filteredSystems = useMemo(
-    () =>
-      dashboard.systems.filter((system) =>
-        matches(normalizedQuery, system.name, system.summary, system.status, ...system.metrics),
-      ),
-    [normalizedQuery],
-  );
-
-  const filteredFocus = useMemo(
-    () => focusItems.filter((item) => matches(normalizedQuery, item.title, item.system)),
-    [focusItems, normalizedQuery],
-  );
-
-  const filteredDataCards = useMemo(
-    () => dashboard.dataCards.filter((card) => matches(normalizedQuery, card.title, card.detail)),
-    [normalizedQuery],
-  );
-
-  function handleConvertAction(action) {
-    if (addedActions.includes(action.id)) return;
-    setFocusItems((prev) => [
-      { title: action.title, system: "AI Action", priority: action.priority, eta: action.time },
-      ...prev,
-    ]);
-    setAddedActions((prev) => [...prev, action.id]);
-  }
 
   return (
     <main className="appShell">
@@ -676,28 +102,10 @@ export default function App() {
         query={query}
         onQueryChange={setQuery}
         theme={theme}
-        onToggleTheme={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
+        onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
       />
 
-      <section className="commandHub">
-        <div className="commandHubHeader">
-          <span className="sectionEyebrow">COMMANDHUB</span>
-          <h2>全局指挥台</h2>
-        </div>
-        <section className="heroGrid">
-          <LifeScore />
-          <TodayFocus items={filteredFocus} />
-          <FeedsPanel />
-          <AiSuggestion addedActions={addedActions} onConvert={handleConvertAction} />
-        </section>
-      </section>
-
-      <SystemGrid systems={filteredSystems} onOpenSystem={setActiveSystem} />
-      <DataCards cards={filteredDataCards} />
-      <AICommand />
-      <Roadmap />
-
-      <SystemModal system={activeSystem} onClose={() => setActiveSystem(null)} />
+      <CommandHub />
     </main>
   );
 }

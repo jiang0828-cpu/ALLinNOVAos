@@ -1,0 +1,400 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enums (枚举)
+// ============================================
+
+enum WorkItemType {
+  GOAL
+  PROJECT
+  TASK
+  IDEA
+  ISSUE
+  SUGGESTION
+  REVIEW
+  INSIGHT
+  DECISION
+}
+
+enum Priority {
+  P0
+  P1
+  P2
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum IssueLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum CycleType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  SPRINT
+  CUSTOM
+}
+
+enum WorkspaceType {
+  PERSONAL
+  TEAM
+  FAMILY
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum CycleStatus {
+  PLANNED
+  ACTIVE
+  REVIEWING
+  COMPLETED
+  ARCHIVED
+}
+
+enum ReviewStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SuggestionStatus {
+  PENDING
+  ADOPTED
+  REJECTED
+}
+
+enum IssueStatus {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+  CONVERT
+  PUBLISH
+}
+
+// ============================================
+// Core Models (核心模型)
+// ============================================
+
+model Workspace {
+  id         String    @id @default(uuid())
+  name       String
+  type       WorkspaceType
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  members    WorkspaceMember[]
+  domains    Domain[]
+  pdcaCycles PdcaCycle[]
+  workItems  WorkItem[]
+  activities ActivityEvent[]
+  snapshots  DashboardSnapshot[]
+
+  @@index([type])
+  @@map("workspace")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  timezone      String   @default("Asia/Shanghai")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  workspaceMembers WorkspaceMember[]
+
+  @@map("user")
+}
+
+model WorkspaceMember {
+  id            String        @id @default(uuid())
+  userId        String        @map("user_id")
+  workspaceId   String        @map("workspace_id")
+  role          WorkspaceRole @default(MEMBER)
+  joinedAt      DateTime      @default(now()) @map("joined_at")
+
+  user          User          @relation(fields: [userId], references: [id])
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id])
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+  @@map("workspace_member")
+}
+
+model Domain {
+  id            String   @id @default(uuid())
+  workspaceId   String   @map("workspace_id")
+  name          String
+  description   String?  @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+  pdcaCycles    PdcaCycle[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+  @@map("domain")
+}
+
+model PdcaCycle {
+  id            String       @id @default(uuid())
+  workspaceId   String       @map("workspace_id")
+  domainId      String?      @map("domain_id")
+  parentCycleId String?      @map("parent_cycle_id")
+  cycleType     CycleType
+  status        CycleStatus  @default(PLANNED)
+  name          String
+  startDate     DateTime     @map("start_date")
+  endDate       DateTime     @map("end_date")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  deletedAt     DateTime?    @map("deleted_at")
+
+  workspace     Workspace    @relation(fields: [workspaceId], references: [id])
+  domain        Domain?      @relation(fields: [domainId], references: [id])
+  parentCycle   PdcaCycle?   @relation("CycleHierarchy", fields: [parentCycleId], references: [id])
+  subCycles     PdcaCycle[]  @relation("CycleHierarchy")
+
+  @@index([workspaceId, cycleType, status])
+  @@index([domainId])
+  @@index([cycleType, startDate, endDate])
+  @@map("pdca_cycle")
+}
+
+model WorkItem {
+  id          String       @id @default(uuid())
+  workspaceId String       @map("workspace_id")
+  type        WorkItemType
+  title       String
+  status      String
+  parentId    String?     @map("parent_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
+
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
+
+  // Details (one-to-one relationships)
+  goalDetail       GoalDetail?       @relation("WorkItemGoal")
+  projectDetail    ProjectDetail?    @relation("WorkItemProject")
+  taskDetail       TaskDetail?       @relation("WorkItemTask")
+  ideaDetail       IdeaDetail?       @relation("WorkItemIdea")
+  issueDetail      IssueDetail?      @relation("WorkItemIssue")
+  suggestionDetail SuggestionDetail? @relation("WorkItemSuggestion")
+  reviewDetail     ReviewDetail?     @relation("WorkItemReview")
+  insightDetail    InsightDetail?    @relation("WorkItemInsight")
+  decisionDetail   DecisionDetail?   @relation("WorkItemDecision")
+
+  // Self-referential parent/child
+  parent    WorkItem?  @relation("ParentChild", fields: [parentId], references: [id])
+  children  WorkItem[] @relation("ParentChild")
+
+  activities ActivityEvent[] @relation("WorkItemActivity")
+
+  @@index([workspaceId])
+  @@index([type, status])
+  @@map("work_items")
+}
+
+// ============================================
+// Detail Tables (详情表)
+// ============================================
+
+model GoalDetail {
+  id          String   @id @default(uuid())
+  workItemId  String   @unique @map("work_item_id")
+  targetValue Float?   @map("target_value")
+  actualValue Float?   @map("actual_value")
+  priority    Priority @default(P2)
+  startDate   DateTime? @map("start_date")
+  dueDate     DateTime? @map("due_date")
+
+  workItem    WorkItem @relation("WorkItemGoal", fields: [workItemId], references: [id])
+
+  @@map("goal_detail")
+}
+
+model ProjectDetail {
+  id          String  @id @default(uuid())
+  workItemId  String  @unique @map("work_item_id")
+  goalId      String? @map("goal_id")
+  summary     String?
+  progress    Float   @default(0)
+
+  workItem    WorkItem @relation("WorkItemProject", fields: [workItemId], references: [id])
+
+  @@index([goalId])
+  @@map("project_detail")
+}
+
+model TaskDetail {
+  id            String   @id @default(uuid())
+  workItemId    String   @unique @map("work_item_id")
+  projectId     String?  @map("project_id")
+  priority      Priority @default(P2)
+  eta           String?
+  assignee      String?
+  isDraft       Boolean  @default(false) @map("is_draft")
+  status        TaskStatus @default(TODO)
+
+  workItem      WorkItem @relation("WorkItemTask", fields: [workItemId], references: [id])
+
+  @@index([projectId])
+  @@index([status])
+  @@map("task_detail")
+}
+
+model IdeaDetail {
+  id                String  @id @default(uuid())
+  workItemId        String  @unique @map("work_item_id")
+  content           String
+  tags              String[]
+  convertedToGoalId String? @map("converted_to_goal_id")
+
+  workItem          WorkItem @relation("WorkItemIdea", fields: [workItemId], references: [id])
+
+  @@map("idea_detail")
+}
+
+model IssueDetail {
+  id                String     @id @default(uuid())
+  workItemId        String     @unique @map("work_item_id")
+  taskId            String?    @map("task_id")
+  metricName        String?    @map("metric_name")
+  metricTargetValue Float?     @map("metric_target_value")
+  metricActualValue Float?     @map("metric_actual_value")
+  level             IssueLevel @default(MEDIUM)
+  description       String?
+  status            IssueStatus @default(OPEN)
+
+  workItem          WorkItem @relation("WorkItemIssue", fields: [workItemId], references: [id])
+
+  @@index([taskId])
+  @@index([status])
+  @@map("issue_detail")
+}
+
+model SuggestionDetail {
+  id             String            @id @default(uuid())
+  workItemId     String            @unique @map("work_item_id")
+  issueId        String?           @map("issue_id")
+  reason         String
+  priority       Priority          @default(P2)
+  source         String?
+  isConverted    Boolean           @default(false) @map("is_converted")
+  convertedTaskId String?          @map("converted_task_id")
+  status         SuggestionStatus  @default(PENDING)
+
+  workItem       WorkItem @relation("WorkItemSuggestion", fields: [workItemId], references: [id])
+
+  @@index([issueId])
+  @@index([status])
+  @@map("suggestion_detail")
+}
+
+model ReviewDetail {
+  id          String     @id @default(uuid())
+  workItemId  String     @unique @map("work_item_id")
+  cycleType   CycleType
+  period      String
+  summary     String?
+  score       Float?
+  isDraft     Boolean    @default(false) @map("is_draft")
+  status      ReviewStatus @default(DRAFT)
+
+  workItem    WorkItem @relation("WorkItemReview", fields: [workItemId], references: [id])
+
+  @@index([cycleType, period])
+  @@index([status])
+  @@map("review_detail")
+}
+
+model InsightDetail {
+  id         String   @id @default(uuid())
+  workItemId String   @unique @map("work_item_id")
+  reviewId   String   @map("review_id")
+  content    String
+  tags       String[]
+
+  workItem   WorkItem @relation("WorkItemInsight", fields: [workItemId], references: [id])
+
+  @@index([reviewId])
+  @@map("insight_detail")
+}
+
+model DecisionDetail {
+  id         String   @id @default(uuid())
+  workItemId String   @unique @map("work_item_id")
+  reviewId   String   @map("review_id")
+  content    String
+  impact     IssueLevel?
+
+  workItem   WorkItem @relation("WorkItemDecision", fields: [workItemId], references: [id])
+
+  @@index([reviewId])
+  @@map("decision_detail")
+}
+
+// ============================================
+// Auxiliary Tables (辅助表)
+// ============================================
+
+model ActivityEvent {
+  id         String         @id @default(uuid())
+  workspaceId String        @map("workspace_id")
+  workItemId String?        @map("work_item_id")
+  action     ActivityAction
+  actor      String
+  metadata  Json?
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  workspace  Workspace      @relation(fields: [workspaceId], references: [id])
+  workItem   WorkItem?      @relation("WorkItemActivity", fields: [workItemId], references: [id])
+
+  @@index([workspaceId])
+  @@index([workItemId])
+  @@index([action])
+  @@map("activity_events")
+}
+
+model DashboardSnapshot {
+  id         String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  payload    Json
+  rebuildedAt DateTime @default(now()) @map("rebuilded_at")
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, rebuildedAt])
+  @@map("dashboard_snapshots")
+}

@@ -1,9 +1,39 @@
+# Dependencies
 node_modules
-dist
-.env
-.env.*
-.openai/.sites-credential*
-*.docx
-.deploy-gh-pages
+.pnp
+.pnp.js
 
-.vercel
+# Testing
+coverage
+*.log
+
+# Production
+dist
+build
+
+# Next.js
+.next
+out
+
+# Prisma
+.prisma
+*.db
+*.db-journal
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Turbo
+.turbo
+
+# Misc
+.cache
+.parcel-cache
