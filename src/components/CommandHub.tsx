@@ -3,7 +3,7 @@
 // 包含 8 个面板：目标达成、今日重点、信息资讯、当前问题、最新复盘、AI 建议
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, AlertCircle, Inbox, FolderKanban, CheckSquare, ClipboardList } from 'lucide-react';
+import { RefreshCw, AlertCircle, Inbox } from 'lucide-react';
 import type { DashboardSnapshot } from '../types/dashboard';
 import { StateTarget } from './StateTarget';
 import { TodayFocus } from './TodayFocus';
@@ -13,10 +13,6 @@ import { LatestReview } from './LatestReview';
 import { AiSuggestion } from './AiSuggestion';
 import { DashboardSkeleton } from './Skeleton';
 import { getDashboardSnapshot } from '../services/dashboardService';
-import { createProject } from '../services/projectService';
-import { createTask } from '../services/taskService';
-import { createIssue } from '../services/issueService';
-import { generateReviewDraft } from '../services/reviewService';
 import { createLocalBackup, getLocalBackupMeta } from '../services/localBackupStore';
 
 interface CommandHubProps {
@@ -30,9 +26,6 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [isBackendLive, setIsBackendLive] = useState(false);
-  const [quickTitle, setQuickTitle] = useState('');
-  const [quickBusy, setQuickBusy] = useState('');
-  const [quickMessage, setQuickMessage] = useState('');
   const [backupMeta, setBackupMeta] = useState(() => getLocalBackupMeta());
 
   const loadData = useCallback(async (silent = false) => {
@@ -182,60 +175,6 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
     });
   };
 
-  const syncAfterWrite = async (message: string) => {
-    createLocalBackup();
-    setBackupMeta(getLocalBackupMeta());
-    setQuickMessage(message);
-    window.dispatchEvent(new CustomEvent('nova:refresh-dashboard'));
-    await loadData();
-  };
-
-  const getTitle = (fallback: string) => quickTitle.trim() || fallback;
-
-  const handleQuickAction = async (type: 'project' | 'task' | 'issue' | 'review') => {
-    setQuickBusy(type);
-    setQuickMessage('');
-    try {
-      if (type === 'project') {
-        await createProject({
-          title: getTitle('新建项目'),
-          priority: 'P1',
-          domainId: 'work',
-          progress: 0,
-          healthStatus: 'ON_TRACK',
-        });
-        await syncAfterWrite('项目已创建并同步到指挥台');
-      }
-      if (type === 'task') {
-        await createTask({
-          title: getTitle('新建任务'),
-          priority: 'P1',
-          domainId: 'work',
-          estimatedMinutes: 30,
-        });
-        await syncAfterWrite('任务已创建并同步到今日重点');
-      }
-      if (type === 'issue') {
-        await createIssue({
-          title: getTitle('新的问题提示'),
-          description: '由全局指挥台快速记录',
-          level: 'MEDIUM',
-          domainId: 'work',
-        });
-        await syncAfterWrite('问题提示已记录并同步到风险模块');
-      }
-      if (type === 'review') {
-        await generateReviewDraft('local-current-cycle', 'local-user');
-        await syncAfterWrite('复盘草稿已生成并同步到最新复盘');
-      }
-      setQuickTitle('');
-    } catch (err) {
-      setQuickMessage((err as Error).message || '操作失败，请稍后重试');
-    } finally {
-      setQuickBusy('');
-    }
-  };
-
   return (
     <section className="commandHub">
       <div className="commandHubHeader">
@@ -260,43 +199,6 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
               <span>刷新</span>
             </button>
           </div>
-        </div>
-      </div>
-
-      <div className="commandQuickStart" aria-label="全局指挥台快速启动">
-        <div className="quickStartCopy">
-          <span className="sectionEyebrow">QUICK START</span>
-          <h3>快速启动任务管理</h3>
-          <p>手动创建项目、任务、问题提示和复盘；系统会自动刷新并写入本地备份。</p>
-        </div>
-        <div className="quickStartInput">
-          <input
-            value={quickTitle}
-            onChange={(event) => setQuickTitle(event.target.value)}
-            placeholder="输入标题，例如：整理本周重点项目"
-          />
-          <div className="quickStartActions">
-            <button type="button" onClick={() => handleQuickAction('project')} disabled={Boolean(quickBusy)}>
-              <FolderKanban size={15} />
-              项目
-            </button>
-            <button type="button" onClick={() => handleQuickAction('task')} disabled={Boolean(quickBusy)}>
-              <CheckSquare size={15} />
-              任务
-            </button>
-            <button type="button" onClick={() => handleQuickAction('issue')} disabled={Boolean(quickBusy)}>
-              <AlertCircle size={15} />
-              问题
-            </button>
-            <button type="button" onClick={() => handleQuickAction('review')} disabled={Boolean(quickBusy)}>
-              <ClipboardList size={15} />
-              复盘
-            </button>
-          </div>
-        </div>
-        <div className="quickStartMeta">
-          <span>{quickBusy ? '同步中...' : quickMessage || '自动更新已开启'}</span>
-          <small>备份 {backupMeta.backupCount} 次 · {new Date(backupMeta.updatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</small>
         </div>
       </div>
 

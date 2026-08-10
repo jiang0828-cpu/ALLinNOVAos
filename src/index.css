@@ -5011,95 +5011,6 @@ body {
   background: var(--ghost-bg);
 }
 
-.commandQuickStart {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.9fr) minmax(360px, 1.6fr) minmax(180px, 0.7fr);
-  gap: 14px;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-}
-
-.quickStartCopy h3,
-.quickStartCopy p {
-  margin: 0;
-}
-
-.quickStartCopy h3 {
-  margin-top: 4px;
-  font-size: 16px;
-}
-
-.quickStartCopy p {
-  margin-top: 6px;
-  color: var(--text-softer);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.quickStartInput {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-}
-
-.quickStartInput input {
-  min-height: 38px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 12px;
-  color: var(--text);
-  background: var(--surface-solid);
-}
-
-.quickStartActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.quickStartActions button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 10px;
-  color: var(--brand);
-  background: var(--ghost-bg);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.quickStartActions button:hover:not(:disabled) {
-  border-color: rgba(23, 138, 111, 0.32);
-  background: var(--pill-bg);
-}
-
-.quickStartMeta {
-  display: grid;
-  gap: 4px;
-  justify-items: end;
-  color: var(--text-soft);
-  font-size: 12px;
-  text-align: right;
-}
-
-.quickStartMeta span {
-  font-weight: 800;
-  color: var(--brand);
-}
-
-.quickStartMeta small {
-  color: var(--text-faint);
-}
-
 .heroGrid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
@@ -5275,18 +5186,6 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .commandQuickStart {
-    grid-template-columns: 1fr;
-  }
-
-  .quickStartInput {
-    grid-template-columns: 1fr;
-  }
-
-  .quickStartMeta {
-    justify-items: start;
-    text-align: left;
-  }
 }
 
 @media (max-width: 780px) {
