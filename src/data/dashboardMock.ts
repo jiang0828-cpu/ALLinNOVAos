@@ -1,5 +1,5 @@
 // src/data/dashboardMock.ts
-// 全局指挥台 Mock 数据（Phase 1 前端开发用，后续替换为 API）
+// 全局指挥台 Mock 数据（离线开发用，生产环境使用真实 API）
 
 import type { DashboardSnapshot } from '../types/dashboard';
 
@@ -69,9 +69,34 @@ export const dashboardSnapshot: DashboardSnapshot = {
     ],
   },
 
+  openIssues: [
+    {
+      id: 'issue_001',
+      title: 'API 响应延迟偶发超过 3 秒',
+      level: 'MEDIUM',
+      status: 'OPEN',
+    },
+    {
+      id: 'issue_002',
+      title: '数据库连接池接近上限',
+      level: 'HIGH',
+      status: 'IN_PROGRESS',
+    },
+  ],
+
+  latestReview: {
+    id: 'review_001',
+    title: '第 32 周复盘',
+    reviewType: 'WEEKLY',
+    status: 'COMPLETED',
+    reviewedAt: '2026-08-05T18:00:00+08:00',
+  },
+
+  activeInsightsCount: 3,
+
   aiSuggestions: [
     {
-      id: 1,
+      id: '1',
       title: '推进 NOVA OS V2 核心功能',
       source: '目标达成 + PLANS',
       reason: 'V2 路线图进度 65%，今日可完成核心模块验收',
@@ -80,7 +105,7 @@ export const dashboardSnapshot: DashboardSnapshot = {
       isConverted: false,
     },
     {
-      id: 2,
+      id: '2',
       title: '订阅 AI 行业动态周报',
       source: 'NEWS + IDEAS',
       reason: 'AI 行业资讯密集，自动化收集可节省 2 小时/周',
@@ -89,7 +114,7 @@ export const dashboardSnapshot: DashboardSnapshot = {
       isConverted: false,
     },
     {
-      id: 3,
+      id: '3',
       title: '完成健康数据日报',
       source: '目标达成 + NEWS',
       reason: '健康评分 78，低于 80 基准线，需加强监测',
@@ -98,7 +123,7 @@ export const dashboardSnapshot: DashboardSnapshot = {
       isConverted: false,
     },
     {
-      id: 4,
+      id: '4',
       title: '整理 Q3 内容框架',
       source: 'PLANS + IDEAS',
       reason: '内容规划进度 40%，本周需确定主题方向',

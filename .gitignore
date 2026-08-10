@@ -24,6 +24,8 @@ out
 .env
 .env.local
 .env.*.local
+apps/*/.env
+apps/*/.env.local
 
 # IDE
 .vscode
@@ -37,3 +39,27 @@ out
 # Misc
 .cache
 .parcel-cache
+
+# Build artifacts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# Redis dumps
+*.rdb
+dump.rdb
+
+# Local deploy workspaces
+.deploy-gh-pages/
+.vercel/
+.wrangler/
+
+# Trae / OpenAI agent metadata
+.trae/
+.openai/
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+

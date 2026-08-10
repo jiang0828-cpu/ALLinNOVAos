@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '@nova-os/database';
 
@@ -15,14 +15,31 @@ import { prisma } from '@nova-os/database';
  */
 @Injectable()
 export class PrismaService implements OnModuleDestroy {
+  private readonly logger = new Logger(PrismaService.name);
+  private localPrisma: PrismaClient | null = null;
+
   /** 暴露 prisma 单例供业务模块使用 */
   get client(): PrismaClient {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return prisma;
+    if (prisma) {
+      return prisma;
+    }
+    
+    // Fallback: create a new PrismaClient if the singleton is undefined
+    this.logger.warn('Prisma singleton is undefined, creating new PrismaClient instance');
+    if (!this.localPrisma) {
+      this.localPrisma = new PrismaClient();
+    }
+    return this.localPrisma;
   }
 
   async onModuleDestroy(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await prisma.$disconnect();
+    if (prisma) {
+      await prisma.$disconnect();
+    }
+    if (this.localPrisma) {
+      await this.localPrisma.$disconnect();
+    }
   }
 }

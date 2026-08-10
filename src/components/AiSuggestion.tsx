@@ -6,7 +6,7 @@ import { PRIORITY_COLORS, getPriorityTextColor } from '../types/dashboard';
 import type { Priority } from '../types/dashboard';
 
 interface AiSuggestionItem {
-  id: number;
+  id: string;
   title: string;
   source: string;
   reason: string;
@@ -17,7 +17,7 @@ interface AiSuggestionItem {
 
 interface AiSuggestionProps {
   suggestions: AiSuggestionItem[];
-  onConvert: (id: number) => void;
+  onConvert: (id: string) => void;
 }
 
 export function AiSuggestion({ suggestions, onConvert }: AiSuggestionProps) {

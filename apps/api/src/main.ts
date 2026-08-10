@@ -10,9 +10,14 @@ async function bootstrap() {
   // Global prefix so all routes live under /api
   app.setGlobalPrefix('api');
 
-  // Enable CORS for the Next.js frontend (http://localhost:3004)
+  // Enable CORS for all frontend dev origins
   app.enableCors({
-    origin: ['http://localhost:3004', 'http://127.0.0.1:3004'],
+    origin: [
+      'http://localhost:3004',
+      'http://127.0.0.1:3004',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+    ],
     credentials: true,
   });
 

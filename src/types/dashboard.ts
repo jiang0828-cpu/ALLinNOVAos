@@ -123,6 +123,26 @@ export interface DashboardSnapshot {
     }>;
   };
 
+  // 当前问题/风险
+  openIssues: Array<{
+    id: string;
+    title: string;
+    level: IssueLevel;
+    status: string;
+  }>;
+
+  // 最新复盘
+  latestReview: {
+    id: string;
+    title: string;
+    reviewType: string;
+    status: string;
+    reviewedAt: string;
+  } | null;
+
+  // 活跃洞察数量
+  activeInsightsCount: number;
+
   // AI 建议 (Suggestion)
   aiSuggestions: Array<{
     id: string;

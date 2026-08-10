@@ -1,0 +1,1122 @@
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import { PrismaService } from '../../../infrastructure/database/prisma.service';
+import {
+  ReviewAggregatorService,
+  AggregatedReviewData,
+} from './review-aggregator.service';
+import {
+  Prisma,
+  WorkItemType,
+  PdcaStage,
+  WorkItemStatus,
+  ReviewStatus,
+  ReviewType,
+  CycleType,
+  InsightType,
+  InsightStatus,
+  IssueLevel,
+  WorkItemRelationType,
+  ActivityAction,
+  SourceType,
+  Priority,
+} from '@prisma/client';
+
+/**
+ * Structured content item used in review achievements/challenges/rootCauses/lessonsLearned.
+ */
+interface ReviewContentItem {
+  type: string;
+  description: string;
+  metric?: number;
+  impactScore?: number;
+  severity?: string;
+  projectName?: string;
+  evidence?: Record<string, unknown>;
+}
+
+@Injectable()
+export class ReviewsService {
+  private readonly logger = new Logger(ReviewsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aggregator: ReviewAggregatorService
+  ) {}
+
+  /**
+   * Generate a review draft from cycle data
+   * Auto-aggregates task completion, project progress, metrics, issues, suggestions
+   */
+  async generateReviewDraft(
+    workspaceId: string,
+    cycleId: string,
+    options?: { reviewedBy?: string }
+  ): Promise<Prisma.WorkItemGetPayload<{ include: { reviewDetail: true } }>> {
+    // Validate cycle
+    const cycle = await this.prisma.client.pdcaCycle.findUnique({
+      where: { id: cycleId },
+    });
+    if (!cycle || cycle.workspaceId !== workspaceId) {
+      throw new NotFoundException(
+        `Cycle with id ${cycleId} not found in workspace ${workspaceId}`
+      );
+    }
+
+    // Check if a review already exists for this cycle
+    const existingReview = await this.prisma.client.workItem.findFirst({
+      where: {
+        workspaceId,
+        cycleId,
+        itemType: WorkItemType.REVIEW,
+        deletedAt: null,
+      },
+    });
+    if (existingReview) {
+      throw new ConflictException(
+        `A review already exists for cycle ${cycleId}`
+      );
+    }
+
+    // Aggregate data
+    const aggregatedData = await this.aggregator.aggregateCycleData(
+      workspaceId,
+      cycleId
+    );
+
+    // Map CycleType to ReviewType
+    const reviewType = this.mapCycleTypeToReviewType(cycle.cycleType);
+    const period = this.buildPeriodLabel(
+      cycle.cycleType,
+      cycle.startDate,
+      cycle.endDate
+    );
+
+    // Auto-generate summary and content
+    const summary = this.generateAutoSummary(aggregatedData);
+    const achievements = this.generateAchievements(aggregatedData);
+    const challenges = this.generateChallenges(aggregatedData);
+    const rootCauses = this.generateRootCauses(aggregatedData);
+    const lessonsLearned = this.generateLessonsLearned(aggregatedData);
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const review = await tx.workItem.create({
+        data: {
+          workspaceId,
+          cycleId,
+          itemType: WorkItemType.REVIEW,
+          pdcaStage: PdcaStage.REVIEW,
+          title: `${this.getReviewTypeLabel(reviewType)}复盘 ${period}`,
+          description: summary,
+          status: WorkItemStatus.ACTIVE,
+          createdBy: options?.reviewedBy || 'system',
+          sourceType: SourceType.AI,
+          reviewDetail: {
+            create: {
+              reviewType,
+              cycleType: cycle.cycleType,
+              period,
+              summary,
+              achievements: achievements as unknown as Prisma.InputJsonValue,
+              challenges: challenges as unknown as Prisma.InputJsonValue,
+              rootCauses: rootCauses as unknown as Prisma.InputJsonValue,
+              lessonsLearned:
+                lessonsLearned as unknown as Prisma.InputJsonValue,
+              nextCycleFocus: aggregatedData.suggestedNextCycleFocus,
+              scoreBefore: null,
+              scoreAfter: aggregatedData.healthScore,
+              score: aggregatedData.healthScore,
+              completionRate: aggregatedData.taskCompletion.completionRate,
+              reviewedBy: options?.reviewedBy || null,
+              isDraft: true,
+              status: ReviewStatus.DRAFT,
+              aggregatedData:
+                aggregatedData as unknown as Prisma.InputJsonValue,
+            },
+          },
+        },
+        include: { reviewDetail: true },
+      });
+
+      // Create relations: Review REVIEWS each cycle object
+      await this.createReviewRelations(tx, workspaceId, review.id, cycleId);
+
+      // Write activity event
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: review.id,
+          action: ActivityAction.CREATE,
+          actor: options?.reviewedBy || 'system',
+          metadata: {
+            cycleId,
+            reviewType,
+            autoGenerated: true,
+            taskCompletionRate: aggregatedData.taskCompletion.completionRate,
+          },
+        },
+      });
+
+      return review;
+    });
+  }
+
+  /**
+   * Regenerate (refresh) an existing DRAFT review with freshly aggregated data.
+   *
+   * Used by the weekly scheduler to "update" an already-created draft without
+   * creating a duplicate. Completed / published reviews are left untouched.
+   *
+   * Returns the refreshed review, or `null` if the existing review is not
+   * in DRAFT status (in which case there is nothing to update).
+   */
+  async regenerateDraft(
+    reviewId: string,
+    workspaceId: string,
+    options?: { reviewedBy?: string }
+  ): Promise<Prisma.WorkItemGetPayload<{
+    include: { reviewDetail: true };
+  }> | null> {
+    const review = await this.prisma.client.workItem.findUnique({
+      where: { id: reviewId },
+      include: { reviewDetail: true },
+    });
+
+    if (
+      !review ||
+      review.itemType !== WorkItemType.REVIEW ||
+      review.workspaceId !== workspaceId ||
+      review.deletedAt
+    ) {
+      throw new NotFoundException(`Review with id ${reviewId} not found`);
+    }
+
+    // Only refresh drafts; never touch completed/published/archived reviews.
+    if (review.reviewDetail?.status !== ReviewStatus.DRAFT) {
+      this.logger.log(
+        `Skipping regeneration for review ${reviewId} (status=${review.reviewDetail?.status})`
+      );
+      return null;
+    }
+
+    if (!review.cycleId) {
+      throw new BadRequestException(
+        `Review ${reviewId} has no associated cycle; cannot regenerate`
+      );
+    }
+
+    const cycleId = review.cycleId;
+    const cycle = await this.prisma.client.pdcaCycle.findUnique({
+      where: { id: cycleId },
+    });
+    if (!cycle) {
+      throw new NotFoundException(`Cycle ${cycleId} not found`);
+    }
+
+    const aggregatedData = await this.aggregator.aggregateCycleData(
+      workspaceId,
+      cycleId
+    );
+
+    const summary = this.generateAutoSummary(aggregatedData);
+    const achievements = this.generateAchievements(aggregatedData);
+    const challenges = this.generateChallenges(aggregatedData);
+    const rootCauses = this.generateRootCauses(aggregatedData);
+    const lessonsLearned = this.generateLessonsLearned(aggregatedData);
+
+    return this.prisma.client.$transaction(async (tx) => {
+      await tx.workItem.update({
+        where: { id: reviewId },
+        data: { description: summary },
+      });
+
+      await tx.reviewDetail.update({
+        where: { workItemId: reviewId },
+        data: {
+          summary,
+          achievements: achievements as unknown as Prisma.InputJsonValue,
+          challenges: challenges as unknown as Prisma.InputJsonValue,
+          rootCauses: rootCauses as unknown as Prisma.InputJsonValue,
+          lessonsLearned: lessonsLearned as unknown as Prisma.InputJsonValue,
+          nextCycleFocus: aggregatedData.suggestedNextCycleFocus,
+          scoreAfter: aggregatedData.healthScore,
+          score: aggregatedData.healthScore,
+          completionRate: aggregatedData.taskCompletion.completionRate,
+          aggregatedData: aggregatedData as unknown as Prisma.InputJsonValue,
+          isDraft: true, // keep as draft (auto-generated, unedited)
+        },
+      });
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: reviewId,
+          action: ActivityAction.UPDATE,
+          actor: options?.reviewedBy || 'system',
+          metadata: {
+            cycleId,
+            regenerated: true,
+            autoGenerated: true,
+            taskCompletionRate: aggregatedData.taskCompletion.completionRate,
+          },
+        },
+      });
+
+      return this.getReviewById(reviewId, workspaceId);
+    });
+  }
+
+  /**
+   * Find an existing DRAFT review for a given cycle (dedup helper for scheduler).
+   */
+  async findDraftForCycle(
+    workspaceId: string,
+    cycleId: string
+  ): Promise<Prisma.WorkItemGetPayload<{
+    include: { reviewDetail: true };
+  }> | null> {
+    return this.prisma.client.workItem.findFirst({
+      where: {
+        workspaceId,
+        cycleId,
+        itemType: WorkItemType.REVIEW,
+        deletedAt: null,
+      },
+      include: { reviewDetail: true },
+    });
+  }
+
+  /**
+   * Create a review manually
+   */
+  async createReview(data: {
+    workspaceId: string;
+    title: string;
+    description?: string;
+    cycleId?: string;
+    reviewType: ReviewType;
+    cycleType: CycleType;
+    period: string;
+    summary?: string;
+    reviewedBy?: string;
+  }) {
+    const { workspaceId } = data;
+
+    const workspace = await this.prisma.client.workspace.findUnique({
+      where: { id: workspaceId },
+    });
+    if (!workspace) {
+      throw new NotFoundException(`Workspace with id ${workspaceId} not found`);
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const review = await tx.workItem.create({
+        data: {
+          workspaceId,
+          cycleId: data.cycleId || null,
+          itemType: WorkItemType.REVIEW,
+          pdcaStage: PdcaStage.REVIEW,
+          title: data.title,
+          description: data.description,
+          status: WorkItemStatus.ACTIVE,
+          createdBy: data.reviewedBy || 'user',
+          sourceType: SourceType.MANUAL,
+          reviewDetail: {
+            create: {
+              reviewType: data.reviewType,
+              cycleType: data.cycleType,
+              period: data.period,
+              summary: data.summary,
+              reviewedBy: data.reviewedBy || null,
+              isDraft: true,
+              status: ReviewStatus.DRAFT,
+            },
+          },
+        },
+        include: { reviewDetail: true },
+      });
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: review.id,
+          action: ActivityAction.CREATE,
+          actor: data.reviewedBy || 'user',
+          metadata: {
+            reviewType: data.reviewType,
+            manual: true,
+          },
+        },
+      });
+
+      return review;
+    });
+  }
+
+  /**
+   * Get review by ID with full aggregated data
+   */
+  async getReviewById(id: string, workspaceId: string) {
+    const review = await this.prisma.client.workItem.findUnique({
+      where: { id },
+      include: {
+        reviewDetail: true,
+        outgoingRelations: {
+          where: { relationType: WorkItemRelationType.PRODUCES },
+          include: {
+            targetItem: {
+              include: { insightDetail: true, decisionDetail: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (
+      !review ||
+      review.itemType !== WorkItemType.REVIEW ||
+      review.workspaceId !== workspaceId ||
+      review.deletedAt
+    ) {
+      throw new NotFoundException(`Review with id ${id} not found`);
+    }
+
+    return review;
+  }
+
+  /**
+   * List reviews with filters
+   */
+  async listReviews(
+    workspaceId: string,
+    queryDto: {
+      status?: ReviewStatus[];
+      reviewType?: ReviewType;
+      cycleId?: string;
+      page?: number;
+      limit?: number;
+    }
+  ) {
+    const { status, reviewType, cycleId, page = 1, limit = 20 } = queryDto;
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.WorkItemWhereInput = {
+      workspaceId,
+      itemType: WorkItemType.REVIEW,
+      deletedAt: null,
+    };
+
+    const detailFilter: Prisma.ReviewDetailWhereInput = {};
+    if (status && status.length > 0) {
+      detailFilter.status = { in: status };
+    }
+    if (reviewType) {
+      detailFilter.reviewType = reviewType;
+    }
+    if (Object.keys(detailFilter).length > 0) {
+      where.reviewDetail = { is: detailFilter };
+    }
+
+    if (cycleId) {
+      where.cycleId = cycleId;
+    }
+
+    const [total, reviews] = await Promise.all([
+      this.prisma.client.workItem.count({ where }),
+      this.prisma.client.workItem.findMany({
+        where,
+        include: { reviewDetail: true },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      data: reviews,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Update review content (user can edit auto-generated content)
+   */
+  async updateReview(
+    id: string,
+    workspaceId: string,
+    updateData: {
+      title?: string;
+      description?: string;
+      summary?: string;
+      achievements?: Record<string, unknown>[];
+      challenges?: Record<string, unknown>[];
+      rootCauses?: Record<string, unknown>[];
+      lessonsLearned?: Record<string, unknown>[];
+      nextCycleFocus?: Record<string, unknown>[];
+      scoreBefore?: number;
+      scoreAfter?: number;
+      score?: number;
+    }
+  ) {
+    const review = await this.getReviewById(id, workspaceId);
+
+    if (
+      review.reviewDetail?.status === ReviewStatus.COMPLETED ||
+      review.reviewDetail?.status === ReviewStatus.PUBLISHED
+    ) {
+      throw new BadRequestException(
+        'Cannot update a completed or published review'
+      );
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const workItemUpdate: Prisma.WorkItemUpdateInput = {};
+      if (updateData.title) workItemUpdate.title = updateData.title;
+      if (updateData.description)
+        workItemUpdate.description = updateData.description;
+
+      const detailUpdate: Prisma.ReviewDetailUpdateInput = {};
+      if (updateData.summary !== undefined)
+        detailUpdate.summary = updateData.summary;
+      if (updateData.achievements !== undefined)
+        detailUpdate.achievements =
+          updateData.achievements as unknown as Prisma.InputJsonValue;
+      if (updateData.challenges !== undefined)
+        detailUpdate.challenges =
+          updateData.challenges as unknown as Prisma.InputJsonValue;
+      if (updateData.rootCauses !== undefined)
+        detailUpdate.rootCauses =
+          updateData.rootCauses as unknown as Prisma.InputJsonValue;
+      if (updateData.lessonsLearned !== undefined)
+        detailUpdate.lessonsLearned =
+          updateData.lessonsLearned as unknown as Prisma.InputJsonValue;
+      if (updateData.nextCycleFocus !== undefined)
+        detailUpdate.nextCycleFocus =
+          updateData.nextCycleFocus as unknown as Prisma.InputJsonValue;
+      if (updateData.scoreBefore !== undefined)
+        detailUpdate.scoreBefore = updateData.scoreBefore;
+      if (updateData.scoreAfter !== undefined)
+        detailUpdate.scoreAfter = updateData.scoreAfter;
+      if (updateData.score !== undefined) detailUpdate.score = updateData.score;
+      detailUpdate.isDraft = false; // Mark as edited
+
+      if (Object.keys(workItemUpdate).length > 0) {
+        await tx.workItem.update({ where: { id }, data: workItemUpdate });
+      }
+      if (Object.keys(detailUpdate).length > 0) {
+        await tx.reviewDetail.update({
+          where: { workItemId: id },
+          data: detailUpdate,
+        });
+      }
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: id,
+          action: ActivityAction.UPDATE,
+          actor: 'user',
+          metadata: {
+            updatedFields: Object.keys({ ...workItemUpdate, ...detailUpdate }),
+          },
+        },
+      });
+
+      return this.getReviewById(id, workspaceId);
+    });
+  }
+
+  /**
+   * Complete review (user confirmed)
+   * Status changes from DRAFT to COMPLETED
+   */
+  async completeReview(
+    id: string,
+    workspaceId: string,
+    options?: { reviewedBy?: string }
+  ) {
+    const review = await this.getReviewById(id, workspaceId);
+
+    if (review.reviewDetail?.status !== ReviewStatus.DRAFT) {
+      throw new BadRequestException(
+        `Review cannot be completed (current: ${review.reviewDetail?.status})`
+      );
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const updatedReview = await tx.reviewDetail.update({
+        where: { workItemId: id },
+        data: {
+          status: ReviewStatus.COMPLETED,
+          isDraft: false,
+          reviewedBy:
+            options?.reviewedBy || review.reviewDetail?.reviewedBy || 'user',
+          reviewedAt: new Date(),
+        },
+      });
+
+      await tx.workItem.update({
+        where: { id },
+        data: { status: WorkItemStatus.COMPLETED, completedAt: new Date() },
+      });
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: id,
+          action: ActivityAction.COMPLETE,
+          actor: options?.reviewedBy || 'user',
+          metadata: { newStatus: 'COMPLETED' },
+        },
+      });
+
+      return updatedReview;
+    });
+  }
+
+  /**
+   * Create an Insight from a Review
+   * Establishes Review PRODUCES Insight relation
+   */
+  async createInsightFromReview(
+    reviewId: string,
+    workspaceId: string,
+    data: {
+      statement: string;
+      content: string;
+      insightType: InsightType;
+      tags?: string[];
+      confidence?: number;
+      impactScore?: number;
+      evidence?: Record<string, unknown>;
+      validFrom?: Date;
+      validUntil?: Date;
+      createdBy?: string;
+    }
+  ) {
+    const review = await this.getReviewById(reviewId, workspaceId);
+
+    if (review.reviewDetail?.status !== ReviewStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Insights can only be created from completed reviews'
+      );
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      // Create Insight WorkItem
+      const insight = await tx.workItem.create({
+        data: {
+          workspaceId,
+          cycleId: review.cycleId,
+          itemType: WorkItemType.INSIGHT,
+          pdcaStage: PdcaStage.REVIEW,
+          title: data.statement.substring(0, 80),
+          description: data.content,
+          status: WorkItemStatus.ACTIVE,
+          createdBy: data.createdBy || 'user',
+          sourceType: SourceType.MANUAL,
+          insightDetail: {
+            create: {
+              reviewId,
+              insightType: data.insightType,
+              statement: data.statement,
+              content: data.content,
+              tags: data.tags || [],
+              confidence: data.confidence ?? 0.5,
+              impactScore: data.impactScore ?? 50,
+              evidence: (data.evidence || {}) as Prisma.InputJsonValue,
+              validFrom: data.validFrom,
+              validUntil: data.validUntil,
+              status: InsightStatus.ACTIVE,
+            },
+          },
+        },
+        include: { insightDetail: true },
+      });
+
+      // Create Review PRODUCES Insight relation
+      await tx.workItemRelation.create({
+        data: {
+          sourceItemId: reviewId,
+          targetItemId: insight.id,
+          relationType: WorkItemRelationType.PRODUCES,
+        },
+      });
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: insight.id,
+          action: ActivityAction.CREATE,
+          actor: data.createdBy || 'user',
+          metadata: {
+            fromReviewId: reviewId,
+            insightType: data.insightType,
+          },
+        },
+      });
+
+      return insight;
+    });
+  }
+
+  /**
+   * Create a Decision from a Review
+   * Establishes Review PRODUCES Decision relation
+   */
+  async createDecisionFromReview(
+    reviewId: string,
+    workspaceId: string,
+    data: {
+      content: string;
+      rationale?: string;
+      impact?: IssueLevel;
+      title?: string;
+      createdBy?: string;
+    }
+  ) {
+    const review = await this.getReviewById(reviewId, workspaceId);
+
+    if (review.reviewDetail?.status !== ReviewStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Decisions can only be created from completed reviews'
+      );
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const decision = await tx.workItem.create({
+        data: {
+          workspaceId,
+          cycleId: review.cycleId,
+          itemType: WorkItemType.DECISION,
+          pdcaStage: PdcaStage.ACT,
+          title: data.title || `决策: ${data.content.substring(0, 60)}`,
+          description: data.rationale || data.content,
+          status: WorkItemStatus.ACTIVE,
+          createdBy: data.createdBy || 'user',
+          sourceType: SourceType.MANUAL,
+          decisionDetail: {
+            create: {
+              reviewId,
+              content: data.content,
+              rationale: data.rationale,
+              impact: data.impact || null,
+              decidedAt: new Date(),
+            },
+          },
+        },
+        include: { decisionDetail: true },
+      });
+
+      // Create Review PRODUCES Decision relation
+      await tx.workItemRelation.create({
+        data: {
+          sourceItemId: reviewId,
+          targetItemId: decision.id,
+          relationType: WorkItemRelationType.PRODUCES,
+        },
+      });
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: decision.id,
+          action: ActivityAction.CREATE,
+          actor: data.createdBy || 'user',
+          metadata: {
+            fromReviewId: reviewId,
+          },
+        },
+      });
+
+      return decision;
+    });
+  }
+
+  /**
+   * Create next cycle task drafts from a Decision
+   * Establishes Decision ADJUSTS Task relation
+   */
+  async createNextCycleTaskDrafts(
+    reviewId: string,
+    workspaceId: string,
+    tasks: Array<{
+      title: string;
+      description?: string;
+      priority?: Priority;
+      estimatedMinutes?: number;
+    }>,
+    options?: { createdBy?: string }
+  ) {
+    const review = await this.getReviewById(reviewId, workspaceId);
+
+    if (review.reviewDetail?.status !== ReviewStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Next cycle tasks can only be created from completed reviews'
+      );
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      // Create a Decision to bundle the next cycle tasks
+      const decision = await tx.workItem.create({
+        data: {
+          workspaceId,
+          cycleId: review.cycleId,
+          itemType: WorkItemType.DECISION,
+          pdcaStage: PdcaStage.ACT,
+          title: `下一周期任务规划 - ${review.title}`,
+          description: `源自复盘 ${reviewId} 的下一周期任务草稿`,
+          status: WorkItemStatus.ACTIVE,
+          createdBy: options?.createdBy || 'user',
+          sourceType: SourceType.MANUAL,
+          decisionDetail: {
+            create: {
+              reviewId,
+              content: '下一周期任务规划',
+              rationale: '基于复盘产出的下一周期任务草稿',
+              decidedAt: new Date(),
+            },
+          },
+        },
+        include: { decisionDetail: true },
+      });
+
+      // Review PRODUCES Decision
+      await tx.workItemRelation.create({
+        data: {
+          sourceItemId: reviewId,
+          targetItemId: decision.id,
+          relationType: WorkItemRelationType.PRODUCES,
+        },
+      });
+
+      // Create next cycle task drafts
+      const createdTasks = [];
+      for (const taskData of tasks) {
+        const task = await tx.workItem.create({
+          data: {
+            workspaceId,
+            itemType: WorkItemType.TASK,
+            pdcaStage: PdcaStage.DO,
+            title: taskData.title,
+            description: taskData.description,
+            status: WorkItemStatus.TODO,
+            priority: taskData.priority,
+            createdBy: options?.createdBy || 'user',
+            sourceType: SourceType.AI, // Mark as AI draft
+            parentId: decision.id,
+            taskDetail: {
+              create: {
+                estimatedMinutes: taskData.estimatedMinutes || 60,
+              },
+            },
+          },
+          include: { taskDetail: true },
+        });
+
+        // Decision ADJUSTS Task (next cycle planning)
+        await tx.workItemRelation.create({
+          data: {
+            sourceItemId: decision.id,
+            targetItemId: task.id,
+            relationType: WorkItemRelationType.ADJUSTS,
+          },
+        });
+
+        createdTasks.push(task);
+
+        await tx.activityEvent.create({
+          data: {
+            workspaceId,
+            workItemId: task.id,
+            action: ActivityAction.CREATE,
+            actor: options?.createdBy || 'user',
+            metadata: {
+              fromReviewId: reviewId,
+              fromDecisionId: decision.id,
+              isDraft: true,
+            },
+          },
+        });
+      }
+
+      return { decision, tasks: createdTasks };
+    });
+  }
+
+  /**
+   * Soft delete a review
+   */
+  async deleteReview(id: string, workspaceId: string) {
+    const review = await this.getReviewById(id, workspaceId);
+
+    if (review.deletedAt) {
+      throw new BadRequestException('Review is already deleted');
+    }
+
+    return this.prisma.client.$transaction(async (tx) => {
+      const updated = await tx.workItem.update({
+        where: { id },
+        data: {
+          status: WorkItemStatus.ARCHIVED,
+          deletedAt: new Date(),
+        },
+        include: { reviewDetail: true },
+      });
+
+      await tx.activityEvent.create({
+        data: {
+          workspaceId,
+          workItemId: id,
+          action: ActivityAction.DELETE,
+          actor: 'user',
+        },
+      });
+
+      return updated;
+    });
+  }
+
+  /**
+   * Get aggregated data for a review
+   */
+  async getAggregatedData(
+    reviewId: string,
+    workspaceId: string
+  ): Promise<AggregatedReviewData | null> {
+    const review = await this.getReviewById(reviewId, workspaceId);
+    if (!review.reviewDetail?.aggregatedData) {
+      return null;
+    }
+    return review.reviewDetail
+      .aggregatedData as unknown as AggregatedReviewData;
+  }
+
+  // ============ Helper methods ============
+
+  private async createReviewRelations(
+    tx: Prisma.TransactionClient,
+    workspaceId: string,
+    reviewId: string,
+    cycleId: string
+  ): Promise<void> {
+    // Find all cycle work items to establish Review REVIEWS Item relations
+    const cycleItems = await tx.workItem.findMany({
+      where: {
+        workspaceId,
+        cycleId,
+        deletedAt: null,
+        itemType: {
+          in: [WorkItemType.GOAL, WorkItemType.PROJECT, WorkItemType.TASK],
+        },
+      },
+      select: { id: true },
+    });
+
+    for (const item of cycleItems) {
+      await tx.workItemRelation.create({
+        data: {
+          sourceItemId: reviewId,
+          targetItemId: item.id,
+          relationType: WorkItemRelationType.REVIEWS,
+        },
+      });
+    }
+  }
+
+  private mapCycleTypeToReviewType(cycleType: CycleType): ReviewType {
+    const mapping: Record<CycleType, ReviewType> = {
+      [CycleType.DAILY]: ReviewType.DAILY,
+      [CycleType.WEEKLY]: ReviewType.WEEKLY,
+      [CycleType.MONTHLY]: ReviewType.MONTHLY,
+      [CycleType.QUARTERLY]: ReviewType.QUARTERLY,
+      [CycleType.YEARLY]: ReviewType.YEARLY,
+      [CycleType.SPRINT]: ReviewType.PROJECT,
+      [CycleType.CUSTOM]: ReviewType.CUSTOM,
+    };
+    return mapping[cycleType] || ReviewType.CUSTOM;
+  }
+
+  private buildPeriodLabel(
+    cycleType: CycleType,
+    startDate: Date,
+    endDate: Date
+  ): string {
+    const start = startDate.toISOString().split('T')[0];
+    const end = endDate.toISOString().split('T')[0];
+    return `${start}~${end}`;
+  }
+
+  private getReviewTypeLabel(reviewType: ReviewType): string {
+    const labels: Record<ReviewType, string> = {
+      [ReviewType.DAILY]: '日',
+      [ReviewType.WEEKLY]: '周',
+      [ReviewType.MONTHLY]: '月',
+      [ReviewType.QUARTERLY]: '季',
+      [ReviewType.YEARLY]: '年',
+      [ReviewType.PROJECT]: '项目',
+      [ReviewType.CUSTOM]: '自定义',
+    };
+    return labels[reviewType] || '周期';
+  }
+
+  private generateAutoSummary(data: AggregatedReviewData): string {
+    const parts: string[] = [];
+
+    parts.push(
+      `本周期共 ${data.taskCompletion.totalTasks} 个任务，完成 ${data.taskCompletion.doneTasks} 个（完成率 ${data.taskCompletion.completionRate}%）。`
+    );
+
+    if (data.projectProgress.length > 0) {
+      const avgProgress = Math.round(
+        data.projectProgress.reduce((sum, p) => sum + p.progress, 0) /
+          data.projectProgress.length
+      );
+      parts.push(`项目平均进度 ${avgProgress}%。`);
+    }
+
+    if (data.unresolvedIssues.length > 0) {
+      parts.push(`当前有 ${data.unresolvedIssues.length} 个未解决问题。`);
+    }
+
+    if (data.acceptedSuggestions.length > 0) {
+      parts.push(`已采纳 ${data.acceptedSuggestions.length} 个建议。`);
+    }
+
+    if (data.healthScore !== null) {
+      parts.push(`健康度评分 ${data.healthScore.toFixed(1)}。`);
+    }
+
+    return parts.join('');
+  }
+
+  private generateAchievements(
+    data: AggregatedReviewData
+  ): ReviewContentItem[] {
+    const achievements: ReviewContentItem[] = [];
+
+    if (data.taskCompletion.completionRate >= 80) {
+      achievements.push({
+        type: 'task_completion',
+        description: `任务完成率达到 ${data.taskCompletion.completionRate}%，表现优秀`,
+        metric: data.taskCompletion.completionRate,
+      });
+    }
+
+    for (const goal of data.goalProgress) {
+      if (goal.achievementRate >= 80) {
+        achievements.push({
+          type: 'goal_achievement',
+          description: `目标 "${goal.title}" 达成度 ${goal.achievementRate}%`,
+          metric: goal.achievementRate,
+        });
+      }
+    }
+
+    for (const suggestion of data.acceptedSuggestions) {
+      achievements.push({
+        type: 'suggestion_accepted',
+        description: `采纳建议 "${suggestion.title}"`,
+        impactScore: suggestion.impactScore,
+      });
+    }
+
+    return achievements;
+  }
+
+  private generateChallenges(data: AggregatedReviewData): ReviewContentItem[] {
+    const challenges: ReviewContentItem[] = [];
+
+    if (
+      data.taskCompletion.completionRate < 60 &&
+      data.taskCompletion.totalTasks > 0
+    ) {
+      challenges.push({
+        type: 'low_task_completion',
+        description: `任务完成率仅 ${data.taskCompletion.completionRate}%，低于阈值`,
+        metric: data.taskCompletion.completionRate,
+      });
+    }
+
+    for (const issue of data.unresolvedIssues) {
+      challenges.push({
+        type: 'unresolved_issue',
+        description: `未解决问题: ${issue.title}`,
+        severity: issue.severity,
+      });
+    }
+
+    for (const project of data.projectProgress) {
+      if (
+        project.healthStatus === 'OFF_TRACK' ||
+        project.healthStatus === 'ON_HOLD'
+      ) {
+        challenges.push({
+          type: 'project_at_risk',
+          description: `项目 "${project.title}" 状态为 ${project.healthStatus}`,
+          projectName: project.title,
+        });
+      }
+    }
+
+    return challenges;
+  }
+
+  private generateRootCauses(data: AggregatedReviewData): ReviewContentItem[] {
+    const rootCauses: ReviewContentItem[] = [];
+
+    if (data.taskCompletion.completionRate < 60) {
+      rootCauses.push({
+        type: 'planning_issue',
+        description: '任务规划可能过于乐观，或执行过程中存在阻塞',
+        evidence: { completionRate: data.taskCompletion.completionRate },
+      });
+    }
+
+    const highSeverityIssues = data.unresolvedIssues.filter(
+      (i) => i.severity === 'high'
+    );
+    if (highSeverityIssues.length > 0) {
+      rootCauses.push({
+        type: 'metric_gap',
+        description: `${highSeverityIssues.length} 个高严重度问题未解决，可能源于指标差距`,
+        evidence: { highSeverityCount: highSeverityIssues.length },
+      });
+    }
+
+    return rootCauses;
+  }
+
+  private generateLessonsLearned(
+    data: AggregatedReviewData
+  ): ReviewContentItem[] {
+    const lessons: ReviewContentItem[] = [];
+
+    if (data.acceptedSuggestions.length > 0) {
+      lessons.push({
+        type: 'actionable_feedback',
+        description: '采纳建议有助于改进执行',
+        evidence: { acceptedCount: data.acceptedSuggestions.length },
+      });
+    }
+
+    if (data.taskCompletion.completionRate >= 80) {
+      lessons.push({
+        type: 'effective_planning',
+        description: '本周期任务规划合理，执行高效',
+        evidence: { completionRate: data.taskCompletion.completionRate },
+      });
+    }
+
+    return lessons;
+  }
+}

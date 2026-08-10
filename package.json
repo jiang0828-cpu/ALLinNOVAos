@@ -7,10 +7,11 @@
     "dev:api": "pnpm --filter @nova-os/api dev",
     "dev:web": "pnpm --filter @nova-os/web dev",
     "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
-    "build": "pnpm -r --filter='./apps/*' --filter='./packages/*' build",
+    "build:vite": "vite build",
     "build:api": "pnpm --filter @nova-os/api build",
     "build:web": "pnpm --filter @nova-os/web build",
     "build:database": "pnpm --filter @nova-os/database build",
+    "build": "pnpm run build:vite && pnpm -r --filter='./apps/*' --filter='./packages/*' build",
     "start": "pnpm -r --filter='./apps/*' start",
     "start:api": "pnpm --filter @nova-os/api start:prod",
     "start:web": "pnpm --filter @nova-os/web start",
@@ -28,6 +29,13 @@
     "concurrently": "^8.2.2",
     "typescript": "^5.6.0",
     "turbo": "^2.1.0"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": "^6.0.7"
   },
   "engines": {
     "node": ">=18.17.0",

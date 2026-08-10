@@ -4,6 +4,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { PrismaModule } from './infrastructure/database/prisma.module';
 import { HealthModule } from './modules/health/health.module';
+import { TasksModule } from './modules/tasks/tasks.module';
+import { GoalsModule } from './modules/goals/goals.module';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
+import { IssuesModule } from './modules/issues/issues.module';
+import { SuggestionsModule } from './modules/suggestions/suggestions.module';
+import { DecisionsModule } from './modules/decisions/decisions.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AiModule } from './modules/ai/ai.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
@@ -30,6 +40,17 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     PrismaModule,
     // 4. 基础设施模块（健康检查）
     HealthModule,
+    // 5. 业务模块
+    TasksModule,
+    GoalsModule,
+    ProjectsModule,
+    MetricsModule,
+    IssuesModule,
+    SuggestionsModule,
+    DecisionsModule,
+    ReviewsModule,
+    DashboardModule,
+    AiModule,
   ],
   providers: [
     // 全局异常过滤器：统一错误响应为 { code, message, data: null }

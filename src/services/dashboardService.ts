@@ -1,19 +1,32 @@
 // src/services/dashboardService.ts
-// 全局指挥台数据服务 —— 抽象层，支持 Mock 数据与 API 数据源切换
+// Dashboard data service — Phase 2: Real API with graceful fallback to Mock
 
-import { dashboardSnapshot } from '../data/dashboardMock';
+import { apiClient } from './apiClient';
+import { adaptBackendToSnapshot } from './dashboard-adapter';
+import { dashboardSnapshot as mockSnapshot } from '../data/dashboardMock';
 import type { DashboardSnapshot } from '../types/dashboard';
 
-/**
- * 获取全局指挥台快照数据
- * Phase 1: 返回本地 Mock 数据
- * Phase 2: 替换为 fetch('/api/dashboard')
- */
-export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
-  // Phase 2 示例：
-  // const res = await fetch('/api/dashboard');
-  // return res.json();
+const DEFAULT_WORKSPACE_ID = 'ws_default';
 
-  // 当前：Phase 1 本地 Mock
-  return Promise.resolve(dashboardSnapshot);
+/**
+ * Fetch dashboard snapshot from the real API.
+ * Falls back to mock data when the backend is unreachable
+ * (so the UI still works during offline development).
+ */
+export async function getDashboardSnapshot(
+  workspaceId: string = DEFAULT_WORKSPACE_ID,
+  date?: string
+): Promise<DashboardSnapshot> {
+  try {
+    const params = new URLSearchParams({ workspaceId });
+    if (date) params.set('date', date);
+
+    const backend = await apiClient.get<import('./dashboard-adapter').DashboardOverviewResponse>(
+      `/dashboard/overview?${params.toString()}`
+    );
+    return adaptBackendToSnapshot(backend, workspaceId);
+  } catch (err) {
+    console.warn('[dashboard] API unreachable, falling back to mock:', (err as Error).message);
+    return mockSnapshot;
+  }
 }
