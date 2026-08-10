@@ -148,8 +148,11 @@ export function adaptBackendToSnapshot(
     title: i.title,
   }));
 
-  // Ideas and plans have no direct backend mapping yet — leave empty.
-  const ideas: Array<{ id: string; title: string }> = [];
+  const ideas: Array<{ id: string; title: string }> =
+    backend.activeInsights.map((insight) => ({
+      id: insight.id,
+      title: insight.statement,
+    }));
   const plans: Array<{ id: string; title: string; progress: number }> =
     backend.activeProjects.map((p) => ({
       id: p.id,
@@ -184,9 +187,11 @@ export function adaptBackendToSnapshot(
     id: s.id,
     title: s.title,
     source: `Suggestion · ${s.status}`,
-    reason: '',
+    reason: s.impactScore
+      ? `影响评分 ${s.impactScore}，建议确认后转为行动`
+      : '建议确认后转为行动',
     priority: 'P1' as Priority,
-    time: '',
+    time: '15 分钟',
     isConverted: false,
   }));
 

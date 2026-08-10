@@ -17,6 +17,16 @@ import {
   Sparkles,
   Home,
   PanelLeft,
+  HeartPulse,
+  BriefcaseBusiness,
+  Radio,
+  BookOpen,
+  Activity,
+  DollarSign,
+  FileText,
+  GraduationCap,
+  ArrowRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { ToastProvider, useToast, REALTIME_EVENT_TOAST } from './hooks/useToast.tsx';
 import { useRealtime, useRealtimeOn } from './hooks/useRealtime.ts';
@@ -52,12 +62,12 @@ const REFRESH_EVENTS = {
 
 const NAV_ITEMS = [
   { route: ROUTES.DASHBOARD, icon: LayoutDashboard, label: '指挥台', section: '概览' },
-  { route: ROUTES.GOALS, icon: Target, label: '目标', section: '管理' },
-  { route: ROUTES.PROJECTS, icon: FolderKanban, label: '项目', section: '管理' },
-  { route: ROUTES.TASKS, icon: CheckSquare, label: '任务', section: '管理' },
-  { route: ROUTES.ISSUES, icon: AlertTriangle, label: '问题', section: '管理' },
-  { route: ROUTES.SUGGESTIONS, icon: Lightbulb, label: '建议', section: '洞察' },
-  { route: ROUTES.REVIEWS, icon: ClipboardList, label: '复盘', section: '洞察' },
+  { route: ROUTES.GOALS, icon: Target, label: '目标', section: '工作台' },
+  { route: ROUTES.PROJECTS, icon: FolderKanban, label: '项目', section: '工作台' },
+  { route: ROUTES.TASKS, icon: CheckSquare, label: '任务', section: '工作台' },
+  { route: ROUTES.ISSUES, icon: AlertTriangle, label: '问题', section: '工作台' },
+  { route: ROUTES.SUGGESTIONS, icon: Lightbulb, label: '建议', section: '工作台' },
+  { route: ROUTES.REVIEWS, icon: ClipboardList, label: '复盘', section: '工作台' },
 ];
 
 const QUICK_ACTIONS = [
@@ -65,6 +75,105 @@ const QUICK_ACTIONS = [
   { id: 'project', label: '创建项目', icon: FolderKanban, hint: 'P' },
   { id: 'task', label: '创建任务', icon: CheckSquare, hint: 'T' },
   { id: 'issue', label: '记录问题', icon: AlertTriangle, hint: 'I' },
+];
+
+const SYSTEM_ENTRIES = [
+  {
+    name: 'Life OS',
+    summary: '健康、财富、家庭与个人事务',
+    status: '稳定',
+    progress: 78,
+    icon: HeartPulse,
+    metrics: ['睡眠 示例', '步数 示例', '消费 示例', '待办 示例'],
+  },
+  {
+    name: 'Work OS',
+    summary: '项目、客户、任务与商业机会',
+    status: '需聚焦',
+    progress: 64,
+    icon: BriefcaseBusiness,
+    metrics: ['重点项目 示例', '今日任务 示例', '客户跟进 示例', '进度 示例'],
+    links: [
+      { label: '市场工作', href: 'https://m0-marketingcloud.pages.dev/' },
+      { label: '广和事业', href: 'https://guanghe-zhongan-healthcare.pages.dev/meeting' },
+      { label: '其他业务', href: '#' },
+    ],
+  },
+  {
+    name: 'Media OS',
+    summary: '选题、生产、发布计划与数据复盘',
+    status: '增长',
+    progress: 88,
+    icon: Radio,
+    metrics: ['今日选题 示例', '待发布 示例', '增长 示例', '复盘 示例'],
+  },
+  {
+    name: 'Knowledge OS',
+    summary: '学习计划、阅读记录、知识库与笔记',
+    status: '积累中',
+    progress: 72,
+    icon: BookOpen,
+    metrics: ['今日学习 示例', '阅读 示例', '新增笔记 示例', '主题 示例'],
+  },
+  {
+    name: 'AGI OS',
+    summary: 'AI 实验、工具清单与商业探索',
+    status: '实验中',
+    progress: 81,
+    icon: Sparkles,
+    metrics: ['当前实验 示例', '待验证 示例', '工具调用 示例', '下一步 示例'],
+  },
+];
+
+const DATA_CARDS = [
+  {
+    title: '健康',
+    value: '78',
+    unit: '/100',
+    detail: '睡眠低于目标，运动计划可执行',
+    delta: '-4',
+    icon: Activity,
+  },
+  {
+    title: '财富',
+    value: '示例',
+    unit: '消费',
+    detail: '预算与支出状态预留为真实 API 字段',
+    delta: '演示',
+    icon: DollarSign,
+  },
+  {
+    title: '工作',
+    value: '示例',
+    unit: '今日任务',
+    detail: '任务数量与优先级预留为真实 API 字段',
+    delta: '演示',
+    icon: CheckSquare,
+  },
+  {
+    title: '内容',
+    value: '示例',
+    unit: '本周增长',
+    detail: '内容复盘与增长指标预留为真实 API 字段',
+    delta: '演示',
+    icon: FileText,
+  },
+  {
+    title: '学习',
+    value: '5',
+    unit: '新增笔记',
+    detail: '学习主题与笔记数预留为真实 API 字段',
+    delta: '演示',
+    icon: GraduationCap,
+  },
+];
+
+const QUICK_COMMANDS = ['帮我规划今天', '总结本周重点', '分析任务优先级', '生成明日行动清单'];
+
+const SAMPLE_ACTIONS = [
+  '锁定 90 分钟深度工作块',
+  '23:30 前结束屏幕任务',
+  '记录一次 Dashboard 使用反馈',
 ];
 
 function parseRoute(pathname) {
@@ -290,6 +399,202 @@ function BottomNav({ currentPath, onNavigate }) {
   );
 }
 
+function DashboardHome({ onDateUpdate }) {
+  const [activeCommand, setActiveCommand] = useState(QUICK_COMMANDS[0]);
+  const [commandText, setCommandText] = useState('');
+  const [doneActions, setDoneActions] = useState(() => new Set([SAMPLE_ACTIONS[2]]));
+
+  const toggleSampleAction = (action) => {
+    setDoneActions((current) => {
+      const next = new Set(current);
+      if (next.has(action)) {
+        next.delete(action);
+      } else {
+        next.add(action);
+      }
+      return next;
+    });
+  };
+
+  const openSystem = (entry) => {
+    const primaryLink = entry.links?.[0]?.href;
+    if (primaryLink && primaryLink !== '#') {
+      window.open(primaryLink, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  return (
+    <div className="dashboardHome">
+      <CommandHub onDateUpdate={onDateUpdate} />
+
+      <section className="systemsSection" aria-labelledby="systems-title">
+        <div className="sectionTitle">
+          <div>
+            <span className="sectionEyebrow">SYSTEMS</span>
+            <h2 id="systems-title">五大系统入口</h2>
+          </div>
+          <span>5 个系统在线</span>
+        </div>
+
+        <div className="systemsGrid">
+          {SYSTEM_ENTRIES.map((entry) => {
+            const Icon = entry.icon;
+            const clickable = Boolean(entry.links?.length);
+
+            return (
+              <article
+                key={entry.name}
+                className={`systemCard ${clickable ? 'isClickable' : ''}`}
+                onClick={() => clickable && openSystem(entry)}
+              >
+                <div className="systemTop">
+                  <div className="systemIcon">
+                    <Icon size={20} />
+                  </div>
+                  <span>{entry.status}</span>
+                </div>
+                <h3>{entry.name}</h3>
+                <p>{entry.summary}</p>
+                <div className="progress" aria-label={`${entry.name} 进度 ${entry.progress}%`}>
+                  <span style={{ width: `${entry.progress}%` }} />
+                </div>
+                <div className="metricGrid">
+                  {entry.metrics.map((metric) => (
+                    <span key={metric}>{metric}</span>
+                  ))}
+                </div>
+                {entry.links ? (
+                  <div className="systemLinks" onClick={(event) => event.stopPropagation()}>
+                    {entry.links.map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        target={link.href === '#' ? undefined : '_blank'}
+                        rel={link.href === '#' ? undefined : 'noreferrer'}
+                        aria-disabled={link.href === '#'}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+                <button className="ghostButton" type="button">
+                  进入系统 <ArrowRight size={16} />
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="dataSection" aria-labelledby="data-title">
+        <div className="sectionTitle">
+          <div>
+            <span className="sectionEyebrow">DATA</span>
+            <h2 id="data-title">核心数据卡片</h2>
+          </div>
+          <span>示例字段已保留，后续可直接接入 API</span>
+        </div>
+
+        <div className="dataGrid">
+          {DATA_CARDS.map((card) => {
+            const Icon = card.icon;
+
+            return (
+              <article className="dataCard" key={card.title}>
+                <div className="dataIcon">
+                  <Icon size={18} />
+                </div>
+                <div>
+                  <p>{card.title}</p>
+                  <strong>
+                    {card.value}
+                    <span>{card.unit}</span>
+                  </strong>
+                  <small>{card.detail}</small>
+                </div>
+                <em>{card.delta}</em>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="commandCenter" aria-labelledby="command-title">
+        <div className="commandHeader">
+          <div>
+            <span className="sectionEyebrow">AI COMMAND CENTER</span>
+            <h2 id="command-title">AI 指令区</h2>
+          </div>
+          <Command size={20} />
+        </div>
+
+        <div className="commandInput">
+          <input
+            value={commandText}
+            onChange={(event) => setCommandText(event.target.value)}
+            placeholder="输入一个指令，例如：帮我压缩今天任务"
+          />
+          <button type="button">运行</button>
+        </div>
+
+        <div className="quickCommands">
+          {QUICK_COMMANDS.map((command) => (
+            <button
+              key={command}
+              className={activeCommand === command ? 'active' : ''}
+              type="button"
+              onClick={() => {
+                setActiveCommand(command);
+                setCommandText(command);
+              }}
+            >
+              {command}
+            </button>
+          ))}
+        </div>
+
+        <div className="aiOutput">
+          <span className="outputBadge">
+            <Sparkles size={16} />
+            NOVA 模拟输出
+          </span>
+          <p>
+            演示建议：把 3 件待办先完成关键交付，再处理即时管理，最后安排一个低门槛复盘行动。
+          </p>
+          <div className="taskChips">
+            {SAMPLE_ACTIONS.map((action) => (
+              <button
+                key={action}
+                type="button"
+                className={doneActions.has(action) ? 'done' : ''}
+                onClick={() => toggleSampleAction(action)}
+              >
+                <CheckCircle2 size={15} />
+                {action}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="roadmap" aria-labelledby="roadmap-title">
+        <div>
+          <span className="sectionEyebrow">DATA EVOLUTION</span>
+          <h2 id="roadmap-title">API 接入预留</h2>
+        </div>
+        <div className="roadmapTrack">
+          <span className="current">Local JSON</span>
+          <span>REST API</span>
+          <span>Database</span>
+          <span>AI Agent</span>
+          <span>Automation Engine</span>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function EnhancedToastPortal({ toasts, onDismiss }) {
   if (toasts.length === 0) return null;
 
@@ -392,7 +697,7 @@ export default function App() {
   const renderPage = () => {
     switch (routeInfo.route) {
       case ROUTES.DASHBOARD:
-        return <CommandHub onDateUpdate={setLastUpdatedAt} />;
+        return <DashboardHome onDateUpdate={setLastUpdatedAt} />;
       case ROUTES.TASKS:
         return <TasksPage />;
       case ROUTES.GOALS:
@@ -421,7 +726,7 @@ export default function App() {
           />
         );
       default:
-        return <CommandHub onDateUpdate={setLastUpdatedAt} />;
+        return <DashboardHome onDateUpdate={setLastUpdatedAt} />;
     }
   };
 

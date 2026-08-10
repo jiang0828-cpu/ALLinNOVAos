@@ -3,7 +3,7 @@
 // 包含 8 个面板：目标达成、今日重点、信息资讯、当前问题、最新复盘、AI 建议
 
 import { useState, useEffect, useCallback } from 'react';
-import { Command, Sparkles, RefreshCw, AlertCircle, Inbox } from 'lucide-react';
+import { RefreshCw, AlertCircle, Inbox } from 'lucide-react';
 import type { DashboardSnapshot } from '../types/dashboard';
 import { StateTarget } from './StateTarget';
 import { TodayFocus } from './TodayFocus';
@@ -172,18 +172,13 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
           </span>
           <div className="commandHubActions">
             <button
-              className="iconButton"
+              className="refreshDataButton"
               title="刷新数据"
               aria-label="刷新数据"
               onClick={loadData}
             >
-              <RefreshCw size={18} />
-            </button>
-            <button className="iconButton" title="AI 指令" aria-label="AI 指令">
-              <Command size={18} />
-            </button>
-            <button className="iconButton" title="AI 辅助" aria-label="AI 辅助">
-              <Sparkles size={18} />
+              <RefreshCw size={16} />
+              <span>刷新</span>
             </button>
           </div>
         </div>

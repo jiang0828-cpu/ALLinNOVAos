@@ -4908,3 +4908,296 @@ button:disabled {
   }
 }
 
+/* ============ Dashboard polish pass ============ */
+body {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(23, 138, 111, 0.14), transparent 28%),
+    radial-gradient(circle at 82% 8%, rgba(213, 154, 47, 0.13), transparent 24%),
+    linear-gradient(180deg, var(--bg-veil), rgba(255, 255, 255, 0)),
+    var(--bg);
+}
+
+.pageContent,
+.dashboardHome {
+  display: grid;
+  gap: 18px;
+}
+
+.commandHub {
+  gap: 16px;
+}
+
+.commandHubHeader {
+  position: relative;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.24));
+  box-shadow: var(--shadow);
+}
+
+.commandHubHeader > div:first-child::after,
+.systemsSection .sectionTitle > div::after,
+.dataSection .sectionTitle > div::after,
+.commandCenter .commandHeader > div::after {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-softer);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.commandHubHeader > div:first-child::after {
+  content: "PDCAr 当前动态功能集合：Plan 目标校准 / Do 今日重点 / Check 信息资讯 / Act 问题处理 / Review 最新复盘 / refine AI 建议。";
+}
+
+.systemsSection .sectionTitle > div::after {
+  content: "保留示例数据与统一入口，后续可替换为真实 API 接口。";
+}
+
+.dataSection .sectionTitle > div::after {
+  content: "关键字段示例已固定，适合逐步接入健康、财富、工作、内容、学习数据。";
+}
+
+.commandCenter .commandHeader > div::after {
+  content: "保留 AI 指令示例与模拟输出，后续可接入真实模型和任务写入。";
+  color: var(--command-muted);
+}
+
+.commandHubControls {
+  flex-shrink: 0;
+}
+
+.commandHubActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backendBadge {
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.refreshDataButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: var(--brand);
+  background: var(--pill-bg);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.refreshDataButton:hover {
+  background: var(--ghost-bg);
+}
+
+.heroGrid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.heroGrid > .panel,
+.heroGrid > .scorePanel {
+  min-height: 336px;
+  padding: 16px;
+}
+
+.panel,
+.scorePanel,
+.systemCard,
+.dataCard,
+.commandCenter,
+.roadmap,
+.brand,
+.topActions,
+.datePill,
+.globalSearch {
+  backdrop-filter: blur(18px);
+}
+
+.panel:hover,
+.scorePanel:hover,
+.dataCard:hover,
+.systemCard:hover {
+  border-color: rgba(23, 138, 111, 0.28);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.sectionTitle {
+  align-items: flex-end;
+  padding: 0 2px;
+}
+
+.sectionTitle > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-weight: 700;
+}
+
+.systemsGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.systemCard {
+  min-height: 304px;
+  overflow: hidden;
+}
+
+.systemCard .ghostButton {
+  min-height: 38px;
+}
+
+.systemLinks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.systemLinks a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 8px;
+  color: var(--brand);
+  background: rgba(255, 255, 255, 0.46);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.systemLinks a:hover {
+  border-color: rgba(23, 138, 111, 0.34);
+  background: var(--ghost-bg);
+}
+
+.systemLinks a[aria-disabled="true"] {
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.dataGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dataCard {
+  min-height: 116px;
+  align-items: start;
+}
+
+.commandCenter {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  background:
+    linear-gradient(135deg, rgba(42, 119, 104, 0.26), transparent 42%),
+    var(--command-bg);
+}
+
+.commandCenter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.commandHeader,
+.commandInput,
+.quickCommands,
+.aiOutput {
+  position: relative;
+  z-index: 1;
+}
+
+.commandInput {
+  grid-template-columns: 1fr 104px;
+  margin-top: 18px;
+}
+
+.commandInput button {
+  background: #a9dfcd;
+}
+
+.aiOutput {
+  display: grid;
+  gap: 10px;
+}
+
+.aiOutput p {
+  max-width: 920px;
+}
+
+.roadmap {
+  margin-top: 0;
+  border-style: dashed;
+}
+
+.roadmapTrack span {
+  min-height: 42px;
+}
+
+@media (max-width: 1500px) {
+  .heroGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .heroGrid > .panel,
+  .heroGrid > .scorePanel {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .systemsGrid,
+  .dataGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .commandHubHeader,
+  .sectionTitle,
+  .commandHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .commandHubControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .heroGrid,
+  .systemsGrid,
+  .dataGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .systemLinks {
+    grid-template-columns: 1fr;
+  }
+}
