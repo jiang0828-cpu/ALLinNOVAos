@@ -21,10 +21,7 @@ import {
   BriefcaseBusiness,
   Radio,
   BookOpen,
-  Activity,
-  DollarSign,
-  FileText,
-  GraduationCap,
+  Database,
   ArrowRight,
   CheckCircle2,
 } from 'lucide-react';
@@ -61,7 +58,10 @@ const REFRESH_EVENTS = {
 };
 
 const NAV_ITEMS = [
-  { route: ROUTES.DASHBOARD, icon: LayoutDashboard, label: '指挥台', section: '概览' },
+  { route: '/#commandhub', icon: LayoutDashboard, label: '全局指挥台', section: '概览' },
+  { route: '/#systems-os', icon: BriefcaseBusiness, label: '五大系统OS', section: '概览' },
+  { route: '/#data-management', icon: Database, label: '数据管理', section: '概览' },
+  { route: '/#ai-command', icon: Command, label: 'AI指令区', section: '概览' },
   { route: ROUTES.GOALS, icon: Target, label: '目标', section: '工作台' },
   { route: ROUTES.PROJECTS, icon: FolderKanban, label: '项目', section: '工作台' },
   { route: ROUTES.TASKS, icon: CheckSquare, label: '任务', section: '工作台' },
@@ -125,49 +125,6 @@ const SYSTEM_ENTRIES = [
   },
 ];
 
-const DATA_CARDS = [
-  {
-    title: '健康',
-    value: '78',
-    unit: '/100',
-    detail: '睡眠低于目标，运动计划可执行',
-    delta: '-4',
-    icon: Activity,
-  },
-  {
-    title: '财富',
-    value: '示例',
-    unit: '消费',
-    detail: '预算与支出状态预留为真实 API 字段',
-    delta: '演示',
-    icon: DollarSign,
-  },
-  {
-    title: '工作',
-    value: '示例',
-    unit: '今日任务',
-    detail: '任务数量与优先级预留为真实 API 字段',
-    delta: '演示',
-    icon: CheckSquare,
-  },
-  {
-    title: '内容',
-    value: '示例',
-    unit: '本周增长',
-    detail: '内容复盘与增长指标预留为真实 API 字段',
-    delta: '演示',
-    icon: FileText,
-  },
-  {
-    title: '学习',
-    value: '5',
-    unit: '新增笔记',
-    detail: '学习主题与笔记数预留为真实 API 字段',
-    delta: '演示',
-    icon: GraduationCap,
-  },
-];
-
 const QUICK_COMMANDS = ['帮我规划今天', '总结本周重点', '分析任务优先级', '生成明日行动清单'];
 
 const SAMPLE_ACTIONS = [
@@ -177,22 +134,24 @@ const SAMPLE_ACTIONS = [
 ];
 
 function parseRoute(pathname) {
-  if (pathname === ROUTES.DASHBOARD) return { route: ROUTES.DASHBOARD };
-  if (pathname === ROUTES.TASKS) return { route: ROUTES.TASKS };
-  if (pathname === ROUTES.GOALS) return { route: ROUTES.GOALS };
-  if (pathname === ROUTES.PROJECTS) return { route: ROUTES.PROJECTS };
-  if (pathname === ROUTES.ISSUES) return { route: ROUTES.ISSUES };
-  if (pathname === ROUTES.SUGGESTIONS) return { route: ROUTES.SUGGESTIONS };
-  if (pathname === ROUTES.REVIEWS) return { route: ROUTES.REVIEWS };
-  if (pathname.startsWith(ROUTES.REVIEW_DETAIL_PREFIX)) {
-    const reviewId = pathname.slice(ROUTES.REVIEW_DETAIL_PREFIX.length);
-    if (reviewId) return { route: ROUTES.REVIEW_DETAIL_PREFIX, reviewId };
+  const [pathOnly, hashPart = ''] = pathname.split('#');
+  const hash = hashPart ? `#${hashPart}` : '';
+  if (pathOnly === ROUTES.DASHBOARD) return { route: ROUTES.DASHBOARD, hash };
+  if (pathOnly === ROUTES.TASKS) return { route: ROUTES.TASKS, hash };
+  if (pathOnly === ROUTES.GOALS) return { route: ROUTES.GOALS, hash };
+  if (pathOnly === ROUTES.PROJECTS) return { route: ROUTES.PROJECTS, hash };
+  if (pathOnly === ROUTES.ISSUES) return { route: ROUTES.ISSUES, hash };
+  if (pathOnly === ROUTES.SUGGESTIONS) return { route: ROUTES.SUGGESTIONS, hash };
+  if (pathOnly === ROUTES.REVIEWS) return { route: ROUTES.REVIEWS, hash };
+  if (pathOnly.startsWith(ROUTES.REVIEW_DETAIL_PREFIX)) {
+    const reviewId = pathOnly.slice(ROUTES.REVIEW_DETAIL_PREFIX.length);
+    if (reviewId) return { route: ROUTES.REVIEW_DETAIL_PREFIX, reviewId, hash };
   }
-  if (pathname.startsWith(ROUTES.PROJECT_DETAIL_PREFIX)) {
-    const projectId = pathname.slice(ROUTES.PROJECT_DETAIL_PREFIX.length);
-    if (projectId) return { route: ROUTES.PROJECT_DETAIL_PREFIX, projectId };
+  if (pathOnly.startsWith(ROUTES.PROJECT_DETAIL_PREFIX)) {
+    const projectId = pathOnly.slice(ROUTES.PROJECT_DETAIL_PREFIX.length);
+    if (projectId) return { route: ROUTES.PROJECT_DETAIL_PREFIX, projectId, hash };
   }
-  return { route: ROUTES.DASHBOARD };
+  return { route: ROUTES.DASHBOARD, hash };
 }
 
 function formatDate(value) {
@@ -205,7 +164,11 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function isActive(currentPath, route) {
+function isActive(currentPath, route, currentHash = '') {
+  if (route.startsWith('/#')) {
+    const targetHash = route.slice(1);
+    return currentPath === ROUTES.DASHBOARD && (currentHash || '#commandhub') === targetHash;
+  }
   if (route === ROUTES.DASHBOARD) return currentPath === ROUTES.DASHBOARD;
   if (route === ROUTES.PROJECTS) return currentPath === ROUTES.PROJECTS || currentPath.startsWith(ROUTES.PROJECT_DETAIL_PREFIX);
   if (route === ROUTES.REVIEWS) return currentPath === ROUTES.REVIEWS || currentPath.startsWith(ROUTES.REVIEW_DETAIL_PREFIX);
@@ -247,7 +210,7 @@ function RealtimeBridge() {
   return null;
 }
 
-function Sidebar({ currentPath, onNavigate, sidebarOpen, onCloseSidebar }) {
+function Sidebar({ currentPath, currentHash, onNavigate, sidebarOpen, onCloseSidebar }) {
   const sections = {};
   NAV_ITEMS.forEach((item) => {
     if (!sections[item.section]) sections[item.section] = [];
@@ -276,7 +239,7 @@ function Sidebar({ currentPath, onNavigate, sidebarOpen, onCloseSidebar }) {
               <div className="navSectionLabel">{section}</div>
               {items.map((item) => {
                 const Icon = item.icon;
-                const active = isActive(currentPath, item.route);
+                const active = isActive(currentPath, item.route, currentHash);
                 return (
                   <button
                     key={item.route}
@@ -370,18 +333,18 @@ function CommandPalette({ open, onClose, onAction }) {
 
 const BOTTOM_NAV_ITEMS = NAV_ITEMS.filter(
   (item) =>
-    item.route === ROUTES.DASHBOARD ||
+    item.route === '/#commandhub' ||
     item.route === ROUTES.GOALS ||
     item.route === ROUTES.TASKS ||
     item.route === ROUTES.REVIEWS,
 );
 
-function BottomNav({ currentPath, onNavigate }) {
+function BottomNav({ currentPath, currentHash, onNavigate }) {
   return (
     <nav className="bottomNav" aria-label="移动端导航">
       {BOTTOM_NAV_ITEMS.map((item) => {
         const Icon = item.icon;
-        const active = isActive(currentPath, item.route);
+        const active = isActive(currentPath, item.route, currentHash);
         return (
           <button
             key={item.route}
@@ -425,13 +388,15 @@ function DashboardHome({ onDateUpdate }) {
 
   return (
     <div className="dashboardHome">
-      <CommandHub onDateUpdate={onDateUpdate} />
+      <div id="commandhub" className="dashboardAnchor">
+        <CommandHub onDateUpdate={onDateUpdate} />
+      </div>
 
-      <section className="systemsSection" aria-labelledby="systems-title">
+      <section id="systems-os" className="systemsSection dashboardAnchor" aria-labelledby="systems-title">
         <div className="sectionTitle">
           <div>
             <span className="sectionEyebrow">SYSTEMS</span>
-            <h2 id="systems-title">五大系统入口</h2>
+            <h2 id="systems-title">五大系统OS</h2>
           </div>
           <span>5 个系统在线</span>
         </div>
@@ -487,40 +452,21 @@ function DashboardHome({ onDateUpdate }) {
         </div>
       </section>
 
-      <section className="dataSection" aria-labelledby="data-title">
-        <div className="sectionTitle">
-          <div>
-            <span className="sectionEyebrow">DATA</span>
-            <h2 id="data-title">核心数据卡片</h2>
-          </div>
-          <span>示例字段已保留，后续可直接接入 API</span>
+      <section id="data-management" className="roadmap dashboardAnchor" aria-labelledby="roadmap-title">
+        <div>
+          <span className="sectionEyebrow">DATA MANAGEMENT</span>
+          <h2 id="roadmap-title">数据管理</h2>
         </div>
-
-        <div className="dataGrid">
-          {DATA_CARDS.map((card) => {
-            const Icon = card.icon;
-
-            return (
-              <article className="dataCard" key={card.title}>
-                <div className="dataIcon">
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <p>{card.title}</p>
-                  <strong>
-                    {card.value}
-                    <span>{card.unit}</span>
-                  </strong>
-                  <small>{card.detail}</small>
-                </div>
-                <em>{card.delta}</em>
-              </article>
-            );
-          })}
+        <div className="roadmapTrack">
+          <span className="current">Local JSON</span>
+          <span>REST API</span>
+          <span>Database</span>
+          <span>AI Agent</span>
+          <span>Automation Engine</span>
         </div>
       </section>
 
-      <section className="commandCenter" aria-labelledby="command-title">
+      <section id="ai-command" className="commandCenter dashboardAnchor" aria-labelledby="command-title">
         <div className="commandHeader">
           <div>
             <span className="sectionEyebrow">AI COMMAND CENTER</span>
@@ -577,20 +523,6 @@ function DashboardHome({ onDateUpdate }) {
           </div>
         </div>
       </section>
-
-      <section className="roadmap" aria-labelledby="roadmap-title">
-        <div>
-          <span className="sectionEyebrow">DATA EVOLUTION</span>
-          <h2 id="roadmap-title">API 接入预留</h2>
-        </div>
-        <div className="roadmapTrack">
-          <span className="current">Local JSON</span>
-          <span>REST API</span>
-          <span>Database</span>
-          <span>AI Agent</span>
-          <span>Automation Engine</span>
-        </div>
-      </section>
     </div>
   );
 }
@@ -639,7 +571,7 @@ export default function App() {
   });
   const [query, setQuery] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState('');
-  const [routeInfo, setRouteInfo] = useState(() => parseRoute(window.location.pathname));
+  const [routeInfo, setRouteInfo] = useState(() => parseRoute(`${window.location.pathname}${window.location.hash}`));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [entered, setEntered] = useState(() => {
@@ -647,6 +579,7 @@ export default function App() {
   });
 
   const currentPath = routeInfo.route;
+  const currentHash = routeInfo.hash || '';
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -657,11 +590,19 @@ export default function App() {
     window.history.pushState({}, '', path);
     setRouteInfo(parseRoute(path));
     setQuery('');
+    const hash = path.includes('#') ? `#${path.split('#')[1]}` : '';
+    if (hash) {
+      window.setTimeout(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, []);
 
   useEffect(() => {
     const handlePopState = () => {
-      setRouteInfo(parseRoute(window.location.pathname));
+      setRouteInfo(parseRoute(`${window.location.pathname}${window.location.hash}`));
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -750,6 +691,7 @@ export default function App() {
       <div className="appLayout">
         <Sidebar
           currentPath={currentPath}
+          currentHash={currentHash}
           onNavigate={handleNavigate}
           sidebarOpen={sidebarOpen}
           onCloseSidebar={() => setSidebarOpen(false)}
@@ -807,7 +749,7 @@ export default function App() {
             {renderPage()}
           </div>
 
-          <BottomNav currentPath={currentPath} onNavigate={handleNavigate} />
+          <BottomNav currentPath={currentPath} currentHash={currentHash} onNavigate={handleNavigate} />
         </div>
       </div>
 

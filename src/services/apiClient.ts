@@ -1,42 +1,44 @@
 import type { ApiResponse } from '../types/api';
+import { handleLocalRequest } from './localBackupStore';
 
 const API_BASE = '/api';
 
-/**
- * Unified API client — wraps fetch with:
- * - Base URL prefix (/api)
- * - Auto-unwrap { code, message, data } response
- * - Error handling for non-OK and non-success codes
- */
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
-
   const hasBody = options.body !== undefined;
 
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers as Record<string, string> | undefined),
-    },
-  });
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers as Record<string, string> | undefined),
+      },
+    });
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      const fallback = handleLocalRequest<T>(path, options);
+      if (fallback !== undefined) return fallback;
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+
+    const body = (await res.json()) as ApiResponse<T>;
+    const isSuccess = body.code === 0 || (body.code >= 200 && body.code < 300);
+    if (!isSuccess) {
+      const fallback = handleLocalRequest<T>(path, options);
+      if (fallback !== undefined) return fallback;
+      throw new Error(body.message || `API error: code=${body.code}`);
+    }
+
+    return body.data;
+  } catch (error) {
+    const fallback = handleLocalRequest<T>(path, options);
+    if (fallback !== undefined) return fallback;
+    throw error;
   }
-
-  const body = (await res.json()) as ApiResponse<T>;
-
-  // 接受 0（健康检查）以及任何 2xx 业务码（200 OK / 201 Created 等）
-  const isSuccess = body.code === 0 || (body.code >= 200 && body.code < 300);
-  if (!isSuccess) {
-    throw new Error(body.message || `API error: code=${body.code}`);
-  }
-
-  return body.data;
 }
 
 export const apiClient = {
@@ -54,7 +56,6 @@ export const apiClient = {
   delete: <T>(path: string) =>
     apiFetch<T>(path, { method: 'DELETE' }),
 
-  /** Quick health check — returns true if backend is reachable. */
   async healthCheck(): Promise<boolean> {
     try {
       const res = await fetch(`${API_BASE}/health`);

@@ -43,3 +43,15 @@ export async function getIssuesByStatus(
 ): Promise<IssueListResponse> {
   return getIssues({ status });
 }
+
+export async function createIssue(payload: {
+  title: string;
+  description?: string;
+  level?: 'HIGH' | 'MEDIUM' | 'LOW';
+  domainId?: string;
+}) {
+  return apiClient.post('/issues', {
+    ...payload,
+    workspaceId: DEFAULT_WORKSPACE_ID,
+  });
+}
