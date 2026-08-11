@@ -189,7 +189,7 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
             <textarea
               value={formData.elementNote}
               onChange={(e) => setFormData({ ...formData, elementNote: e.target.value })}
-              placeholder="说明当前目标的起点、结果、障碍或执行方案，保持一句话到三句话即可。"
+              placeholder="说明当前目标的起点、结果、障碍或执行方案，保持一到三句话即可。"
             />
           </div>
 

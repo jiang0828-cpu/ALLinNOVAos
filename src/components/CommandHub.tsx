@@ -12,12 +12,7 @@ import { LatestReview } from './LatestReview';
 import { AiSuggestion } from './AiSuggestion';
 import { DashboardSkeleton } from './Skeleton';
 import { getDashboardSnapshot, getLocalDashboardSnapshot } from '../services/dashboardService';
-import { flushLocalSyncQueue } from '../services/apiClient';
-import {
-  createLocalBackup,
-  getLocalBackupMeta,
-  getLocalSyncMeta,
-} from '../services/localBackupStore';
+import { createLocalBackup } from '../services/localBackupStore';
 import { acceptAndCreateTask } from '../services/suggestionService';
 
 interface CommandHubProps {
@@ -35,7 +30,6 @@ interface CommandHubProps {
 }
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
-type DataSource = 'online' | 'local' | 'mock';
 
 function formatHeaderDate(value?: string) {
   if (!value) return '---';
@@ -64,9 +58,6 @@ export function CommandHub({
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [dataSource, setDataSource] = useState<DataSource>('local');
-  const [backupMeta, setBackupMeta] = useState(() => getLocalBackupMeta());
-  const [syncMeta, setSyncMeta] = useState(() => getLocalSyncMeta());
 
   const applySnapshot = useCallback((data: DashboardSnapshot) => {
     const hasData =
@@ -78,9 +69,6 @@ export function CommandHub({
 
     setSnapshot(data);
     onDateUpdate?.(data.generatedAt);
-    setBackupMeta(getLocalBackupMeta());
-    setSyncMeta(getLocalSyncMeta());
-    setDataSource(data.dataSource || 'local');
     setLoadState(hasData ? 'success' : 'empty');
   }, [onDateUpdate]);
 
@@ -112,15 +100,6 @@ export function CommandHub({
     return () => window.clearInterval(timer);
   }, [loadData]);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      createLocalBackup();
-      setBackupMeta(getLocalBackupMeta());
-      setSyncMeta(getLocalSyncMeta());
-    }, 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
   // 监听其他页面触发的刷新事件，同步更新 Dashboard。
   useEffect(() => {
     const handleRefresh = () => {
@@ -133,12 +112,6 @@ export function CommandHub({
       window.removeEventListener('nova:local-store-updated', handleRefresh as EventListener);
     };
   }, [loadData]);
-
-  useEffect(() => {
-    const handleSyncUpdate = () => setSyncMeta(getLocalSyncMeta());
-    window.addEventListener('nova:sync-queue-updated', handleSyncUpdate as EventListener);
-    return () => window.removeEventListener('nova:sync-queue-updated', handleSyncUpdate as EventListener);
-  }, []);
 
   // 加载状态。
   if (loadState === 'loading' || loadState === 'idle') {
@@ -232,23 +205,6 @@ export function CommandHub({
           <h2>全局指挥台</h2>
         </div>
         <div className="commandHubControls">
-          <span
-            className={`backendBadge ${dataSource === 'online' ? 'live' : 'mock'}`}
-            title={dataSource === 'online' ? '正在读取云端数据库' : '云端数据加载中'}
-          >
-            {dataSource === 'online' ? '● 云端数据库' : dataSource === 'local' ? '○ 云端加载中' : '○ 示例缓存'}
-          </span>
-          <button
-            className="syncDataButton"
-            title="只刷新云端数据，不再同步本地队列"
-            onClick={async () => {
-              await flushLocalSyncQueue();
-              setSyncMeta(getLocalSyncMeta());
-              await loadData(true);
-            }}
-          >
-            云端刷新
-          </button>
           <div className="commandHubActions">
             <button
               className="refreshDataButton"

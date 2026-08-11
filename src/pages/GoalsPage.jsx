@@ -102,8 +102,8 @@ export function GoalsPage() {
 
     try {
       const response = await getGoals(filters);
-      setGoals(response.data);
-      setTotal(response.total);
+      setGoals(Array.isArray(response.data) ? response.data : []);
+      setTotal(Number(response.total ?? response.data?.length ?? 0));
     } catch (err) {
       setError(err);
       console.error('[GoalsPage] Failed to load goals:', err);
@@ -389,7 +389,7 @@ function GoalControlSummary({ summary }) {
         <div>
           <span className="sectionEyebrow">YEAR / MONTH / WEEK</span>
           <h2>目标达成控制</h2>
-          <p>按年度定方向、按月度抓阶段、按周推动作；每个目标保留关键要素，便于后续复盘和任务拆解。</p>
+          <p>按年度定方向，按月度抓阶段，按周推进动作；每个目标保留关键要素，便于后续复盘和任务拆解。</p>
         </div>
         <div className="goalControlScore">
           <span>{summary.average}</span>

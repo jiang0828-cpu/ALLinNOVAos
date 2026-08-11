@@ -1,7 +1,15 @@
 // src/types/goals.ts
 // 目标管理相关类型定义
 
-export type GoalStatus = 'PLANNING' | 'ACTIVE' | 'INBOX' | 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' | 'CANCELLED';
+export type GoalStatus =
+  | 'PLANNING'
+  | 'ACTIVE'
+  | 'INBOX'
+  | 'TODO'
+  | 'IN_PROGRESS'
+  | 'BLOCKED'
+  | 'DONE'
+  | 'CANCELLED';
 
 export type GoalPriority = 'P0' | 'P1' | 'P2';
 
