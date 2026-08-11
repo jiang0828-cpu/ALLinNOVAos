@@ -2,6 +2,7 @@ type StoreRecord = Record<string, any>;
 
 const STORE_KEY = 'nova-os-local-store-v1';
 const BACKUP_KEY = 'nova-os-local-backups-v1';
+const SYNC_QUEUE_KEY = 'nova-os-sync-queue-v1';
 const WORKSPACE_ID = 'ws_default';
 
 interface LocalStore {
@@ -12,6 +13,17 @@ interface LocalStore {
   reviews: StoreRecord[];
   goals: StoreRecord[];
   updatedAt: string;
+}
+
+export interface LocalSyncOperation {
+  id: string;
+  path: string;
+  method: string;
+  body?: string;
+  createdAt: string;
+  updatedAt: string;
+  attempts: number;
+  lastError?: string;
 }
 
 function now() {
@@ -129,6 +141,165 @@ function writeBackup(store: LocalStore) {
     store,
   });
   window.localStorage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(0, 20)));
+}
+
+function readSyncQueue(): LocalSyncOperation[] {
+  if (typeof window === 'undefined') return [];
+  const raw = window.localStorage.getItem(SYNC_QUEUE_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSyncQueue(queue: LocalSyncOperation[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue.slice(0, 200)));
+  window.dispatchEvent(new CustomEvent('nova:sync-queue-updated', { detail: queue }));
+}
+
+export function queueLocalSyncOperation(path: string, options: RequestInit = {}) {
+  if (typeof window === 'undefined') return;
+
+  const method = (options.method || 'GET').toUpperCase();
+  if (method === 'GET') return;
+
+  const body = typeof options.body === 'string' ? options.body : options.body ? JSON.stringify(options.body) : undefined;
+  const signature = `${method}:${path}:${body || ''}`;
+  const queue = readSyncQueue();
+  const existing = queue.find((item) => `${item.method}:${item.path}:${item.body || ''}` === signature);
+  const changedAt = now();
+
+  if (existing) {
+    existing.updatedAt = changedAt;
+    return writeSyncQueue(queue);
+  }
+
+  queue.push({
+    id: uid('sync'),
+    path,
+    method,
+    body,
+    createdAt: changedAt,
+    updatedAt: changedAt,
+    attempts: 0,
+  });
+  writeSyncQueue(queue);
+}
+
+export function queueLocalStoreSnapshotForSync() {
+  if (typeof window === 'undefined') return getLocalSyncMeta();
+  const store = loadStore();
+
+  store.goals.filter((item) => !item.deletedAt).forEach((goal) => {
+    queueLocalSyncOperation('/v1/goals', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspaceId: goal.workspaceId || WORKSPACE_ID,
+        title: goal.title,
+        description: goal.description,
+        status: goal.status,
+        priority: goal.priority,
+        domainId: goal.domainId,
+        cycleId: goal.cycleId,
+        plannedStartAt: goal.plannedStartAt,
+        plannedEndAt: goal.plannedEndAt,
+        progress: goal.goalDetail?.progress,
+        targetDate: goal.goalDetail?.targetDate,
+        targetValue: goal.goalDetail?.targetValue,
+        currentValue: goal.goalDetail?.currentValue,
+        unit: goal.goalDetail?.unit,
+        weight: goal.goalDetail?.weight,
+      }),
+    });
+  });
+
+  store.projects.filter((item) => !item.deletedAt).forEach((project) => {
+    queueLocalSyncOperation('/v1/projects', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspaceId: project.workspaceId || WORKSPACE_ID,
+        title: project.title,
+        description: project.description,
+        status: project.status,
+        priority: project.priority,
+        domainId: project.domainId,
+        cycleId: project.cycleId,
+        plannedEndAt: project.plannedEndAt,
+        progress: project.projectDetail?.progress,
+        healthStatus: project.projectDetail?.healthStatus,
+        metadata: project.metadata,
+      }),
+    });
+  });
+
+  store.tasks.filter((item) => !item.deletedAt).forEach((task) => {
+    queueLocalSyncOperation('/v1/tasks', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspaceId: task.workspaceId || WORKSPACE_ID,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        domainId: task.domainId,
+        cycleId: task.cycleId,
+        projectId: task.projectId,
+        goalId: task.goalId,
+        dueAt: task.dueAt || task.taskDetail?.dueAt,
+        estimatedMinutes: task.taskDetail?.estimatedMinutes,
+        actualMinutes: task.taskDetail?.actualMinutes,
+      }),
+    });
+  });
+
+  store.issues.filter((item) => !item.deletedAt).forEach((issue) => {
+    queueLocalSyncOperation('/issues', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspaceId: issue.workspaceId || WORKSPACE_ID,
+        title: issue.title,
+        description: issue.description || issue.issueDetail?.description,
+        domainId: issue.domainId,
+        level: issue.issueDetail?.level || issue.level,
+        targetValue: issue.issueDetail?.targetValue,
+        actualValue: issue.issueDetail?.actualValue,
+      }),
+    });
+  });
+
+  return getLocalSyncMeta();
+}
+
+export function getLocalSyncMeta() {
+  const queue = readSyncQueue();
+  return {
+    pendingCount: queue.length,
+    oldestAt: queue[0]?.createdAt || null,
+    lastError: queue.find((item) => item.lastError)?.lastError || null,
+  };
+}
+
+export function getPendingSyncOperations() {
+  return readSyncQueue();
+}
+
+export function markSyncOperationDone(id: string) {
+  writeSyncQueue(readSyncQueue().filter((item) => item.id !== id));
+}
+
+export function markSyncOperationFailed(id: string, error: string) {
+  const queue = readSyncQueue();
+  const operation = queue.find((item) => item.id === id);
+  if (!operation) return;
+  operation.attempts += 1;
+  operation.updatedAt = now();
+  operation.lastError = error;
+  writeSyncQueue(queue);
 }
 
 function listResponse(data: StoreRecord[], page = 1, limit = 50, statusParam?: string | null) {

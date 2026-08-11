@@ -5457,15 +5457,40 @@ body {
 
 .commandHubHeader {
   position: relative;
+  overflow: hidden;
   flex-direction: row;
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
+  padding: 18px;
+  border: 1px solid rgba(212, 234, 226, 0.18);
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.24));
-  box-shadow: var(--shadow);
+  color: #f3faf6;
+  background:
+    radial-gradient(circle at 18% 14%, rgba(64, 151, 126, 0.36), transparent 34%),
+    linear-gradient(118deg, #14241e 0%, #19362d 54%, #10201a 100%);
+  box-shadow: 0 18px 40px rgba(14, 41, 33, 0.18);
+}
+
+.commandHubHeader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.commandHubHeader > * {
+  position: relative;
+  z-index: 1;
+}
+
+.commandHubHeader .sectionEyebrow {
+  color: rgba(221, 235, 229, 0.78);
+}
+
+.commandHubHeader h2 {
+  color: #ffffff;
 }
 
 .commandHubHeader > div:first-child::after,
@@ -5529,6 +5554,33 @@ body {
   background: var(--pill-bg);
   font-size: 12px;
   font-weight: 800;
+}
+
+.syncDataButton {
+  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #fff7e4;
+  background: rgba(218, 158, 43, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.commandHubHeader > div:first-child::after {
+  content: "汇总目标、任务、资讯、问题、建议与复盘，快速掌握今日重点。";
+  color: rgba(226, 239, 233, 0.76);
+}
+
+.commandHubHeader .backendBadge {
+  color: #ffffff;
+  background: rgba(27, 146, 118, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.commandHubHeader .refreshDataButton {
+  color: #163126;
+  background: #d9eee7;
 }
 
 .refreshDataButton:hover {
@@ -5676,16 +5728,26 @@ body {
   position: relative;
   overflow: hidden;
   padding: 20px;
+  --command-bg: #14211b;
+  --command-text: #eef7f2;
+  --command-muted: #9ab9ad;
+  --command-border: rgba(255, 255, 255, 0.14);
+  --command-surface: rgba(255, 255, 255, 0.06);
+  --command-input-bg: rgba(255, 255, 255, 0.08);
+  --command-chip-text: #dce9e4;
   background:
-    linear-gradient(135deg, rgba(42, 119, 104, 0.26), transparent 42%),
-    var(--command-bg);
+    radial-gradient(circle at 18% 14%, rgba(64, 151, 126, 0.32), transparent 34%),
+    linear-gradient(118deg, #14241e 0%, #19362d 54%, #10201a 100%);
+  border: 1px solid rgba(212, 234, 226, 0.18);
+  color: var(--command-text);
+  box-shadow: 0 18px 40px rgba(14, 41, 33, 0.18);
 }
 
 .commandCenter::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.72);
   pointer-events: none;
 }
 
@@ -5703,12 +5765,16 @@ body {
 }
 
 .commandInput button {
+  color: #13221d;
   background: #a9dfcd;
+  box-shadow: 0 10px 22px rgba(10, 27, 22, 0.2);
 }
 
 .aiOutput {
   display: grid;
   gap: 10px;
+  background: var(--command-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .aiOutput p {

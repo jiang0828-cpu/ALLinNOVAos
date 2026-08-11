@@ -13,7 +13,13 @@ import { LatestReview } from './LatestReview';
 import { AiSuggestion } from './AiSuggestion';
 import { DashboardSkeleton } from './Skeleton';
 import { getDashboardSnapshot } from '../services/dashboardService';
-import { createLocalBackup, getLocalBackupMeta } from '../services/localBackupStore';
+import { flushLocalSyncQueue } from '../services/apiClient';
+import {
+  createLocalBackup,
+  getLocalBackupMeta,
+  getLocalSyncMeta,
+  queueLocalStoreSnapshotForSync,
+} from '../services/localBackupStore';
 import { acceptAndCreateTask } from '../services/suggestionService';
 
 interface CommandHubProps {
@@ -45,12 +51,14 @@ export function CommandHub({
   const [errorMessage, setErrorMessage] = useState('');
   const [dataSource, setDataSource] = useState<DataSource>('local');
   const [backupMeta, setBackupMeta] = useState(() => getLocalBackupMeta());
+  const [syncMeta, setSyncMeta] = useState(() => getLocalSyncMeta());
 
   const loadData = useCallback(async (silent = false) => {
     if (!silent) setLoadState('loading');
     setErrorMessage('');
 
     try {
+      await flushLocalSyncQueue();
       const data = await getDashboardSnapshot();
 
       // 检查是否有数据
@@ -64,6 +72,7 @@ export function CommandHub({
       setSnapshot(data);
       onDateUpdate?.(data.generatedAt);
       setBackupMeta(getLocalBackupMeta());
+      setSyncMeta(getLocalSyncMeta());
       setDataSource(data.dataSource || 'local');
 
       setLoadState(hasData ? 'success' : 'empty');
@@ -89,6 +98,7 @@ export function CommandHub({
     const timer = window.setInterval(() => {
       createLocalBackup();
       setBackupMeta(getLocalBackupMeta());
+      setSyncMeta(getLocalSyncMeta());
     }, 60_000);
     return () => window.clearInterval(timer);
   }, []);
@@ -105,6 +115,12 @@ export function CommandHub({
       window.removeEventListener('nova:local-store-updated', handleRefresh as EventListener);
     };
   }, [loadData]);
+
+  useEffect(() => {
+    const handleSyncUpdate = () => setSyncMeta(getLocalSyncMeta());
+    window.addEventListener('nova:sync-queue-updated', handleSyncUpdate as EventListener);
+    return () => window.removeEventListener('nova:sync-queue-updated', handleSyncUpdate as EventListener);
+  }, []);
 
   // 加载状态 - 显示骨架屏
   if (loadState === 'loading' || loadState === 'idle') {
@@ -204,6 +220,18 @@ export function CommandHub({
           >
             {dataSource === 'online' ? '● 线上数据库' : dataSource === 'local' ? '○ 本地备份' : '○ 示例兜底'}
           </span>
+          <button
+            className="syncDataButton"
+            title={syncMeta.lastError || '同步本地数据到网端'}
+            onClick={async () => {
+              queueLocalStoreSnapshotForSync();
+              await flushLocalSyncQueue();
+              setSyncMeta(getLocalSyncMeta());
+              await loadData(true);
+            }}
+          >
+            {syncMeta.pendingCount > 0 ? `待同步 ${syncMeta.pendingCount}` : '同步本地'}
+          </button>
           <div className="commandHubActions">
             <button
               className="refreshDataButton"

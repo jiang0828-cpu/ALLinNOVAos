@@ -1,5 +1,12 @@
 import type { ApiResponse } from '../types/api';
-import { handleLocalRequest, mirrorSuccessfulRequest } from './localBackupStore';
+import {
+  getPendingSyncOperations,
+  handleLocalRequest,
+  markSyncOperationDone,
+  markSyncOperationFailed,
+  mirrorSuccessfulRequest,
+  queueLocalSyncOperation,
+} from './localBackupStore';
 
 function getDefaultApiBase(): string {
   if (typeof window === 'undefined') return '/api';
@@ -22,41 +29,88 @@ export function buildApiUrl(path: string): string {
   return `${API_BASE}${normalizedPath}`;
 }
 
+function isMutatingRequest(options: RequestInit = {}) {
+  return (options.method || 'GET').toUpperCase() !== 'GET';
+}
+
+async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  const hasBody = options.body !== undefined;
+  const res = await fetch(buildApiUrl(path), {
+    ...options,
+    headers: {
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  }
+
+  return (await res.json()) as ApiResponse<T>;
+}
+
+let syncInFlight = false;
+
+export async function flushLocalSyncQueue(): Promise<{ synced: number; pending: number }> {
+  if (syncInFlight || typeof window === 'undefined') {
+    return { synced: 0, pending: getPendingSyncOperations().length };
+  }
+
+  syncInFlight = true;
+  let synced = 0;
+
+  try {
+    const queue = getPendingSyncOperations();
+    for (const operation of queue) {
+      try {
+        const options: RequestInit = {
+          method: operation.method,
+          body: operation.body,
+        };
+        const body = await fetchApi(operation.path, options);
+        const isSuccess = body.code === 0 || (body.code >= 200 && body.code < 300);
+        if (!isSuccess) throw new Error(body.message || `API error: code=${body.code}`);
+        mirrorSuccessfulRequest(operation.path, options, body.data);
+        markSyncOperationDone(operation.id);
+        synced += 1;
+      } catch (error) {
+        markSyncOperationFailed(operation.id, (error as Error).message);
+        break;
+      }
+    }
+  } finally {
+    syncInFlight = false;
+  }
+
+  return { synced, pending: getPendingSyncOperations().length };
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = buildApiUrl(path);
-  const hasBody = options.body !== undefined;
-
   try {
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
-        ...(options.headers as Record<string, string> | undefined),
-      },
-    });
-
-    if (!res.ok) {
-      const fallback = handleLocalRequest<T>(path, options);
-      if (fallback !== undefined) return fallback;
-      throw new Error(`HTTP ${res.status} ${res.statusText}`);
-    }
-
-    const body = (await res.json()) as ApiResponse<T>;
+    const body = await fetchApi<T>(path, options);
     const isSuccess = body.code === 0 || (body.code >= 200 && body.code < 300);
     if (!isSuccess) {
       const fallback = handleLocalRequest<T>(path, options);
-      if (fallback !== undefined) return fallback;
+      if (fallback !== undefined) {
+        if (isMutatingRequest(options)) queueLocalSyncOperation(path, options);
+        return fallback;
+      }
       throw new Error(body.message || `API error: code=${body.code}`);
     }
 
     mirrorSuccessfulRequest(path, options, body.data);
+    void flushLocalSyncQueue();
     return body.data;
   } catch (error) {
     const fallback = handleLocalRequest<T>(path, options);
-    if (fallback !== undefined) return fallback;
+    if (fallback !== undefined) {
+      if (isMutatingRequest(options)) queueLocalSyncOperation(path, options);
+      return fallback;
+    }
     throw error;
   }
 }
@@ -79,6 +133,7 @@ export const apiClient = {
   async healthCheck(): Promise<boolean> {
     try {
       const res = await fetch(buildApiUrl('/health'));
+      if (res.ok) void flushLocalSyncQueue();
       return res.ok;
     } catch {
       return false;
