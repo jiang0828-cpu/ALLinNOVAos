@@ -1,11 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import {
-  CalendarDays,
   Command,
   LayoutDashboard,
-  Moon,
   Search,
-  Sun,
   X,
   CheckSquare,
   Target,
@@ -368,7 +365,7 @@ function BottomNav({ currentPath, currentHash, onNavigate }) {
   );
 }
 
-function DashboardHome({ onDateUpdate, onNavigate }) {
+function DashboardHome({ onDateUpdate, onNavigate, lastUpdatedAt, theme, onThemeToggle }) {
   const [activeCommand, setActiveCommand] = useState(QUICK_COMMANDS[0]);
   const [commandText, setCommandText] = useState('');
   const [doneActions, setDoneActions] = useState(() => new Set([SAMPLE_ACTIONS[2]]));
@@ -390,6 +387,9 @@ function DashboardHome({ onDateUpdate, onNavigate }) {
       <div id="commandhub" className="dashboardAnchor">
         <CommandHub
           onDateUpdate={onDateUpdate}
+          lastUpdatedAt={lastUpdatedAt}
+          theme={theme}
+          onThemeToggle={onThemeToggle}
           onOpenGoals={() => onNavigate?.(ROUTES.GOALS)}
           onOpenTasks={() => onNavigate?.(ROUTES.TASKS)}
           onOpenIssues={() => onNavigate?.(ROUTES.ISSUES)}
@@ -510,7 +510,7 @@ function DashboardHome({ onDateUpdate, onNavigate }) {
             NOVA 模拟输出
           </span>
           <p>
-            演示建议：把 3 件待办先完成关键交付，再处理即时管理，最后安排一个低门槛复盘行动。
+            演示建议：先完成关键交付，再处理即时管理，最后安排一次轻量复盘。
           </p>
           <div className="taskChips">
             {SAMPLE_ACTIONS.map((action) => (
@@ -535,10 +535,10 @@ function EnhancedToastPortal({ toasts, onDismiss }) {
   if (toasts.length === 0) return null;
 
   const icons = {
-    success: '✓',
-    error: '✕',
-    info: 'ℹ',
-    warning: '⚠',
+    success: 'OK',
+    error: '!',
+    info: 'i',
+    warning: '!',
   };
 
   return (
@@ -573,7 +573,6 @@ export default function App() {
     if (saved === 'light' || saved === 'dark') return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
-  const [query, setQuery] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState('');
   const [routeInfo, setRouteInfo] = useState(() => parseRoute(`${window.location.pathname}${window.location.hash}`));
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -593,7 +592,6 @@ export default function App() {
   const handleNavigate = useCallback((path) => {
     window.history.pushState({}, '', path);
     setRouteInfo(parseRoute(path));
-    setQuery('');
     const hash = path.includes('#') ? `#${path.split('#')[1]}` : '';
     if (hash) {
       window.setTimeout(() => {
@@ -663,7 +661,13 @@ export default function App() {
   const renderPage = () => {
     switch (routeInfo.route) {
       case ROUTES.DASHBOARD:
-        return <DashboardHome onDateUpdate={setLastUpdatedAt} onNavigate={handleNavigate} />;
+        return <DashboardHome
+            onDateUpdate={setLastUpdatedAt}
+            onNavigate={handleNavigate}
+            lastUpdatedAt={lastUpdatedAt}
+            theme={theme}
+            onThemeToggle={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          />;
       case ROUTES.TASKS:
         return <TasksPage />;
       case ROUTES.GOALS:
@@ -692,7 +696,13 @@ export default function App() {
           />
         );
       default:
-        return <DashboardHome onDateUpdate={setLastUpdatedAt} onNavigate={handleNavigate} />;
+        return <DashboardHome
+            onDateUpdate={setLastUpdatedAt}
+            onNavigate={handleNavigate}
+            lastUpdatedAt={lastUpdatedAt}
+            theme={theme}
+            onThemeToggle={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          />;
     }
   };
 
@@ -732,42 +742,6 @@ export default function App() {
               <PanelLeft size={20} />
             </button>
 
-            <div className="globalSearch">
-              <Search size={16} />
-              <input
-                aria-label="全局搜索"
-                placeholder="搜索系统、任务、数据卡片..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onFocus={() => setPaletteOpen(true)}
-              />
-              <kbd style={{ fontSize: 10, color: 'var(--text-faint)' }}>Ctrl+K</kbd>
-              {query && (
-                <button
-                  type="button"
-                  className="clearSearch"
-                  aria-label="清除搜索"
-                  onClick={() => setQuery('')}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-
-            <div className="topActions">
-              <div className="datePill">
-                <CalendarDays size={16} />
-                {lastUpdatedAt ? formatDate(lastUpdatedAt) : '---'}
-              </div>
-              <button
-                className="iconButton"
-                aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
-                title="切换主题"
-                onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-              >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
-            </div>
           </header>
 
           <div className="pageContent">

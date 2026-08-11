@@ -2,12 +2,13 @@
 // 问题中心页面 —— /issues
 
 import { useState, useEffect, useCallback } from 'react';
-import { AlertTriangle, RefreshCw, AlertCircle, ShieldCheck, Plus, X, Save } from 'lucide-react';
+import { AlertTriangle, RefreshCw, AlertCircle, ShieldCheck, Plus, X, Save, Download } from 'lucide-react';
 import { getIssues, createIssue, updateIssueStatus, updateIssue, deleteIssue } from '../services/issueService';
 import { createLocalBackup } from '../services/localBackupStore';
 import { IssueItem } from '../components/IssueItem';
 import { IssueFilters } from '../components/IssueFilters';
 import { IssueSkeleton } from '../components/IssueSkeleton';
+import { exportCsv } from '../services/exportCsv';
 
 // 通知 Dashboard 刷新
 function notifyDashboardRefresh() {
@@ -194,6 +195,23 @@ export function IssuesPage() {
     }
   };
 
+  const handleExportIssues = () => {
+    exportCsv(
+      'nova-os-issues.csv',
+      [
+        { label: '标题', value: (item) => item.title },
+        { label: '状态', value: (item) => item.issueDetail?.status || item.status },
+        { label: '风险等级', value: (item) => item.issueDetail?.severity || item.priority },
+        { label: '领域', value: (item) => item.domainId || '' },
+        { label: '目标值', value: (item) => item.issueDetail?.targetValue ?? '' },
+        { label: '实际值', value: (item) => item.issueDetail?.actualValue ?? '' },
+        { label: '偏差', value: (item) => item.issueDetail?.variance ?? '' },
+        { label: '说明', value: (item) => item.description || '' },
+      ],
+      issues
+    );
+  };
+
   return (
     <div className="issuesPage">
       <header className="issuesPageHeader">
@@ -205,6 +223,15 @@ export function IssuesPage() {
           </span>
         </div>
         <div className="issuesPageActions">
+          <button
+            type="button"
+            className="refreshBtn"
+            onClick={handleExportIssues}
+            disabled={loading}
+          >
+            <Download size={16} />
+            导出
+          </button>
           <button
             type="button"
             className="refreshBtn"

@@ -310,27 +310,15 @@
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
+  top: auto;
   z-index: 100;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
+  background: transparent;
+  border-bottom: 0;
+  padding: 0;
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.topbar .globalSearch {
-  flex: 1;
-  max-width: 560px;
-}
-
-.topbar .topActions {
-  box-shadow: none;
-  border: 0;
-  background: transparent;
-  padding: 0;
+  gap: 0;
 }
 
 .pageContent {
@@ -738,14 +726,6 @@
   .topbar {
     padding: 10px 16px;
     gap: 10px;
-  }
-
-  .topbar .globalSearch {
-    max-width: none;
-  }
-
-  .topbar .datePill {
-    display: none;
   }
 
   .pageContent {

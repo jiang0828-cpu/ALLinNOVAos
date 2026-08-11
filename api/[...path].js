@@ -886,13 +886,77 @@ async function patchReview(client, reviewId, body) {
 
 async function dashboardOverview(client) {
   await ensureWorkspace(client);
-  const goals = await client.query(
-    `select wi.domain_id, gd.progress
-       from work_items wi
-       join goal_detail gd on gd.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'GOAL' and wi.deleted_at is null`,
-    [WORKSPACE_ID]
-  );
+  const [
+    goals,
+    tasks,
+    issues,
+    projects,
+    suggestions,
+    review,
+    done,
+  ] = await Promise.all([
+    client.query(
+      `select wi.domain_id, gd.progress
+         from work_items wi
+         join goal_detail gd on gd.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'GOAL' and wi.deleted_at is null`,
+      [WORKSPACE_ID]
+    ),
+    client.query(
+      `select wi.*, to_jsonb(td.*) as detail
+         from work_items wi
+         join task_detail td on td.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'TASK' and wi.deleted_at is null
+          and wi.status in ('TODO','IN_PROGRESS','BLOCKED')
+          and (wi.cycle_id = 'DAILY' or td.due_at::date = current_date)
+        order by coalesce(td.due_at, wi.updated_at) asc
+        limit 6`,
+      [WORKSPACE_ID]
+    ),
+    client.query(
+      `select wi.*, to_jsonb(idtl.*) as detail
+         from work_items wi
+         join issue_detail idtl on idtl.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'ISSUE' and wi.deleted_at is null and idtl.status = 'OPEN'
+        order by wi.updated_at desc
+        limit 6`,
+      [WORKSPACE_ID]
+    ),
+    client.query(
+      `select wi.*, to_jsonb(pd.*) as detail
+         from work_items wi
+         join project_detail pd on pd.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'PROJECT' and wi.deleted_at is null
+        order by wi.updated_at desc
+        limit 6`,
+      [WORKSPACE_ID]
+    ),
+    client.query(
+      `select wi.*, to_jsonb(sd.*) as detail
+         from work_items wi
+         join suggestion_detail sd on sd.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'SUGGESTION' and wi.deleted_at is null and sd.status = 'PENDING'
+        order by wi.updated_at desc
+        limit 3`,
+      [WORKSPACE_ID]
+    ),
+    client.query(
+      `select wi.*, to_jsonb(rd.*) as detail
+         from work_items wi
+         join review_detail rd on rd.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'REVIEW' and wi.deleted_at is null
+        order by wi.updated_at desc
+        limit 1`,
+      [WORKSPACE_ID]
+    ),
+    client.query(
+      `select count(*) filter (where wi.status = 'DONE')::int as done_count, count(*)::int as total
+         from work_items wi
+         join task_detail td on td.work_item_id = wi.id
+        where wi.workspace_id = $1 and wi."itemType" = 'TASK' and wi.deleted_at is null`,
+      [WORKSPACE_ID]
+    ),
+  ]);
   const domainMap = new Map();
   for (const row of goals.rows) {
     const key = row.domain_id || 'other';
@@ -910,66 +974,6 @@ async function dashboardOverview(client) {
   const overallScore = domainScores.some((item) => item.score > 0)
     ? Math.round(domainScores.reduce((sum, item) => sum + item.score, 0) / domainScores.filter((item) => item.score > 0).length)
     : 0;
-
-  const tasks = await client.query(
-    `select wi.*, to_jsonb(td.*) as detail
-       from work_items wi
-       join task_detail td on td.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'TASK' and wi.deleted_at is null
-        and wi.status in ('TODO','IN_PROGRESS','BLOCKED')
-        and (wi.cycle_id = 'DAILY' or td.due_at::date = current_date)
-      order by coalesce(td.due_at, wi.updated_at) asc
-      limit 6`,
-    [WORKSPACE_ID]
-  );
-
-  const issues = await client.query(
-    `select wi.*, to_jsonb(idtl.*) as detail
-       from work_items wi
-       join issue_detail idtl on idtl.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'ISSUE' and wi.deleted_at is null and idtl.status = 'OPEN'
-      order by wi.updated_at desc
-      limit 6`,
-    [WORKSPACE_ID]
-  );
-
-  const projects = await client.query(
-    `select wi.*, to_jsonb(pd.*) as detail
-       from work_items wi
-       join project_detail pd on pd.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'PROJECT' and wi.deleted_at is null
-      order by wi.updated_at desc
-      limit 6`,
-    [WORKSPACE_ID]
-  );
-
-  const suggestions = await client.query(
-    `select wi.*, to_jsonb(sd.*) as detail
-       from work_items wi
-       join suggestion_detail sd on sd.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'SUGGESTION' and wi.deleted_at is null and sd.status = 'PENDING'
-      order by wi.updated_at desc
-      limit 3`,
-    [WORKSPACE_ID]
-  );
-
-  const review = await client.query(
-    `select wi.*, to_jsonb(rd.*) as detail
-       from work_items wi
-       join review_detail rd on rd.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'REVIEW' and wi.deleted_at is null
-      order by wi.updated_at desc
-      limit 1`,
-    [WORKSPACE_ID]
-  );
-
-  const done = await client.query(
-    `select count(*) filter (where wi.status = 'DONE')::int as done_count, count(*)::int as total
-       from work_items wi
-       join task_detail td on td.work_item_id = wi.id
-      where wi.workspace_id = $1 and wi."itemType" = 'TASK' and wi.deleted_at is null`,
-    [WORKSPACE_ID]
-  );
 
   const taskCompletionRate = done.rows[0].total ? Math.round((done.rows[0].done_count / done.rows[0].total) * 100) : 0;
 
@@ -1042,6 +1046,14 @@ async function route(req, res, client) {
 
   if (pathname === '/suggestions' && method === 'GET') return ok(res, await listSuggestions(client, searchParams));
   const suggestionItem = pathname.match(/^\/suggestions\/([^/]+)$/);
+  if (suggestionItem && method === 'DELETE') {
+    return ok(res, await softDelete(client, suggestionItem[1], {
+      type: 'SUGGESTION',
+      detailTable: 'suggestion_detail',
+      detailAlias: 'sd',
+      detailKey: 'suggestionDetail',
+    }, searchParams.get('workspaceId') || WORKSPACE_ID));
+  }
   if (suggestionItem && method === 'PATCH') {
     await patchWorkItem(client, suggestionItem[1], body, {
       type: 'SUGGESTION',
@@ -1113,6 +1125,7 @@ async function route(req, res, client) {
       if (!item) return ok(res, null, 404);
       return ok(res, item);
     }
+    if (method === 'DELETE') return ok(res, await softDelete(client, reviewItem[1], { type: 'REVIEW', detailTable: 'review_detail', detailAlias: 'rd', detailKey: 'reviewDetail' }, searchParams.get('workspaceId') || WORKSPACE_ID));
     if (method === 'PATCH') return ok(res, await patchReview(client, reviewItem[1], body));
   }
 

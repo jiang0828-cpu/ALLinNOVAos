@@ -9,12 +9,14 @@ import {
   Sparkles,
   X,
   Calendar,
+  Download,
 } from 'lucide-react';
 import { getReviews, generateReviewDraft, deleteReview } from '../services/reviewService';
 import { ReviewItem } from '../components/ReviewItem';
 import { ReviewFilters } from '../components/ReviewFilters';
 import { ReviewSkeleton } from '../components/ReviewSkeleton';
 import { CYCLE_TYPE_LABELS } from '../types/reviews';
+import { exportCsv } from '../services/exportCsv';
 
 // 已知周期列表（后端未暴露 cycle 列表接口，使用预置选项）
 const KNOWN_CYCLES = [
@@ -189,6 +191,21 @@ export function ReviewsPage({ onNavigateToReview }) {
     }
   };
 
+  const handleExportReviews = () => {
+    exportCsv(
+      'nova-os-reviews.csv',
+      [
+        { label: '标题', value: (item) => item.title },
+        { label: '状态', value: (item) => item.reviewDetail?.status || item.status },
+        { label: '复盘类型', value: (item) => CYCLE_TYPE_LABELS[item.reviewDetail?.reviewType] || item.reviewDetail?.reviewType || '' },
+        { label: '周期', value: (item) => item.reviewDetail?.cycleName || item.cycleId || '' },
+        { label: '完成率', value: (item) => item.reviewDetail?.completionRate ?? '' },
+        { label: '创建时间', value: (item) => item.createdAt || '' },
+      ],
+      reviews
+    );
+  };
+
   return (
     <div className="reviewsPage">
       <header className="reviewsPageHeader">
@@ -200,6 +217,15 @@ export function ReviewsPage({ onNavigateToReview }) {
           </span>
         </div>
         <div className="reviewsPageActions">
+          <button
+            type="button"
+            className="refreshBtn"
+            onClick={handleExportReviews}
+            disabled={loading}
+          >
+            <Download size={16} />
+            导出
+          </button>
           <button
             type="button"
             className="primaryButton generateBtn"

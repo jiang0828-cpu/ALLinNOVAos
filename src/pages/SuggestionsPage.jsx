@@ -2,7 +2,7 @@
 // 行动建议中心页面 —— /suggestions
 
 import { useState, useEffect, useCallback } from 'react';
-import { Lightbulb, RefreshCw, AlertCircle, Sparkles, X, Save } from 'lucide-react';
+import { Lightbulb, RefreshCw, AlertCircle, Sparkles, X, Save, Download } from 'lucide-react';
 import {
   getSuggestions,
   acceptAndCreateTask,
@@ -15,6 +15,7 @@ import { createLocalBackup } from '../services/localBackupStore';
 import { SuggestionItem } from '../components/SuggestionItem';
 import { SuggestionFilters } from '../components/SuggestionFilters';
 import { SuggestionSkeleton } from '../components/SuggestionSkeleton';
+import { exportCsv } from '../services/exportCsv';
 
 // 通知 Dashboard 刷新
 function notifyDashboardRefresh() {
@@ -218,6 +219,21 @@ export function SuggestionsPage() {
     }
   };
 
+  const handleExportSuggestions = () => {
+    exportCsv(
+      'nova-os-suggestions.csv',
+      [
+        { label: '标题', value: (item) => item.title },
+        { label: '状态', value: (item) => item.suggestionDetail?.status || item.status },
+        { label: '优先级', value: (item) => item.suggestionDetail?.priority || item.priority },
+        { label: '生成原因', value: (item) => item.suggestionDetail?.reason || item.description },
+        { label: '支撑证据', value: (item) => item.suggestionDetail?.evidence || '' },
+        { label: '关联问题', value: (item) => item.suggestionDetail?.sourceIssueId || '' },
+      ],
+      suggestions
+    );
+  };
+
   return (
     <div className="suggestionsPage">
       <header className="suggestionsPageHeader">
@@ -229,6 +245,15 @@ export function SuggestionsPage() {
           </span>
         </div>
         <div className="suggestionsPageActions">
+          <button
+            type="button"
+            className="refreshBtn"
+            onClick={handleExportSuggestions}
+            disabled={loading}
+          >
+            <Download size={16} />
+            导出
+          </button>
           <button
             type="button"
             className="refreshBtn"

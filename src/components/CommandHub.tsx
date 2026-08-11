@@ -1,9 +1,8 @@
-// src/components/CommandHub.tsx
-// 全局指挥台 (COMMANDHUB) —— 核心容器组件
-// 包含 8 个面板：目标达成、今日重点、信息资讯、当前问题、最新复盘、AI 建议
+﻿// src/components/CommandHub.tsx
+// 全局指挥台核心容器组件。
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, AlertCircle, Inbox } from 'lucide-react';
+import { RefreshCw, AlertCircle, Inbox, CalendarDays, Moon, Sun } from 'lucide-react';
 import type { DashboardSnapshot } from '../types/dashboard';
 import { StateTarget } from './StateTarget';
 import { TodayFocus } from './TodayFocus';
@@ -12,18 +11,20 @@ import { OpenIssues } from './OpenIssues';
 import { LatestReview } from './LatestReview';
 import { AiSuggestion } from './AiSuggestion';
 import { DashboardSkeleton } from './Skeleton';
-import { getDashboardSnapshot } from '../services/dashboardService';
+import { getDashboardSnapshot, getLocalDashboardSnapshot } from '../services/dashboardService';
 import { flushLocalSyncQueue } from '../services/apiClient';
 import {
   createLocalBackup,
   getLocalBackupMeta,
   getLocalSyncMeta,
-  queueLocalStoreSnapshotForSync,
 } from '../services/localBackupStore';
 import { acceptAndCreateTask } from '../services/suggestionService';
 
 interface CommandHubProps {
   onDateUpdate?: (date: string) => void;
+  lastUpdatedAt?: string;
+  theme?: 'light' | 'dark';
+  onThemeToggle?: () => void;
   onOpenGoals?: () => void;
   onOpenTasks?: () => void;
   onOpenIssues?: () => void;
@@ -36,8 +37,22 @@ interface CommandHubProps {
 type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
 type DataSource = 'online' | 'local' | 'mock';
 
+function formatHeaderDate(value?: string) {
+  if (!value) return '---';
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
 export function CommandHub({
   onDateUpdate,
+  lastUpdatedAt,
+  theme = 'light',
+  onThemeToggle,
   onOpenGoals,
   onOpenTasks,
   onOpenIssues,
@@ -53,35 +68,38 @@ export function CommandHub({
   const [backupMeta, setBackupMeta] = useState(() => getLocalBackupMeta());
   const [syncMeta, setSyncMeta] = useState(() => getLocalSyncMeta());
 
+  const applySnapshot = useCallback((data: DashboardSnapshot) => {
+    const hasData =
+      data.stateTarget.lifeScore > 0 ||
+      data.todayFocus.length > 0 ||
+      data.openIssues.length > 0 ||
+      data.aiSuggestions.length > 0 ||
+      data.latestReview !== null;
+
+    setSnapshot(data);
+    onDateUpdate?.(data.generatedAt);
+    setBackupMeta(getLocalBackupMeta());
+    setSyncMeta(getLocalSyncMeta());
+    setDataSource(data.dataSource || 'local');
+    setLoadState(hasData ? 'success' : 'empty');
+  }, [onDateUpdate]);
+
   const loadData = useCallback(async (silent = false) => {
-    if (!silent) setLoadState('loading');
+    if (!silent) {
+      const localData = getLocalDashboardSnapshot();
+      applySnapshot(localData);
+    }
     setErrorMessage('');
 
     try {
-      await flushLocalSyncQueue();
       const data = await getDashboardSnapshot();
-
-      // 检查是否有数据
-      const hasData =
-        data.stateTarget.lifeScore > 0 ||
-        data.todayFocus.length > 0 ||
-        data.openIssues.length > 0 ||
-        data.aiSuggestions.length > 0 ||
-        data.latestReview !== null;
-
-      setSnapshot(data);
-      onDateUpdate?.(data.generatedAt);
-      setBackupMeta(getLocalBackupMeta());
-      setSyncMeta(getLocalSyncMeta());
-      setDataSource(data.dataSource || 'local');
-
-      setLoadState(hasData ? 'success' : 'empty');
+      applySnapshot(data);
     } catch (err) {
       console.error('[CommandHub] Failed to load dashboard:', err);
       setErrorMessage((err as Error).message || '未知错误');
-      setLoadState('error');
+      setLoadState((current) => (current === 'idle' || current === 'loading' ? 'error' : current));
     }
-  }, [onDateUpdate]);
+  }, [applySnapshot]);
 
   useEffect(() => {
     loadData();
@@ -103,7 +121,7 @@ export function CommandHub({
     return () => window.clearInterval(timer);
   }, []);
 
-  // 监听其他页面（如建议/问题页）触发的刷新事件，同步更新 Dashboard
+  // 监听其他页面触发的刷新事件，同步更新 Dashboard。
   useEffect(() => {
     const handleRefresh = () => {
       loadData(true);
@@ -122,7 +140,7 @@ export function CommandHub({
     return () => window.removeEventListener('nova:sync-queue-updated', handleSyncUpdate as EventListener);
   }, []);
 
-  // 加载状态 - 显示骨架屏
+  // 加载状态。
   if (loadState === 'loading' || loadState === 'idle') {
     return (
       <section className="commandHub">
@@ -135,7 +153,7 @@ export function CommandHub({
     );
   }
 
-  // 错误状态 - 显示重试按钮
+  // 错误状态。
   if (loadState === 'error') {
     return (
       <section className="commandHub">
@@ -160,7 +178,7 @@ export function CommandHub({
     );
   }
 
-  // 空状态 - 友好提示
+  // 空状态。
   if (loadState === 'empty' || !snapshot) {
     return (
       <section className="commandHub">
@@ -171,7 +189,7 @@ export function CommandHub({
         <div className="emptyState fullEmpty">
           <Inbox size={48} />
           <h3>暂无数据</h3>
-          <p>系统中还没有任何数据，开始创建目标和任务吧</p>
+          <p>系统中还没有任何数据，可以先创建目标和任务。</p>
           <button className="primaryButton" style={{ maxWidth: 200 }}>
             创建第一个目标
           </button>
@@ -180,7 +198,7 @@ export function CommandHub({
     );
   }
 
-  // 成功状态 - 展示所有面板
+  // 成功状态。
   const handleConvertSuggestion = async (suggestionId: string) => {
     const suggestion = snapshot?.aiSuggestions.find((s) => s.id === suggestionId);
     if (!suggestion) return;
@@ -216,21 +234,20 @@ export function CommandHub({
         <div className="commandHubControls">
           <span
             className={`backendBadge ${dataSource === 'online' ? 'live' : 'mock'}`}
-            title={dataSource === 'online' ? '正在读取线上数据库' : '正在读取浏览器本地备份'}
+            title={dataSource === 'online' ? '正在读取云端数据库' : '云端数据加载中'}
           >
-            {dataSource === 'online' ? '● 线上数据库' : dataSource === 'local' ? '○ 本地备份' : '○ 示例兜底'}
+            {dataSource === 'online' ? '● 云端数据库' : dataSource === 'local' ? '○ 云端加载中' : '○ 示例缓存'}
           </span>
           <button
             className="syncDataButton"
-            title={syncMeta.lastError || '同步本地数据到网端'}
+            title="只刷新云端数据，不再同步本地队列"
             onClick={async () => {
-              queueLocalStoreSnapshotForSync();
               await flushLocalSyncQueue();
               setSyncMeta(getLocalSyncMeta());
               await loadData(true);
             }}
           >
-            {syncMeta.pendingCount > 0 ? `待同步 ${syncMeta.pendingCount}` : '同步本地'}
+            云端刷新
           </button>
           <div className="commandHubActions">
             <button
@@ -243,37 +260,51 @@ export function CommandHub({
               <span>刷新</span>
             </button>
           </div>
+          <div className="commandHubTimeTools">
+            <div className="datePill">
+              <CalendarDays size={16} />
+              {formatHeaderDate(lastUpdatedAt || snapshot.generatedAt)}
+            </div>
+            <button
+              className="iconButton"
+              aria-label="Toggle theme"
+              title="Toggle theme"
+              onClick={onThemeToggle}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="heroGrid">
-        {/* 1. STATE / TARGET — 目标达成 */}
+        {/* 1. STATE / TARGET */}
         <StateTarget
           lifeScore={snapshot.stateTarget.lifeScore}
           breakdown={snapshot.stateTarget.breakdown}
           onOpen={onOpenGoals}
         />
 
-        {/* 2. 今日重点 (Today Focus) */}
+        {/* 2. FEEDS */}
+        <FeedsPanel feeds={snapshot.feeds} />
+
+        {/* 3. TODAY */}
         <TodayFocus
           items={snapshot.todayFocus}
           onOpenTasks={onOpenTasks}
         />
 
-        {/* 3. 信息资讯 (Feeds) */}
-        <FeedsPanel feeds={snapshot.feeds} />
-
-        {/* 4. 当前问题 · 风险 */}
+        {/* 4. ISSUES */}
         <OpenIssues issues={snapshot.openIssues} onOpenIssues={onOpenIssues} />
 
-        {/* 5. AI 建议 (AI Suggestion) */}
+        {/* 5. SUGGESTION */}
         <AiSuggestion
           suggestions={snapshot.aiSuggestions}
           onConvert={handleConvertSuggestion}
           onOpenSuggestions={onOpenSuggestions}
         />
 
-        {/* 6. 最新复盘 */}
+        {/* 6. REVIEW */}
         <LatestReview
           review={snapshot.latestReview}
           insightsCount={snapshot.activeInsightsCount}
@@ -282,6 +313,7 @@ export function CommandHub({
           onOpenReviews={onOpenReviews || onCreateReview}
         />
       </div>
+
     </section>
   );
 }

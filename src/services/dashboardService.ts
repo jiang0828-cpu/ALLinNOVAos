@@ -9,6 +9,15 @@ import { buildApiUrl } from './apiClient';
 
 const DEFAULT_WORKSPACE_ID = 'ws_default';
 
+export function getLocalDashboardSnapshot(
+  workspaceId: string = DEFAULT_WORKSPACE_ID
+): DashboardSnapshot {
+  return {
+    ...adaptBackendToSnapshot(getLocalDashboardOverview(), workspaceId),
+    dataSource: 'local',
+  };
+}
+
 /**
  * Fetch dashboard snapshot from the real API.
  * Falls back to mock data when the backend is unreachable
@@ -35,10 +44,7 @@ export async function getDashboardSnapshot(
     };
   } catch (err) {
     if (typeof window !== 'undefined') {
-      return {
-        ...adaptBackendToSnapshot(getLocalDashboardOverview(), workspaceId),
-        dataSource: 'local',
-      };
+      return getLocalDashboardSnapshot(workspaceId);
     }
 
     console.warn('[dashboard] API and local store unavailable, falling back to mock:', (err as Error).message);

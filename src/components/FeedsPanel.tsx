@@ -40,11 +40,6 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
 
       <div className="feedsAllContent">
         <div className="feedsSection">
-          <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">NEWS · 最新要闻</span>
-            <span className="feedsSectionDot news" />
-          </div>
-
           <div className="feedsList compactNewsList">
             {newsItems.length === 0 ? (
               <div className="feedItem news feedPlaceholder">

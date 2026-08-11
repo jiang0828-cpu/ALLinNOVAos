@@ -130,12 +130,10 @@ button:disabled {
 }
 
 .topbar {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(260px, 520px) minmax(280px, 1fr);
-  gap: 16px;
+  display: flex;
   align-items: center;
-  min-height: 68px;
-  padding: 10px 0 18px;
+  min-height: 0;
+  padding: 0;
 }
 
 .brand,
@@ -355,9 +353,17 @@ button:disabled {
 .commandHeader,
 .systemTop {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.heroGrid > .panel > .panelHeader > div,
+.heroGrid > .scorePanel > .panelHeader > div {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .panelIconButton {
@@ -398,7 +404,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   width: fit-content;
-  margin-top: 6px;
+  margin-top: 8px;
   padding: 3px 8px;
   border-radius: 6px;
   background: var(--chip-bg);
@@ -1471,6 +1477,8 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .backendBadge {
@@ -5584,6 +5592,12 @@ body {
 
 .commandHubActions {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commandHubTimeTools {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
