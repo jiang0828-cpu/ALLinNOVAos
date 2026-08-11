@@ -11,9 +11,14 @@ function getDefaultApiBase(): string {
   const { protocol, hostname, port } = window.location;
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isVitePreview = port === '4173' || port === '4174';
+  const isCloudflarePages = hostname.endsWith('.pages.dev');
 
   if (isLocalHost && isVitePreview) {
     return `${protocol}//${hostname}:3003/api`;
+  }
+
+  if (isCloudflarePages) {
+    return 'https://allinnovaos.vercel.app/api';
   }
 
   return '/api';
