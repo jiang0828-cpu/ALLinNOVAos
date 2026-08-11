@@ -104,10 +104,10 @@ function domainNameToLabel(domainName: string): string {
     health: '健康',
     wealth: '财富',
     work: '工作',
-    content: '内容',
+    content: '生活',
     learning: '学习',
     agi: 'AGI',
-    media: '媒体',
+    media: '市场',
     relationship: '关系',
     personal: '个人',
     career: '事业',
@@ -131,34 +131,23 @@ export function adaptBackendToSnapshot(
   }));
 
   // --- Today Focus ---
-  const todayFocus = backend.todayFocus.map((t) => ({
-    id: t.id,
-    title: t.title,
-    system: itemTypeToSystem(t.itemType),
-    priority: toPriority(t.priority),
-    eta: t.status,
-    status: toTaskStatus(t.status),
-  }));
+  const todayFocus = backend.todayFocus
+    .filter((t) => t.status !== 'DONE' && t.status !== 'CANCELLED')
+    .map((t) => ({
+      id: t.id,
+      title: t.title,
+      system: itemTypeToSystem(t.itemType),
+      priority: toPriority(t.priority),
+      eta: t.status,
+      status: toTaskStatus(t.status),
+    }));
 
   // --- Feeds ---
-  const news = backend.openIssues.map((i) => ({
-    id: i.id,
-    source: `Issue · ${i.level}`,
-    time: i.status,
-    title: i.title,
-  }));
-
-  const ideas: Array<{ id: string; title: string }> =
-    backend.activeInsights.map((insight) => ({
-      id: insight.id,
-      title: insight.statement,
-    }));
-  const plans: Array<{ id: string; title: string; progress: number }> =
-    backend.activeProjects.map((p) => ({
-      id: p.id,
-      title: p.title,
-      progress: Math.round(p.progress),
-    }));
+  // 信息资讯模块保持独立 API 预留，不再同步问题、建议或项目数据。
+  // 后续接入资讯服务时，可在这里改为读取 news/ideas/plans 专用 DTO。
+  const news: Array<{ id: string; source: string; time: string; title: string }> = [];
+  const ideas: Array<{ id: string; title: string }> = [];
+  const plans: Array<{ id: string; title: string; progress: number }> = [];
 
   // --- Open Issues (当前问题/风险) ---
   const openIssues = backend.openIssues.map((i) => ({
@@ -195,9 +184,30 @@ export function adaptBackendToSnapshot(
     isConverted: false,
   }));
 
+  const operatingLayers = {
+    targets: backend.domainScores.slice(0, 5).map((d) => ({
+      id: d.domainId,
+      label: domainNameToLabel(d.domainName),
+      value: Math.round(d.score),
+    })),
+    projects: backend.activeProjects.slice(0, 4).map((p) => ({
+      id: p.id,
+      title: p.title,
+      progress: Math.round(p.progress),
+      healthStatus: p.healthStatus,
+    })),
+    tasks: backend.todayFocus.slice(0, 4).map((t) => ({
+      id: t.id,
+      title: t.title,
+      status: toTaskStatus(t.status),
+      priority: toPriority(t.priority),
+    })),
+  };
+
   return {
     workspaceId,
     generatedAt: backend.lastUpdatedAt,
+    operatingLayers,
     stateTarget: {
       lifeScore: Math.round(backend.overallScore),
       breakdown,

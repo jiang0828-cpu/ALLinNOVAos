@@ -1,10 +1,11 @@
 // src/services/dashboardService.ts
 // Dashboard data service — Phase 2: Real API with graceful fallback to Mock
 
-import { apiClient } from './apiClient';
 import { adaptBackendToSnapshot } from './dashboard-adapter';
 import { dashboardSnapshot as mockSnapshot } from '../data/dashboardMock';
 import type { DashboardSnapshot } from '../types/dashboard';
+import { getLocalDashboardOverview } from './localBackupStore';
+import { buildApiUrl } from './apiClient';
 
 const DEFAULT_WORKSPACE_ID = 'ws_default';
 
@@ -21,12 +22,26 @@ export async function getDashboardSnapshot(
     const params = new URLSearchParams({ workspaceId });
     if (date) params.set('date', date);
 
-    const backend = await apiClient.get<import('./dashboard-adapter').DashboardOverviewResponse>(
-      `/dashboard/overview?${params.toString()}`
-    );
-    return adaptBackendToSnapshot(backend, workspaceId);
+    const response = await fetch(buildApiUrl(`/dashboard/overview?${params.toString()}`));
+    if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
+
+    const body = await response.json();
+    const isSuccess = body.code === 0 || (body.code >= 200 && body.code < 300);
+    if (!isSuccess) throw new Error(body.message || `API error: code=${body.code}`);
+
+    return {
+      ...adaptBackendToSnapshot(body.data, workspaceId),
+      dataSource: 'online',
+    };
   } catch (err) {
-    console.warn('[dashboard] API unreachable, falling back to mock:', (err as Error).message);
-    return mockSnapshot;
+    if (typeof window !== 'undefined') {
+      return {
+        ...adaptBackendToSnapshot(getLocalDashboardOverview(), workspaceId),
+        dataSource: 'local',
+      };
+    }
+
+    console.warn('[dashboard] API and local store unavailable, falling back to mock:', (err as Error).message);
+    return { ...mockSnapshot, dataSource: 'mock' };
   }
 }

@@ -80,6 +80,26 @@ export interface DashboardSnapshot {
   // Meta
   workspaceId: string;
   generatedAt: string;
+  dataSource?: 'online' | 'local' | 'mock';
+  operatingLayers?: {
+    targets: Array<{
+      id: string;
+      label: string;
+      value: number;
+    }>;
+    projects: Array<{
+      id: string;
+      title: string;
+      progress: number;
+      healthStatus?: string;
+    }>;
+    tasks: Array<{
+      id: string;
+      title: string;
+      status: TaskStatus;
+      priority: Priority;
+    }>;
+  };
 
   // STATE / TARGET — 目标达成
   stateTarget: {

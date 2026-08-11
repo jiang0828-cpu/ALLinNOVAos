@@ -1,13 +1,17 @@
-// src/components/TaskFilters.jsx
-// 任务筛选器组件
-
-import { Filter, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { STATUS_LABELS, PRIORITY_LABELS, DOMAIN_OPTIONS } from '../types/tasks';
 
 const STATUS_OPTIONS = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE', 'CANCELLED'];
 const PRIORITY_OPTIONS = ['P0', 'P1', 'P2', 'P3'];
+const CYCLE_OPTIONS = [
+  { key: 'ALL', label: '全部' },
+  { key: 'YEARLY', label: '年' },
+  { key: 'MONTHLY', label: '月' },
+  { key: 'WEEKLY', label: '周' },
+  { key: 'DAILY', label: '日' },
+];
 
-export function TaskFilters({ filters, onFiltersChange, onReset }) {
+export function TaskFilters({ filters, cycleFilter = 'ALL', onCycleFilterChange, onFiltersChange, onReset }) {
   const toggleStatus = (status) => {
     const current = filters.status || [];
     const updated = current.includes(status)
@@ -30,12 +34,28 @@ export function TaskFilters({ filters, onFiltersChange, onReset }) {
   };
 
   const hasActiveFilters =
+    cycleFilter !== 'ALL' ||
     (filters.status && filters.status.length > 0) ||
     (filters.priority && filters.priority.length > 0) ||
     filters.domainId;
 
   return (
     <div className="taskFilters">
+      <div className="filterSection">
+        <span className="filterLabel">周期</span>
+        <div className="filterChips">
+          {CYCLE_OPTIONS.map((cycle) => (
+            <button
+              key={cycle.key}
+              className={`filterChip ${cycleFilter === cycle.key ? 'active' : ''}`}
+              onClick={() => onCycleFilterChange?.(cycle.key)}
+            >
+              {cycle.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="filterSection">
         <span className="filterLabel">状态</span>
         <div className="filterChips">

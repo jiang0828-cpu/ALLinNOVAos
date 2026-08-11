@@ -9,9 +9,10 @@ import type { DashboardSnapshot } from '../types/dashboard';
 interface StateTargetProps {
   lifeScore: DashboardSnapshot['stateTarget']['lifeScore'];
   breakdown: DashboardSnapshot['stateTarget']['breakdown'];
+  onOpen?: () => void;
 }
 
-export function StateTarget({ lifeScore, breakdown }: StateTargetProps) {
+export function StateTarget({ lifeScore, breakdown, onOpen }: StateTargetProps) {
   const ringColor = getScoreColor(lifeScore);
 
   return (
@@ -20,8 +21,17 @@ export function StateTarget({ lifeScore, breakdown }: StateTargetProps) {
         <div>
           <span className="sectionEyebrow">STATE / TARGET</span>
           <h2>目标达成</h2>
+          <span className="strictTag">P · GOAL</span>
         </div>
-        <Target size={20} />
+        <button
+          type="button"
+          className="panelIconButton"
+          onClick={onOpen}
+          title="进入目标管理"
+          aria-label="进入目标管理"
+        >
+          <Target size={20} />
+        </button>
       </div>
       <div className="scoreGrid">
         {/* Life Score 环形进度 */}

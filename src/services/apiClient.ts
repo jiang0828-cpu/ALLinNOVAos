@@ -1,13 +1,32 @@
 import type { ApiResponse } from '../types/api';
-import { handleLocalRequest } from './localBackupStore';
+import { handleLocalRequest, mirrorSuccessfulRequest } from './localBackupStore';
 
-const API_BASE = '/api';
+function getDefaultApiBase(): string {
+  if (typeof window === 'undefined') return '/api';
+
+  const { protocol, hostname, port } = window.location;
+  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+  const isVitePreview = port === '4173' || port === '4174';
+
+  if (isLocalHost && isVitePreview) {
+    return `${protocol}//${hostname}:3003/api`;
+  }
+
+  return '/api';
+}
+
+export const API_BASE = (import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()).replace(/\/+$/, '');
+
+export function buildApiUrl(path: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE}${normalizedPath}`;
+}
 
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = buildApiUrl(path);
   const hasBody = options.body !== undefined;
 
   try {
@@ -33,6 +52,7 @@ export async function apiFetch<T>(
       throw new Error(body.message || `API error: code=${body.code}`);
     }
 
+    mirrorSuccessfulRequest(path, options, body.data);
     return body.data;
   } catch (error) {
     const fallback = handleLocalRequest<T>(path, options);
@@ -58,7 +78,7 @@ export const apiClient = {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res = await fetch(buildApiUrl('/health'));
       return res.ok;
     } catch {
       return false;

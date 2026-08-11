@@ -16,24 +16,34 @@ interface FocusItem {
 
 interface TodayFocusProps {
   items: FocusItem[];
+  onOpenTasks?: () => void;
 }
 
-export function TodayFocus({ items }: TodayFocusProps) {
+export function TodayFocus({ items, onOpenTasks }: TodayFocusProps) {
   return (
     <section className="panel todayFocusPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">TODAY</span>
           <h2>今日重点</h2>
+          <span className="strictTag">D · TASK</span>
         </div>
-        <ListChecks size={20} />
+        <button
+          type="button"
+          className="panelIconButton"
+          onClick={onOpenTasks}
+          title="进入任务管理"
+          aria-label="进入任务管理"
+        >
+          <ListChecks size={20} />
+        </button>
       </div>
       {items.length === 0 ? (
         <p className="emptyState">没有待办任务。</p>
       ) : (
         <div className="focusList">
           {items.map((item) => (
-            <article key={item.id} className="focusItem">
+            <article key={item.id} className="focusItem" onClick={onOpenTasks}>
               <span
                 className="priority"
                 style={{

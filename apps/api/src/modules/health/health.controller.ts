@@ -1,28 +1,41 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 
-/** 健康检查响应载荷 */
 export interface HealthResponse {
-  status: 'ok';
+  status: 'ok' | 'degraded';
   timestamp: string;
+  database: {
+    status: 'connected' | 'disconnected';
+    provider: 'postgresql';
+  };
 }
 
-/**
- * 健康检查控制器
- *
- * 实际路径为 `/api/health`（受全局 prefix `/api` 影响）。
- * 响应会被 `TransformInterceptor` 包装为 `{ code, message, data }` 结构。
- */
 @ApiTags('health')
 @Controller('health')
 export class HealthController {
+  constructor(private readonly prisma: PrismaService) {}
+
   @Get()
-  @ApiOperation({ summary: '健康检查', description: '返回服务存活状态' })
-  @ApiOkResponse({ description: '服务健康' })
-  check(): HealthResponse {
+  @ApiOperation({ summary: 'Health check', description: 'Returns API and database status.' })
+  @ApiOkResponse({ description: 'Service health status' })
+  async check(): Promise<HealthResponse> {
+    let databaseConnected = false;
+
+    try {
+      await this.prisma.client.$queryRaw`SELECT 1`;
+      databaseConnected = true;
+    } catch {
+      databaseConnected = false;
+    }
+
     return {
-      status: 'ok',
+      status: databaseConnected ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
+      database: {
+        status: databaseConnected ? 'connected' : 'disconnected',
+        provider: 'postgresql',
+      },
     };
   }
 }

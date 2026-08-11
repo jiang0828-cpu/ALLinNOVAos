@@ -14,18 +14,36 @@ import { AiSuggestion } from './AiSuggestion';
 import { DashboardSkeleton } from './Skeleton';
 import { getDashboardSnapshot } from '../services/dashboardService';
 import { createLocalBackup, getLocalBackupMeta } from '../services/localBackupStore';
+import { acceptAndCreateTask } from '../services/suggestionService';
 
 interface CommandHubProps {
   onDateUpdate?: (date: string) => void;
+  onOpenGoals?: () => void;
+  onOpenTasks?: () => void;
+  onOpenIssues?: () => void;
+  onOpenSuggestions?: () => void;
+  onCreateReview?: () => void;
+  onOpenReview?: (id: string) => void;
+  onOpenReviews?: () => void;
 }
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error' | 'empty';
+type DataSource = 'online' | 'local' | 'mock';
 
-export function CommandHub({ onDateUpdate }: CommandHubProps) {
+export function CommandHub({
+  onDateUpdate,
+  onOpenGoals,
+  onOpenTasks,
+  onOpenIssues,
+  onOpenSuggestions,
+  onCreateReview,
+  onOpenReview,
+  onOpenReviews,
+}: CommandHubProps) {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [isBackendLive, setIsBackendLive] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSource>('local');
   const [backupMeta, setBackupMeta] = useState(() => getLocalBackupMeta());
 
   const loadData = useCallback(async (silent = false) => {
@@ -46,11 +64,7 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
       setSnapshot(data);
       onDateUpdate?.(data.generatedAt);
       setBackupMeta(getLocalBackupMeta());
-
-      // 判断是否是真实后端数据（Mock 使用 ws_mock_001）
-      if (data.workspaceId !== 'ws_mock_001') {
-        setIsBackendLive(true);
-      }
+      setDataSource(data.dataSource || 'local');
 
       setLoadState(hasData ? 'success' : 'empty');
     } catch (err) {
@@ -85,8 +99,10 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
       loadData(true);
     };
     window.addEventListener('nova:refresh-dashboard', handleRefresh as EventListener);
+    window.addEventListener('nova:local-store-updated', handleRefresh as EventListener);
     return () => {
       window.removeEventListener('nova:refresh-dashboard', handleRefresh as EventListener);
+      window.removeEventListener('nova:local-store-updated', handleRefresh as EventListener);
     };
   }, [loadData]);
 
@@ -117,7 +133,7 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
           <p className="errorMessage">{errorMessage || '无法获取 Dashboard 数据'}</p>
           <button
             className="retryButton"
-            onClick={loadData}
+            onClick={() => loadData()}
             disabled={loadState === 'loading'}
           >
             <RefreshCw size={16} />
@@ -149,28 +165,27 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
   }
 
   // 成功状态 - 展示所有面板
-  const handleConvertSuggestion = (suggestionId: string) => {
+  const handleConvertSuggestion = async (suggestionId: string) => {
+    const suggestion = snapshot?.aiSuggestions.find((s) => s.id === suggestionId);
+    if (!suggestion) return;
+
+    try {
+      await acceptAndCreateTask(suggestionId);
+      createLocalBackup();
+      window.dispatchEvent(new CustomEvent('nova:refresh-tasks'));
+      window.dispatchEvent(new CustomEvent('nova:refresh-suggestions'));
+      await loadData(true);
+    } catch (err) {
+      console.error('[CommandHub] Failed to convert suggestion:', err);
+    }
+
     setSnapshot((prev) => {
       if (!prev) return prev;
-      const suggestion = prev.aiSuggestions.find((s) => s.id === suggestionId);
-      if (!suggestion) return prev;
-
       return {
         ...prev,
         aiSuggestions: prev.aiSuggestions.map((s) =>
           s.id === suggestionId ? { ...s, isConverted: true } : s
         ),
-        todayFocus: [
-          {
-            id: `task_from_suggestion_${suggestionId}`,
-            title: suggestion.title,
-            system: 'AI Suggestion',
-            priority: suggestion.priority,
-            eta: suggestion.time,
-            status: 'TODO' as const,
-          },
-          ...prev.todayFocus,
-        ],
       };
     });
   };
@@ -184,9 +199,10 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
         </div>
         <div className="commandHubControls">
           <span
-            className={`backendBadge ${isBackendLive ? 'live' : 'mock'}`}
+            className={`backendBadge ${dataSource === 'online' ? 'live' : 'mock'}`}
+            title={dataSource === 'online' ? '正在读取线上数据库' : '正在读取浏览器本地备份'}
           >
-            {isBackendLive ? '● 后端已连接' : '○ 离线模式'}
+            {dataSource === 'online' ? '● 线上数据库' : dataSource === 'local' ? '○ 本地备份' : '○ 示例兜底'}
           </span>
           <div className="commandHubActions">
             <button
@@ -207,27 +223,35 @@ export function CommandHub({ onDateUpdate }: CommandHubProps) {
         <StateTarget
           lifeScore={snapshot.stateTarget.lifeScore}
           breakdown={snapshot.stateTarget.breakdown}
+          onOpen={onOpenGoals}
         />
 
         {/* 2. 今日重点 (Today Focus) */}
-        <TodayFocus items={snapshot.todayFocus} />
+        <TodayFocus
+          items={snapshot.todayFocus}
+          onOpenTasks={onOpenTasks}
+        />
 
         {/* 3. 信息资讯 (Feeds) */}
         <FeedsPanel feeds={snapshot.feeds} />
 
         {/* 4. 当前问题 · 风险 */}
-        <OpenIssues issues={snapshot.openIssues} />
+        <OpenIssues issues={snapshot.openIssues} onOpenIssues={onOpenIssues} />
 
-        {/* 5. 最新复盘 */}
-        <LatestReview
-          review={snapshot.latestReview}
-          insightsCount={snapshot.activeInsightsCount}
-        />
-
-        {/* 6. AI 建议 (AI Suggestion) */}
+        {/* 5. AI 建议 (AI Suggestion) */}
         <AiSuggestion
           suggestions={snapshot.aiSuggestions}
           onConvert={handleConvertSuggestion}
+          onOpenSuggestions={onOpenSuggestions}
+        />
+
+        {/* 6. 最新复盘 */}
+        <LatestReview
+          review={snapshot.latestReview}
+          insightsCount={snapshot.activeInsightsCount}
+          onCreateReview={onCreateReview}
+          onOpenReview={onOpenReview}
+          onOpenReviews={onOpenReviews || onCreateReview}
         />
       </div>
     </section>

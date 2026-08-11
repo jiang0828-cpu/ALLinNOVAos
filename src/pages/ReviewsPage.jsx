@@ -19,6 +19,14 @@ import { CYCLE_TYPE_LABELS } from '../types/reviews';
 // 已知周期列表（后端未暴露 cycle 列表接口，使用预置选项）
 const KNOWN_CYCLES = [
   {
+    id: 'cycle_weekly_2026_w33',
+    cycleType: 'WEEKLY',
+    status: 'ACTIVE',
+    name: '2026 W33 周度计划',
+    startDate: '2026-08-09T16:00:00.000Z',
+    endDate: '2026-08-16T15:59:59.000Z',
+  },
+  {
     id: 'cycle_monthly_2026_08',
     cycleType: 'MONTHLY',
     status: 'ACTIVE',
@@ -74,7 +82,7 @@ export function ReviewsPage({ onNavigateToReview }) {
 
     try {
       const response = await getReviews({});
-      const allReviews = response.data || [];
+      const allReviews = (response.data || []).filter((r) => r.reviewDetail?.reviewType !== 'DAILY');
       const filtered =
         selectedStatus.length > 0
           ? allReviews.filter((r) =>

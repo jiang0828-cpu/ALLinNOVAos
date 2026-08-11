@@ -6,6 +6,7 @@ import type {
   SuggestionFilters,
   SuggestionListResponse,
   SuggestionStatus,
+  SuggestionWorkItem,
 } from '../types/suggestions';
 
 const DEFAULT_WORKSPACE_ID = 'ws_default';
@@ -86,4 +87,20 @@ export async function deferSuggestion(id: string): Promise<unknown> {
   return apiClient.patch<unknown>(
     `/suggestions/${id}/defer?workspaceId=${DEFAULT_WORKSPACE_ID}`
   );
+}
+
+export async function updateSuggestion(
+  id: string,
+  updateData: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    status?: SuggestionStatus;
+    suggestionDetail?: Record<string, unknown>;
+  }
+): Promise<SuggestionWorkItem> {
+  return apiClient.patch<SuggestionWorkItem>(`/suggestions/${id}`, {
+    ...updateData,
+    workspaceId: DEFAULT_WORKSPACE_ID,
+  });
 }

@@ -29,6 +29,7 @@ export interface TaskDetail {
   domainName?: DomainName;
   cycleId?: string;
   projectId?: string;
+  goalId?: string;
   sourceType?: string;
   ownerId?: string;
   createdBy: string;
@@ -66,10 +67,12 @@ export interface CreateTaskPayload {
   description?: string;
   priority?: TaskPriority;
   domainId?: string;
-  dueAt?: string;
-  estimatedMinutes?: number;
+  cycleId?: string;
   projectId?: string;
   goalId?: string;
+  dueAt?: string;
+  estimatedMinutes?: number;
+  actualMinutes?: number;
 }
 
 // 更新任务请求体
@@ -80,9 +83,11 @@ export interface UpdateTaskPayload {
   priority?: TaskPriority;
   domainId?: string;
   dueAt?: string;
+  cycleId?: string;
   plannedStartAt?: string;
   plannedEndAt?: string;
   estimatedMinutes?: number;
+  actualMinutes?: number;
 }
 
 // 任务筛选参数
@@ -102,10 +107,11 @@ export const DOMAIN_OPTIONS: { id: string; name: string; label: string }[] = [
   { id: 'health', name: 'health', label: '健康' },
   { id: 'wealth', name: 'wealth', label: '财富' },
   { id: 'work', name: 'work', label: '工作' },
-  { id: 'content', name: 'content', label: '内容' },
+  { id: 'content', name: 'content', label: '生活' },
   { id: 'learning', name: 'learning', label: '学习' },
   { id: 'agi', name: 'agi', label: 'AGI' },
-  { id: 'media', name: 'media', label: '媒体' },
+  { id: 'media', name: 'media', label: '市场' },
+  { id: 'other', name: 'other', label: '其他' },
 ];
 
 // 状态标签映射
@@ -140,10 +146,11 @@ export function getDomainLabel(domainName?: string): string {
     health: '健康',
     wealth: '财富',
     work: '工作',
-    content: '内容',
+    content: '生活',
     learning: '学习',
     agi: 'AGI',
-    media: '媒体',
+    media: '市场',
+    other: '其他',
   };
   return map[domainName?.toLowerCase() ?? ''] ?? domainName ?? '未分类';
 }

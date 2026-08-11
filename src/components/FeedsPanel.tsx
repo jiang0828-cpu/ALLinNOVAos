@@ -15,6 +15,7 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
         <div>
           <span className="sectionEyebrow">FEEDS</span>
           <h2>信息资讯</h2>
+          <span className="strictTag">INFO · API RESERVED</span>
         </div>
         <BookOpen size={20} />
       </div>
@@ -26,20 +27,25 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
             <span className="feedsSectionDot news" />
           </div>
           <div className="feedsList">
-            {feeds.news.map((item) => (
-              <a
-                key={item.id}
-                href="#"
-                className="feedItem news"
-                onClick={(e) => e.preventDefault()}
-              >
+            {feeds.news.length === 0 ? (
+              <div className="feedItem news feedPlaceholder">
                 <div className="feedMeta">
-                  <span className="feedSource">{item.source}</span>
-                  <span className="feedTime">{item.time}</span>
+                  <span className="feedSource">API RESERVED</span>
+                  <span className="feedTime">待接入</span>
                 </div>
-                <h3>{item.title}</h3>
-              </a>
-            ))}
+                <h3>信息资讯 API 预留，暂不与问题风险同步</h3>
+              </div>
+            ) : (
+              feeds.news.map((item) => (
+                <a key={item.id} href="#" className="feedItem news" onClick={(e) => e.preventDefault()}>
+                  <div className="feedMeta">
+                    <span className="feedSource">{item.source}</span>
+                    <span className="feedTime">{item.time}</span>
+                  </div>
+                  <h3>{item.title}</h3>
+                </a>
+              ))
+            )}
           </div>
         </div>
 
@@ -50,16 +56,17 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
             <span className="feedsSectionDot ideas" />
           </div>
           <div className="ideasList">
-            {feeds.ideas.map((item) => (
-              <a
-                key={item.id}
-                href="#"
-                className="ideaItem ideas"
-                onClick={(e) => e.preventDefault()}
-              >
-                <h3>{item.title}</h3>
-              </a>
-            ))}
+            {feeds.ideas.length === 0 ? (
+              <div className="ideaItem ideas feedPlaceholder">
+                <h3>观点/洞察源后期接入</h3>
+              </div>
+            ) : (
+              feeds.ideas.map((item) => (
+                <a key={item.id} href="#" className="ideaItem ideas" onClick={(e) => e.preventDefault()}>
+                  <h3>{item.title}</h3>
+                </a>
+              ))
+            )}
           </div>
         </div>
 
@@ -70,22 +77,29 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
             <span className="feedsSectionDot plans" />
           </div>
           <div className="plansList">
-            {feeds.plans.map((item) => (
-              <a
-                key={item.id}
-                href="#"
-                className="planItem plans"
-                onClick={(e) => e.preventDefault()}
-              >
+            {feeds.plans.length === 0 ? (
+              <div className="planItem plans feedPlaceholder">
                 <div className="planHeader">
-                  <h3>{item.title}</h3>
-                  <span className="planProgress">{item.progress}%</span>
+                  <h3>资讯专题/计划源后期接入</h3>
+                  <span className="planProgress">OPEN</span>
                 </div>
-                <div className="progress" aria-label={`进度 ${item.progress}%`}>
-                  <span style={{ width: `${item.progress}%` }} />
+                <div className="progress" aria-label="API 预留">
+                  <span style={{ width: '12%' }} />
                 </div>
-              </a>
-            ))}
+              </div>
+            ) : (
+              feeds.plans.map((item) => (
+                <a key={item.id} href="#" className="planItem plans" onClick={(e) => e.preventDefault()}>
+                  <div className="planHeader">
+                    <h3>{item.title}</h3>
+                    <span className="planProgress">{item.progress}%</span>
+                  </div>
+                  <div className="progress" aria-label={`进度 ${item.progress}%`}>
+                    <span style={{ width: `${item.progress}%` }} />
+                  </div>
+                </a>
+              ))
+            )}
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ interface OpenIssueItem {
 
 interface OpenIssuesProps {
   issues: OpenIssueItem[];
+  onOpenIssues?: () => void;
 }
 
 const LEVEL_LABELS: Record<IssueLevel, string> = {
@@ -27,15 +28,24 @@ const LEVEL_CLASS: Record<IssueLevel, string> = {
   LOW: 'low',
 };
 
-export function OpenIssues({ issues }: OpenIssuesProps) {
+export function OpenIssues({ issues, onOpenIssues }: OpenIssuesProps) {
   return (
     <section className="panel openIssuesPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">ISSUES</span>
           <h2>当前问题 · 风险</h2>
+          <span className="strictTag">C · CHECK</span>
         </div>
-        <AlertTriangle size={20} />
+        <button
+          type="button"
+          className="panelIconButton"
+          onClick={onOpenIssues}
+          title="进入问题中心"
+          aria-label="进入问题中心"
+        >
+          <AlertTriangle size={20} />
+        </button>
       </div>
 
       {issues.length === 0 ? (
@@ -48,6 +58,7 @@ export function OpenIssues({ issues }: OpenIssuesProps) {
             <article
               key={issue.id}
               className={`issueItem ${LEVEL_CLASS[issue.level]}`}
+              onClick={onOpenIssues}
             >
               <div className="issueHeader">
                 <span className={`issueLevel level-${LEVEL_CLASS[issue.level]}`}>

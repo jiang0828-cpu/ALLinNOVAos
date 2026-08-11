@@ -360,6 +360,97 @@ button:disabled {
   gap: 12px;
 }
 
+.panelIconButton {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.panelIconButton:hover {
+  color: var(--accent);
+  background: var(--chip-bg);
+}
+
+.textLinkButton {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.textLinkButton:hover {
+  text-decoration: underline;
+}
+
+.strictTag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--text-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.feedPlaceholder {
+  cursor: default;
+  opacity: 0.86;
+}
+
+.workLayers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.workLayer {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--chip-bg);
+}
+
+.workLayer span,
+.workLayer strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workLayer span {
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.workLayer strong {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
 .panel h2,
 .scorePanel h2,
 .sectionTitle h2,
@@ -587,6 +678,47 @@ button:disabled {
   gap: 6px;
   flex: 1;
   min-height: 0;
+}
+
+.aiSuggestionEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(231, 240, 235, 0.94), rgba(255, 255, 255, 0.86));
+}
+
+.aiSuggestionEmpty svg {
+  color: var(--accent-gold);
+}
+
+.aiSuggestionEmpty h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.aiSuggestionEmpty p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.compactSuggestionList {
+  justify-content: flex-start;
+}
+
+.compactEmpty {
+  padding: 14px;
+  gap: 8px;
+}
+
+.compactEmpty p {
+  max-width: 220px;
 }
 
 .aiAction {
@@ -1431,11 +1563,50 @@ button:disabled {
   flex: 1;
 }
 
+.reviewEmptyContent {
+  justify-content: space-between;
+}
+
+.reviewEmptyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--chip-bg);
+}
+
+.reviewEmptyCard svg {
+  color: var(--brand);
+}
+
+.reviewEmptyCard h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.reviewEmptyCard p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.compactReviewCard {
+  min-height: 112px;
+  justify-content: center;
+}
+
 .reviewCard {
   padding: 14px;
+  border: 1px solid rgba(31, 146, 115, 0.28);
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-soft) 100%);
-  color: var(--brand-contrast);
+  background: linear-gradient(135deg, rgba(231, 240, 235, 0.96), rgba(255, 255, 255, 0.94));
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .reviewBadge {
@@ -1444,7 +1615,8 @@ button:disabled {
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(31, 146, 115, 0.12);
+  color: var(--brand);
   margin-bottom: 8px;
 }
 
@@ -1452,42 +1624,70 @@ button:disabled {
   margin: 0 0 8px;
   font-size: 16px;
   line-height: 1.3;
+  color: var(--text);
 }
 
 .reviewMeta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
   font-size: 12px;
   opacity: 0.85;
 }
 
+.reviewTypeText {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
 .reviewStatus {
   font-weight: 600;
+  color: var(--brand);
 }
 
 .reviewDate {
-  opacity: 0.75;
+  color: var(--text-muted);
 }
 
-.insightsSummary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
+.reviewMiniStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reviewMiniStats div {
+  min-width: 0;
+  padding: 10px;
   border-radius: 8px;
   background: var(--chip-bg);
 }
 
-.insightsCount {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--brand);
+.reviewMiniStats span,
+.reviewMiniStats strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.insightsLabel {
-  font-size: 12px;
-  color: var(--text-soft);
+.reviewMiniStats span {
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.reviewMiniStats strong {
+  margin-top: 4px;
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.reviewActionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
 }
 
 .reviewAction {
@@ -1506,8 +1706,28 @@ button:disabled {
   transition: background-color 0.15s ease;
 }
 
+.primaryReviewAction {
+  background: var(--brand);
+  color: var(--brand-contrast);
+}
+
+.secondaryReviewAction {
+  min-width: 92px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
 .reviewAction:hover {
   background: var(--pill-bg);
+}
+
+.primaryReviewAction:hover {
+  background: var(--accent);
+}
+
+.secondaryReviewAction:hover {
+  background: var(--chip-bg);
 }
 
 /* ============ Hero Grid 布局 ============ */
@@ -2196,6 +2416,7 @@ button:disabled {
 
 .formGroup input[type="text"],
 .formGroup input[type="datetime-local"],
+.formGroup textarea,
 .formGroup select {
   padding: 10px 14px;
   border: 1px solid var(--border);
@@ -2207,9 +2428,29 @@ button:disabled {
 }
 
 .formGroup input:focus,
+.formGroup textarea:focus,
 .formGroup select:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+.formGroup input[readonly] {
+  background: var(--chip-bg);
+  color: var(--text-soft);
+  cursor: default;
+}
+
+.formGroup textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .priorityOptions {
@@ -2220,11 +2461,12 @@ button:disabled {
 
 .priorityOption {
   padding: 8px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(20, 72, 62, 0.18);
   border-radius: 8px;
-  background: var(--surface-solid);
-  color: var(--text-soft);
+  background: rgba(231, 240, 235, 0.92);
+  color: var(--text);
   font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -2233,13 +2475,15 @@ button:disabled {
 }
 
 .priorityOption:hover {
-  border-color: var(--option-color);
+  border-color: var(--brand);
+  background: rgba(215, 232, 224, 0.98);
 }
 
 .priorityOption.active {
-  background: var(--option-color);
-  border-color: var(--option-color);
-  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-contrast);
+  box-shadow: 0 6px 16px rgba(20, 72, 62, 0.16);
 }
 
 .formError {
@@ -2332,6 +2576,120 @@ button:disabled {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.goalControlSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.goalControlHero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(31, 146, 115, 0.12), rgba(241, 185, 65, 0.1));
+}
+
+.goalControlHero h2 {
+  margin: 4px 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.goalControlHero p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.goalControlScore {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 10px solid rgba(31, 146, 115, 0.22);
+  background: var(--surface);
+  color: var(--brand);
+}
+
+.goalControlScore span {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.goalControlScore small {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: -20px;
+}
+
+.goalCycleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.goalCycleCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.goalCycleCardTop,
+.goalCycleMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goalCycleIcon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--brand-contrast);
+  background: var(--brand);
+}
+
+.goalCycleProgress {
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.goalCycleCard h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.goalCycleCard p,
+.goalCycleMeta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.goalCycleCard strong {
+  min-height: 20px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
 }
 
 .goalsSkeleton,
@@ -2470,6 +2828,18 @@ button:disabled {
   font-size: 16px;
   font-weight: 700;
   line-height: 1.3;
+}
+
+.cycleBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .goalCardStatus {
@@ -3294,6 +3664,21 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .goalControlHero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .goalControlScore {
+    width: 84px;
+    height: 84px;
+    flex-basis: 84px;
+  }
+
+  .goalCycleGrid {
+    grid-template-columns: 1fr;
+  }
+
   .formRow {
     grid-template-columns: 1fr;
   }
@@ -3524,6 +3909,29 @@ button:disabled {
 .issueStatusTag.status-resolved { background: rgba(23, 138, 111, 0.12); color: var(--accent); }
 .issueStatusTag.status-ignored { background: var(--chip-bg); color: var(--text-faint); }
 
+.issueIconBtn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.issueIconBtn:hover {
+  border-color: rgba(31, 146, 115, 0.34);
+  background: var(--chip-bg);
+  color: var(--brand);
+}
+
 .issueCardTitle {
   margin: 0;
   font-size: 16px;
@@ -3571,6 +3979,62 @@ button:disabled {
 
 .metricValue.gap-positive { color: var(--danger); }
 .metricValue.gap-negative { color: var(--accent); }
+
+.issueCardActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.issueActionBtn {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.issueActionBtn.resolve {
+  background: rgba(23, 138, 111, 0.1);
+  border-color: rgba(23, 138, 111, 0.24);
+  color: var(--accent);
+}
+
+.issueActionBtn.ignore {
+  color: var(--text-soft);
+}
+
+.issueActionBtn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.issueActionBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.issueEditModal {
+  max-width: 620px;
+}
+
+.issueEditModal .modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 /* Issue 骨架屏 */
 .issuesSkeletonGrid {
@@ -3661,6 +4125,29 @@ button:disabled {
 .suggestionStatusTag.status-dismissed { background: var(--chip-bg); color: var(--text-faint); }
 .suggestionStatusTag.status-deferred { background: rgba(213, 154, 47, 0.1); color: var(--text-soft); }
 .suggestionStatusTag.status-expired { background: var(--chip-bg); color: var(--text-faint); }
+
+.suggestionIconBtn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.suggestionIconBtn:hover {
+  border-color: rgba(31, 146, 115, 0.34);
+  background: var(--chip-bg);
+  color: var(--brand);
+}
 
 .suggestionReason,
 .suggestionEvidence {
@@ -3823,6 +4310,16 @@ button:disabled {
   color: var(--accent);
   font-size: 13px;
   font-weight: 600;
+}
+
+.suggestionEditModal {
+  max-width: 560px;
+}
+
+.suggestionEditModal .modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Suggestion 骨架屏 */
@@ -4564,6 +5061,16 @@ button:disabled {
   gap: 6px;
 }
 
+.reviewEditGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.scoreEditGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .editFieldLabel {
   display: flex;
   align-items: center;
@@ -4581,6 +5088,23 @@ button:disabled {
   font-size: 12px;
   color: var(--text-faint);
   margin: 0;
+}
+
+.editInput {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font: inherit;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(23, 138, 111, 0.12);
 }
 
 .editTextarea {
@@ -4957,15 +5481,15 @@ body {
 }
 
 .commandHubHeader > div:first-child::after {
-  content: "PDCAr 当前动态功能集合：Plan 目标校准 / Do 今日重点 / Check 信息资讯 / Act 问题处理 / Review 最新复盘 / refine AI 建议。";
+  content: "汇总目标、任务、资讯、问题、建议与复盘，快速掌握今日重点。";
 }
 
 .systemsSection .sectionTitle > div::after {
-  content: "保留示例数据与统一入口，后续可替换为真实 API 接口。";
+  content: "占位字段已保留；接入实际接口后可直接替换字段数据。";
 }
 
 .dataSection .sectionTitle > div::after {
-  content: "关键字段示例已固定，适合逐步接入健康、财富、工作、内容、学习数据。";
+  content: "关键字段示例已固定，适合逐步接入健康、财富、工作、生活、学习数据。";
 }
 
 .roadmap > div:first-child::after {
@@ -5062,37 +5586,68 @@ body {
 
 .systemsGrid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  align-items: stretch;
+  gap: 14px;
 }
 
 .systemCard {
-  min-height: 304px;
+  min-height: 282px;
   overflow: hidden;
+  gap: 10px;
 }
 
-.systemCard .ghostButton {
-  min-height: 38px;
+.systemCard h3 {
+  margin: 10px 0 2px;
+  min-height: 24px;
+}
+
+.systemCard p {
+  min-height: 42px;
+  margin-bottom: 0;
+}
+
+.systemCard .progress {
+  margin: 8px 0 4px;
+}
+
+.metricGrid {
+  margin-top: auto;
+  gap: 8px;
+}
+
+.metricGrid span {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .systemLinks {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.systemLinksAsMetrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: auto;
 }
 
 .systemLinks a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
+  min-height: 40px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0 8px;
+  padding: 0 10px;
   color: var(--brand);
-  background: rgba(255, 255, 255, 0.46);
+  background: var(--chip-bg);
   font-size: 12px;
   font-weight: 800;
+  line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -5209,5 +5764,9 @@ body {
 
   .systemLinks {
     grid-template-columns: 1fr;
+  }
+
+  .systemLinksAsMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

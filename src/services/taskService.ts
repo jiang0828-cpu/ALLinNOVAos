@@ -99,11 +99,13 @@ export async function startTask(id: string): Promise<TaskDetail> {
  */
 export async function completeTask(
   id: string,
-  completionNote?: string
+  completionNote?: string,
+  actualMinutes?: number
 ): Promise<TaskDetail> {
   return apiClient.post<TaskDetail>(`/v1/tasks/${id}/complete`, {
     workspaceId: DEFAULT_WORKSPACE_ID,
     completionNote,
+    actualMinutes,
   });
 }
 

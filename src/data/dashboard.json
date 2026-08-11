@@ -6,7 +6,7 @@
     { "label": "健康", "value": 78, "tone": "good" },
     { "label": "财富", "value": 84, "tone": "good" },
     { "label": "工作", "value": 72, "tone": "watch" },
-    { "label": "内容", "value": 88, "tone": "strong" },
+    { "label": "生活", "value": 88, "tone": "strong" },
     { "label": "学习", "value": 76, "tone": "watch" }
   ],
   "todayFocus": [
@@ -29,8 +29,8 @@
       "eta": "示例"
     },
     {
-      "title": "复盘示例内容节奏",
-      "system": "Media OS",
+      "title": "复盘示例生活节奏",
+      "system": "Marketing OS",
       "priority": "P2",
       "eta": "示例"
     }
@@ -80,7 +80,7 @@
     },
     {
       "title": "社群运营新玩法",
-      "tags": ["社群", "增长", "内容"]
+      "tags": ["社群", "增长", "生活"]
     }
   ],
   "plans": [
@@ -89,7 +89,7 @@
       "progress": 65
     },
     {
-      "title": "Q3 内容规划",
+      "title": "Q3 生活规划",
       "progress": 40
     }
   ],
@@ -126,9 +126,9 @@
     },
     { 
       "id": 4, 
-      "title": "整理 Q3 内容框架", 
+      "title": "整理 Q3 生活框架", 
       "source": "PLANS + IDEAS",
-      "reason": "内容规划进度 40%，本周需确定主题方向",
+      "reason": "生活规划进度 40%，本周需确定主题方向",
       "priority": "P2",
       "time": "30 分钟"
     }
@@ -139,35 +139,35 @@
       "summary": "健康、财富、家庭与个人事务",
       "status": "稳定",
       "progress": 78,
-      "metrics": ["睡眠 示例", "步数 示例", "消费 示例", "待办 示例"]
+      "metrics": ["睡眠", "步数", "消费", "待办"]
     },
     {
       "name": "Work OS",
       "summary": "项目、客户、任务与商业机会",
       "status": "需聚焦",
       "progress": 64,
-      "metrics": ["重点项目 示例", "今日任务 示例", "客户跟进 示例", "进度 示例"]
+      "metrics": ["重点项目", "今日任务", "客户跟进", "进度"]
     },
     {
-      "name": "Media OS",
+      "name": "Marketing OS",
       "summary": "选题、生产、发布计划与数据复盘",
       "status": "增长",
       "progress": 88,
-      "metrics": ["今日选题 示例", "待发布 示例", "增长 示例", "复盘 示例"]
+      "metrics": ["今日选题", "待发布", "增长", "复盘"]
     },
     {
       "name": "Knowledge OS",
       "summary": "学习计划、阅读记录、知识库与笔记",
       "status": "积累中",
       "progress": 72,
-      "metrics": ["今日学习 示例", "阅读 示例", "新增笔记 示例", "主题 示例"]
+      "metrics": ["今日学习", "阅读", "新增笔记", "主题"]
     },
     {
       "name": "AGI OS",
       "summary": "AI 实验、工具清单与商业探索",
       "status": "实验中",
       "progress": 81,
-      "metrics": ["当前实验 示例", "待验证 示例", "工具调用 示例", "下一步 示例"]
+      "metrics": ["当前实验", "待验证", "工具调用", "下一步"]
     }
   ],
   "dataCards": [
@@ -193,10 +193,10 @@
       "delta": "演示"
     },
     {
-      "title": "内容",
+      "title": "生活",
       "value": "示例",
       "unit": "本周增长",
-      "detail": "内容复盘与增长指标预留为真实 API 字段",
+      "detail": "生活复盘与增长指标预留为真实 API 字段",
       "delta": "演示"
     },
     {

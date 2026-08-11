@@ -12,7 +12,8 @@ export type DomainName =
   | 'content'
   | 'learning'
   | 'agi'
-  | 'media';
+  | 'media'
+  | 'other';
 
 export interface GoalDetailMetric {
   id: string;
@@ -99,10 +100,11 @@ export const DOMAIN_OPTIONS: { id: string; name: string; label: string }[] = [
   { id: 'health', name: 'health', label: '健康' },
   { id: 'wealth', name: 'wealth', label: '财富' },
   { id: 'work', name: 'work', label: '工作' },
-  { id: 'content', name: 'content', label: '内容' },
+  { id: 'content', name: 'content', label: '生活' },
   { id: 'learning', name: 'learning', label: '学习' },
   { id: 'agi', name: 'agi', label: 'AGI' },
-  { id: 'media', name: 'media', label: '媒体' },
+  { id: 'media', name: 'media', label: '市场' },
+  { id: 'other', name: 'other', label: '其他' },
 ];
 
 export const GOAL_STATUS_LABELS: Record<GoalStatus, string> = {
@@ -127,10 +129,11 @@ export function getDomainLabel(domainId?: string): string {
     health: '健康',
     wealth: '财富',
     work: '工作',
-    content: '内容',
+    content: '生活',
     learning: '学习',
     agi: 'AGI',
-    media: '媒体',
+    media: '市场',
+    other: '其他',
   };
   return map[domainId?.toLowerCase() ?? ''] ?? domainId ?? '未分类';
 }

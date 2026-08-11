@@ -13,7 +13,7 @@ export const dashboardSnapshot: DashboardSnapshot = {
       { label: '健康', value: 78, weight: 0.2 },
       { label: '财富', value: 84, weight: 0.2 },
       { label: '工作', value: 72, weight: 0.2 },
-      { label: '内容', value: 88, weight: 0.2 },
+      { label: '生活', value: 88, weight: 0.2 },
       { label: '学习', value: 76, weight: 0.2 },
     ],
   },
@@ -45,8 +45,8 @@ export const dashboardSnapshot: DashboardSnapshot = {
     },
     {
       id: 'task_004',
-      title: '复盘示例内容节奏',
-      system: 'Media OS',
+      title: '复盘示例生活节奏',
+      system: 'Marketing OS',
       priority: 'P2',
       eta: '示例',
       status: 'TODO',
@@ -65,7 +65,7 @@ export const dashboardSnapshot: DashboardSnapshot = {
     ],
     plans: [
       { id: 'plan_001', title: 'NOVA OS V2 路线图', progress: 65 },
-      { id: 'plan_002', title: 'Q3 内容规划', progress: 40 },
+      { id: 'plan_002', title: 'Q3 生活规划', progress: 40 },
     ],
   },
 
@@ -124,9 +124,9 @@ export const dashboardSnapshot: DashboardSnapshot = {
     },
     {
       id: '4',
-      title: '整理 Q3 内容框架',
+      title: '整理 Q3 生活框架',
       source: 'PLANS + IDEAS',
-      reason: '内容规划进度 40%，本周需确定主题方向',
+      reason: '生活规划进度 40%，本周需确定主题方向',
       priority: 'P2',
       time: '30 分钟',
       isConverted: false,

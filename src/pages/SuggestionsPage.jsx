@@ -2,13 +2,15 @@
 // 行动建议中心页面 —— /suggestions
 
 import { useState, useEffect, useCallback } from 'react';
-import { Lightbulb, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import { Lightbulb, RefreshCw, AlertCircle, Sparkles, X, Save } from 'lucide-react';
 import {
   getSuggestions,
   acceptAndCreateTask,
   dismissSuggestion,
   deferSuggestion,
+  updateSuggestion,
 } from '../services/suggestionService';
+import { createLocalBackup } from '../services/localBackupStore';
 import { SuggestionItem } from '../components/SuggestionItem';
 import { SuggestionFilters } from '../components/SuggestionFilters';
 import { SuggestionSkeleton } from '../components/SuggestionSkeleton';
@@ -16,6 +18,7 @@ import { SuggestionSkeleton } from '../components/SuggestionSkeleton';
 // 通知 Dashboard 刷新
 function notifyDashboardRefresh() {
   window.dispatchEvent(new CustomEvent('nova:refresh-dashboard'));
+  window.dispatchEvent(new CustomEvent('nova:refresh-tasks'));
 }
 
 export function SuggestionsPage() {
@@ -26,6 +29,8 @@ export function SuggestionsPage() {
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pendingId, setPendingId] = useState(null);
+  const [editingSuggestion, setEditingSuggestion] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [toast, setToast] = useState(null);
 
   const loadSuggestions = useCallback(async () => {
@@ -73,11 +78,43 @@ export function SuggestionsPage() {
     window.setTimeout(() => setToast(null), 2400);
   };
 
+  const handleSaveSuggestion = async (id, payload) => {
+    setSavingEdit(true);
+    try {
+      const updated = await updateSuggestion(id, payload);
+      createLocalBackup();
+      setSuggestions((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                ...updated,
+                suggestionDetail: {
+                  ...(item.suggestionDetail || {}),
+                  ...(updated.suggestionDetail || {}),
+                },
+              }
+            : item
+        )
+      );
+      setEditingSuggestion(null);
+      showToast('success', '建议已保存');
+      notifyDashboardRefresh();
+      window.dispatchEvent(new CustomEvent('nova:refresh-suggestions'));
+    } catch (err) {
+      console.error('[SuggestionsPage] updateSuggestion failed:', err);
+      showToast('error', `保存失败：${err.message || '未知错误'}`);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   // 接受并创建任务
   const handleAccept = async (id) => {
     setPendingId(id);
     try {
       await acceptAndCreateTask(id);
+      createLocalBackup();
       showToast('success', '已接受建议并创建任务');
       // 局部更新状态
       setSuggestions((prev) =>
@@ -108,6 +145,7 @@ export function SuggestionsPage() {
     setPendingId(id);
     try {
       await dismissSuggestion(id);
+      createLocalBackup();
       showToast('success', '建议已忽略');
       setSuggestions((prev) =>
         prev.map((s) =>
@@ -136,6 +174,7 @@ export function SuggestionsPage() {
     setPendingId(id);
     try {
       await deferSuggestion(id);
+      createLocalBackup();
       showToast('success', '建议已延后处理');
       setSuggestions((prev) =>
         prev.map((s) =>
@@ -211,10 +250,20 @@ export function SuggestionsPage() {
               onAccept={handleAccept}
               onDismiss={handleDismiss}
               onDefer={handleDefer}
+              onEdit={setEditingSuggestion}
               pendingId={pendingId}
             />
           ))}
         </div>
+      )}
+
+      {editingSuggestion && (
+        <SuggestionEditModal
+          suggestion={editingSuggestion}
+          saving={savingEdit}
+          onClose={() => !savingEdit && setEditingSuggestion(null)}
+          onSave={handleSaveSuggestion}
+        />
       )}
 
       {toast && (
@@ -222,6 +271,160 @@ export function SuggestionsPage() {
           {toast.message}
         </div>
       )}
+    </div>
+  );
+}
+
+function suggestionEvidenceToText(evidence) {
+  if (!evidence || typeof evidence !== 'object') return '';
+  return JSON.stringify(evidence, null, 2);
+}
+
+function parseEvidence(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  return JSON.parse(trimmed);
+}
+
+function SuggestionEditModal({ suggestion, saving, onClose, onSave }) {
+  const detail = suggestion.suggestionDetail || {};
+  const [form, setForm] = useState({
+    title: suggestion.title || '',
+    reason: detail.reason || suggestion.description || '',
+    priority: suggestion.priority || detail.priority || 'P2',
+    status: detail.status || 'PENDING',
+    evidenceText: suggestionEvidenceToText(detail.evidence),
+  });
+  const [error, setError] = useState(null);
+
+  const updateField = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setError(null);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const title = form.title.trim();
+    const reason = form.reason.trim();
+    if (!title) {
+      setError('请填写建议标题');
+      return;
+    }
+    if (!reason) {
+      setError('请填写建议原因');
+      return;
+    }
+
+    let evidence = null;
+    try {
+      evidence = parseEvidence(form.evidenceText);
+    } catch {
+      setError('支撑证据需要是有效 JSON，例如 {"level":"LOW"}');
+      return;
+    }
+
+    onSave(suggestion.id, {
+      title,
+      description: reason,
+      priority: form.priority,
+      status: form.status,
+      suggestionDetail: {
+        reason,
+        priority: form.priority,
+        status: form.status,
+        evidence,
+      },
+    });
+  };
+
+  return (
+    <div className="modalOverlay" onClick={onClose}>
+      <div className="modalContent suggestionEditModal" onClick={(event) => event.stopPropagation()}>
+        <div className="modalHeader">
+          <div className="modalTitle">
+            <Lightbulb size={20} />
+            <h2>查看/编辑建议</h2>
+          </div>
+          <button type="button" className="modalClose" onClick={onClose} disabled={saving}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <form className="modalForm" onSubmit={handleSubmit}>
+          <div className="formGroup">
+            <label htmlFor="suggestionTitle">建议标题 *</label>
+            <input
+              id="suggestionTitle"
+              type="text"
+              value={form.title}
+              onChange={(event) => updateField('title', event.target.value)}
+            />
+          </div>
+
+          <div className="formGroup">
+            <label htmlFor="suggestionReason">建议原因 *</label>
+            <textarea
+              id="suggestionReason"
+              rows={4}
+              value={form.reason}
+              onChange={(event) => updateField('reason', event.target.value)}
+            />
+          </div>
+
+          <div className="formRow">
+            <div className="formGroup">
+              <label htmlFor="suggestionPriority">优先级</label>
+              <select
+                id="suggestionPriority"
+                value={form.priority}
+                onChange={(event) => updateField('priority', event.target.value)}
+              >
+                <option value="P0">P0 · 紧急</option>
+                <option value="P1">P1 · 重要</option>
+                <option value="P2">P2 · 一般</option>
+              </select>
+            </div>
+
+            <div className="formGroup">
+              <label htmlFor="suggestionStatus">状态</label>
+              <select
+                id="suggestionStatus"
+                value={form.status}
+                onChange={(event) => updateField('status', event.target.value)}
+              >
+                <option value="PENDING">待处理</option>
+                <option value="ACCEPTED">已接受</option>
+                <option value="DEFERRED">已延后</option>
+                <option value="DISMISSED">已忽略</option>
+                <option value="EXPIRED">已过期</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="formGroup">
+            <label htmlFor="suggestionEvidence">支撑证据 JSON</label>
+            <textarea
+              id="suggestionEvidence"
+              rows={5}
+              value={form.evidenceText}
+              onChange={(event) => updateField('evidenceText', event.target.value)}
+              placeholder='例如：{"level":"LOW","status":"OPEN"}'
+            />
+          </div>
+
+          {error && <div className="modalError">{error}</div>}
+
+          <div className="modalActions">
+            <button type="button" className="secondaryButton" onClick={onClose} disabled={saving}>
+              取消
+            </button>
+            <button type="submit" className="primaryButton" disabled={saving}>
+              <Save size={16} />
+              {saving ? '保存中...' : '保存修改'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

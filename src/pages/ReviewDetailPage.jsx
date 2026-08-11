@@ -19,6 +19,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { getReviewById, updateReview, completeReview } from '../services/reviewService';
+import { createLocalBackup } from '../services/localBackupStore';
 import {
   REVIEW_STATUS_LABELS,
   REVIEW_STATUS_CLASS,
@@ -28,6 +29,7 @@ import {
 // 通知 Dashboard 刷新
 function notifyDashboardRefresh() {
   window.dispatchEvent(new CustomEvent('nova:refresh-dashboard'));
+  window.dispatchEvent(new CustomEvent('nova:refresh-reviews'));
 }
 
 // 将 ReviewContentItem[] 转换为可编辑的纯文本（每行一条 description）
@@ -95,6 +97,13 @@ export function ReviewDetailPage({ reviewId, onBack }) {
   const [rootCausesText, setRootCausesText] = useState('');
   const [lessonsText, setLessonsText] = useState('');
   const [nextFocusText, setNextFocusText] = useState('');
+  const [titleText, setTitleText] = useState('');
+  const [reviewTypeValue, setReviewTypeValue] = useState('WEEKLY');
+  const [periodText, setPeriodText] = useState('');
+  const [summaryText, setSummaryText] = useState('');
+  const [scoreBeforeText, setScoreBeforeText] = useState('');
+  const [scoreAfterText, setScoreAfterText] = useState('');
+  const [scoreText, setScoreText] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
 
   const loadReview = useCallback(async () => {
@@ -106,6 +115,13 @@ export function ReviewDetailPage({ reviewId, onBack }) {
       const data = await getReviewById(reviewId);
       setReview(data);
       const detail = data.reviewDetail;
+      setTitleText(data.title || '');
+      setReviewTypeValue(detail?.reviewType || 'WEEKLY');
+      setPeriodText(detail?.period || '');
+      setSummaryText(detail?.summary || '');
+      setScoreBeforeText(detail?.scoreBefore ?? '');
+      setScoreAfterText(detail?.scoreAfter ?? '');
+      setScoreText(detail?.score ?? '');
       setRootCausesText(contentItemsToText(detail?.rootCauses));
       setLessonsText(contentItemsToText(detail?.lessonsLearned));
       setNextFocusText(focusItemsToText(detail?.nextCycleFocus));
@@ -128,23 +144,45 @@ export function ReviewDetailPage({ reviewId, onBack }) {
     window.setTimeout(() => setToast(null), 2800);
   };
 
+  const toOptionalNumber = (value) => {
+    if (value === '' || value === null || value === undefined) return undefined;
+    const numberValue = Number(value);
+    return Number.isNaN(numberValue) ? undefined : numberValue;
+  };
+
   // 保存草稿
   const handleSave = async () => {
     if (!review) return;
     setSaving(true);
     try {
       const updated = await updateReview(review.id, {
+        title: titleText.trim() || review.title,
+        reviewType: reviewTypeValue,
+        cycleType: reviewTypeValue,
+        period: periodText.trim(),
+        summary: summaryText.trim(),
+        scoreBefore: toOptionalNumber(scoreBeforeText),
+        scoreAfter: toOptionalNumber(scoreAfterText),
+        score: toOptionalNumber(scoreText),
         rootCauses: textToContentItems(rootCausesText),
         lessonsLearned: textToContentItems(lessonsText),
         nextCycleFocus: textToFocusItems(nextFocusText),
       });
       setReview(updated);
       const detail = updated.reviewDetail;
+      setTitleText(updated.title || '');
+      setReviewTypeValue(detail?.reviewType || 'WEEKLY');
+      setPeriodText(detail?.period || '');
+      setSummaryText(detail?.summary || '');
+      setScoreBeforeText(detail?.scoreBefore ?? '');
+      setScoreAfterText(detail?.scoreAfter ?? '');
+      setScoreText(detail?.score ?? '');
       setRootCausesText(contentItemsToText(detail?.rootCauses));
       setLessonsText(contentItemsToText(detail?.lessonsLearned));
       setNextFocusText(focusItemsToText(detail?.nextCycleFocus));
       setHasChanges(false);
-      showToast('success', '复盘草稿已保存');
+      createLocalBackup();
+      showToast('success', isDraft ? '复盘草稿已保存' : '复盘修改已保存');
       notifyDashboardRefresh();
     } catch (err) {
       console.error('[ReviewDetailPage] save failed:', err);
@@ -161,6 +199,14 @@ export function ReviewDetailPage({ reviewId, onBack }) {
     try {
       // 先保存当前编辑内容
       await updateReview(review.id, {
+        title: titleText.trim() || review.title,
+        reviewType: reviewTypeValue,
+        cycleType: reviewTypeValue,
+        period: periodText.trim(),
+        summary: summaryText.trim(),
+        scoreBefore: toOptionalNumber(scoreBeforeText),
+        scoreAfter: toOptionalNumber(scoreAfterText),
+        score: toOptionalNumber(scoreText),
         rootCauses: textToContentItems(rootCausesText),
         lessonsLearned: textToContentItems(lessonsText),
         nextCycleFocus: textToFocusItems(nextFocusText),
@@ -169,6 +215,7 @@ export function ReviewDetailPage({ reviewId, onBack }) {
       const completed = await completeReview(review.id, 'user');
       setReview(completed);
       setHasChanges(false);
+      createLocalBackup();
       showToast('success', '复盘已确认完成');
       notifyDashboardRefresh();
     } catch (err) {
@@ -242,6 +289,7 @@ export function ReviewDetailPage({ reviewId, onBack }) {
   const statusClass = REVIEW_STATUS_CLASS[status] || 'draft';
   const isDraft = status === 'DRAFT';
   const isCompleted = status === 'COMPLETED' || status === 'PUBLISHED';
+  const canEditReview = isDraft || isCompleted;
 
   const agg = detail.aggregatedData || {};
   const taskCompletion = agg.taskCompletion;
@@ -491,7 +539,7 @@ export function ReviewDetailPage({ reviewId, onBack }) {
       </section>
 
       {/* 可编辑区域 */}
-      {isDraft && (
+      {canEditReview && (
         <section className="reviewSection editableSection">
           <div className="sectionTitle">
             <BookOpen size={16} />
@@ -499,6 +547,84 @@ export function ReviewDetailPage({ reviewId, onBack }) {
             {hasChanges && <span className="unsavedBadge">未保存</span>}
           </div>
           <div className="sectionBody">
+            <div className="reviewEditGrid">
+              <div className="editFieldGroup">
+                <label className="editFieldLabel">复盘标题</label>
+                <input
+                  className="editInput"
+                  value={titleText}
+                  onChange={handleFieldChange(setTitleText)}
+                />
+              </div>
+
+              <div className="editFieldGroup">
+                <label className="editFieldLabel">复盘类型</label>
+                <select
+                  className="editInput"
+                  value={reviewTypeValue}
+                  onChange={handleFieldChange(setReviewTypeValue)}
+                >
+                  <option value="WEEKLY">周复盘</option>
+                  <option value="MONTHLY">月复盘</option>
+                  <option value="QUARTERLY">季度复盘</option>
+                  <option value="YEARLY">年复盘</option>
+                  <option value="PROJECT">项目复盘</option>
+                  <option value="CUSTOM">自定义复盘</option>
+                </select>
+              </div>
+
+              <div className="editFieldGroup">
+                <label className="editFieldLabel">周期</label>
+                <input
+                  className="editInput"
+                  value={periodText}
+                  onChange={handleFieldChange(setPeriodText)}
+                  placeholder="例如：2026 W33"
+                />
+              </div>
+            </div>
+
+            <div className="reviewEditGrid scoreEditGrid">
+              <div className="editFieldGroup">
+                <label className="editFieldLabel">评分前</label>
+                <input
+                  className="editInput"
+                  type="number"
+                  value={scoreBeforeText}
+                  onChange={handleFieldChange(setScoreBeforeText)}
+                />
+              </div>
+              <div className="editFieldGroup">
+                <label className="editFieldLabel">评分后</label>
+                <input
+                  className="editInput"
+                  type="number"
+                  value={scoreAfterText}
+                  onChange={handleFieldChange(setScoreAfterText)}
+                />
+              </div>
+              <div className="editFieldGroup">
+                <label className="editFieldLabel">复盘评分</label>
+                <input
+                  className="editInput"
+                  type="number"
+                  value={scoreText}
+                  onChange={handleFieldChange(setScoreText)}
+                />
+              </div>
+            </div>
+
+            <div className="editFieldGroup">
+              <label className="editFieldLabel">总结</label>
+              <textarea
+                className="editTextarea"
+                rows={3}
+                value={summaryText}
+                onChange={handleFieldChange(setSummaryText)}
+                placeholder="补充本周期复盘总结"
+              />
+            </div>
+
             <div className="editFieldGroup">
               <label className="editFieldLabel">
                 <AlertCircle size={14} />
@@ -548,7 +674,7 @@ export function ReviewDetailPage({ reviewId, onBack }) {
       )}
 
       {/* 已完成时展示只读内容 */}
-      {isCompleted && (detail.rootCauses || detail.lessonsLearned || detail.nextCycleFocus) && (
+      {!canEditReview && isCompleted && (detail.rootCauses || detail.lessonsLearned || detail.nextCycleFocus) && (
         <section className="reviewSection">
           <div className="sectionTitle">
             <BookOpen size={16} />
@@ -608,7 +734,7 @@ export function ReviewDetailPage({ reviewId, onBack }) {
       )}
 
       {/* 操作栏 */}
-      {isDraft && (
+      {canEditReview && (
         <div className="reviewActionBar">
           <button
             className="primaryButton saveBtn"
@@ -620,20 +746,22 @@ export function ReviewDetailPage({ reviewId, onBack }) {
             ) : (
               <Save size={16} />
             )}
-            {saving ? '保存中…' : '保存草稿'}
+            {saving ? '保存中…' : isDraft ? '保存草稿' : '保存修改'}
           </button>
-          <button
-            className="primaryButton completeBtn"
-            onClick={handleComplete}
-            disabled={saving || completing}
-          >
-            {completing ? (
-              <RefreshCw size={16} className="spinning" />
-            ) : (
-              <CheckCircle2 size={16} />
-            )}
-            {completing ? '确认中…' : '确认复盘'}
-          </button>
+          {isDraft && (
+            <button
+              className="primaryButton completeBtn"
+              onClick={handleComplete}
+              disabled={saving || completing}
+            >
+              {completing ? (
+                <RefreshCw size={16} className="spinning" />
+              ) : (
+                <CheckCircle2 size={16} />
+              )}
+              {completing ? '确认中…' : '确认复盘'}
+            </button>
+          )}
         </div>
       )}
 

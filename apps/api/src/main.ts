@@ -7,8 +7,14 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
-  // Global prefix so all routes live under /api
-  app.setGlobalPrefix('api');
+  // Global prefix so all routes live under /api by default
+  const apiPrefix = process.env.API_PREFIX ?? 'api';
+  app.setGlobalPrefix(apiPrefix);
+
+  const configuredOrigins = (process.env.FRONTEND_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   // Enable CORS for all frontend dev origins
   app.enableCors({
@@ -17,6 +23,9 @@ async function bootstrap() {
       'http://127.0.0.1:3004',
       'http://localhost:5173',
       'http://127.0.0.1:5173',
+      'http://localhost:4173',
+      'http://127.0.0.1:4173',
+      ...configuredOrigins,
     ],
     credentials: true,
   });
@@ -30,7 +39,7 @@ async function bootstrap() {
     })
   );
 
-  // Swagger docs at /api/docs
+  // Swagger docs at /api/docs by default
   const config = new DocumentBuilder()
     .setTitle('NOVA OS API')
     .setDescription('Personal Command System API based on PDCAr methodology')
@@ -38,12 +47,12 @@ async function bootstrap() {
     .addTag('health')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup(`${apiPrefix}/docs`, app, document);
 
-  const port = process.env.PORT ?? 3003;
+  const port = process.env.PORT ?? process.env.API_PORT ?? 3003;
   await app.listen(port);
-  logger.log(`NOVA OS API running on http://localhost:${port}/api`);
-  logger.log(`Swagger docs at http://localhost:${port}/api/docs`);
+  logger.log(`NOVA OS API running on http://localhost:${port}/${apiPrefix}`);
+  logger.log(`Swagger docs at http://localhost:${port}/${apiPrefix}/docs`);
 }
 
 void bootstrap();

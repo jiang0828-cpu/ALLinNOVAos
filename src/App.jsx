@@ -22,7 +22,6 @@ import {
   Radio,
   BookOpen,
   Database,
-  ArrowRight,
   CheckCircle2,
 } from 'lucide-react';
 import { ToastProvider, useToast, REALTIME_EVENT_TOAST } from './hooks/useToast.tsx';
@@ -84,7 +83,7 @@ const SYSTEM_ENTRIES = [
     status: '稳定',
     progress: 78,
     icon: HeartPulse,
-    metrics: ['睡眠 示例', '步数 示例', '消费 示例', '待办 示例'],
+    metrics: ['睡眠', '步数', '消费', '待办'],
   },
   {
     name: 'Work OS',
@@ -92,7 +91,7 @@ const SYSTEM_ENTRIES = [
     status: '需聚焦',
     progress: 64,
     icon: BriefcaseBusiness,
-    metrics: ['重点项目 示例', '今日任务 示例', '客户跟进 示例', '进度 示例'],
+    metrics: ['重点项目', '今日任务', '客户跟进', '进度'],
     links: [
       { label: '市场工作', href: 'https://m0-marketingcloud.pages.dev/' },
       { label: '广和事业', href: 'https://guanghe-zhongan-healthcare.pages.dev/meeting' },
@@ -100,12 +99,12 @@ const SYSTEM_ENTRIES = [
     ],
   },
   {
-    name: 'Media OS',
+    name: 'Marketing OS',
     summary: '选题、生产、发布计划与数据复盘',
     status: '增长',
     progress: 88,
     icon: Radio,
-    metrics: ['今日选题 示例', '待发布 示例', '增长 示例', '复盘 示例'],
+    metrics: ['今日选题', '待发布', '增长', '复盘'],
   },
   {
     name: 'Knowledge OS',
@@ -113,7 +112,7 @@ const SYSTEM_ENTRIES = [
     status: '积累中',
     progress: 72,
     icon: BookOpen,
-    metrics: ['今日学习 示例', '阅读 示例', '新增笔记 示例', '主题 示例'],
+    metrics: ['今日学习', '阅读', '新增笔记', '主题'],
   },
   {
     name: 'AGI OS',
@@ -121,7 +120,7 @@ const SYSTEM_ENTRIES = [
     status: '实验中',
     progress: 81,
     icon: Sparkles,
-    metrics: ['当前实验 示例', '待验证 示例', '工具调用 示例', '下一步 示例'],
+    metrics: ['当前实验', '待验证', '工具调用', '下一步'],
   },
 ];
 
@@ -331,6 +330,13 @@ function CommandPalette({ open, onClose, onAction }) {
   );
 }
 
+const QUICK_ACTION_ROUTES = {
+  goal: ROUTES.GOALS,
+  project: ROUTES.PROJECTS,
+  task: ROUTES.TASKS,
+  issue: ROUTES.ISSUES,
+};
+
 const BOTTOM_NAV_ITEMS = NAV_ITEMS.filter(
   (item) =>
     item.route === '/#commandhub' ||
@@ -362,7 +368,7 @@ function BottomNav({ currentPath, currentHash, onNavigate }) {
   );
 }
 
-function DashboardHome({ onDateUpdate }) {
+function DashboardHome({ onDateUpdate, onNavigate }) {
   const [activeCommand, setActiveCommand] = useState(QUICK_COMMANDS[0]);
   const [commandText, setCommandText] = useState('');
   const [doneActions, setDoneActions] = useState(() => new Set([SAMPLE_ACTIONS[2]]));
@@ -379,17 +385,19 @@ function DashboardHome({ onDateUpdate }) {
     });
   };
 
-  const openSystem = (entry) => {
-    const primaryLink = entry.links?.[0]?.href;
-    if (primaryLink && primaryLink !== '#') {
-      window.open(primaryLink, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   return (
     <div className="dashboardHome">
       <div id="commandhub" className="dashboardAnchor">
-        <CommandHub onDateUpdate={onDateUpdate} />
+        <CommandHub
+          onDateUpdate={onDateUpdate}
+          onOpenGoals={() => onNavigate?.(ROUTES.GOALS)}
+          onOpenTasks={() => onNavigate?.(ROUTES.TASKS)}
+          onOpenIssues={() => onNavigate?.(ROUTES.ISSUES)}
+          onOpenSuggestions={() => onNavigate?.(ROUTES.SUGGESTIONS)}
+          onCreateReview={() => onNavigate?.(ROUTES.REVIEWS)}
+          onOpenReview={(id) => onNavigate?.(`${ROUTES.REVIEW_DETAIL_PREFIX}${id}`)}
+          onOpenReviews={() => onNavigate?.(ROUTES.REVIEWS)}
+        />
       </div>
 
       <section id="systems-os" className="systemsSection dashboardAnchor" aria-labelledby="systems-title">
@@ -404,13 +412,11 @@ function DashboardHome({ onDateUpdate }) {
         <div className="systemsGrid">
           {SYSTEM_ENTRIES.map((entry) => {
             const Icon = entry.icon;
-            const clickable = Boolean(entry.links?.length);
 
             return (
               <article
                 key={entry.name}
-                className={`systemCard ${clickable ? 'isClickable' : ''}`}
-                onClick={() => clickable && openSystem(entry)}
+                className="systemCard"
               >
                 <div className="systemTop">
                   <div className="systemIcon">
@@ -423,13 +429,8 @@ function DashboardHome({ onDateUpdate }) {
                 <div className="progress" aria-label={`${entry.name} 进度 ${entry.progress}%`}>
                   <span style={{ width: `${entry.progress}%` }} />
                 </div>
-                <div className="metricGrid">
-                  {entry.metrics.map((metric) => (
-                    <span key={metric}>{metric}</span>
-                  ))}
-                </div>
                 {entry.links ? (
-                  <div className="systemLinks" onClick={(event) => event.stopPropagation()}>
+                  <div className="systemLinks systemLinksAsMetrics" onClick={(event) => event.stopPropagation()}>
                     {entry.links.map((link) => (
                       <a
                         key={link.label}
@@ -442,10 +443,13 @@ function DashboardHome({ onDateUpdate }) {
                       </a>
                     ))}
                   </div>
-                ) : null}
-                <button className="ghostButton" type="button">
-                  进入系统 <ArrowRight size={16} />
-                </button>
+                ) : (
+                  <div className="metricGrid">
+                    {entry.metrics.map((metric) => (
+                      <span key={metric}>{metric}</span>
+                    ))}
+                  </div>
+                )}
               </article>
             );
           })}
@@ -600,6 +604,21 @@ export default function App() {
     }
   }, []);
 
+  const openQuickAction = useCallback((actionId) => {
+    const target = QUICK_ACTION_ROUTES[actionId];
+    if (!target) return;
+
+    window.sessionStorage.setItem('nova-pending-quick-action', actionId);
+    handleNavigate(target);
+    setPaletteOpen(false);
+
+    window.setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent('nova:quick-create', { detail: { actionId } }),
+      );
+    }, 120);
+  }, [handleNavigate]);
+
   useEffect(() => {
     const handlePopState = () => {
       setRouteInfo(parseRoute(`${window.location.pathname}${window.location.hash}`));
@@ -611,9 +630,22 @@ export default function App() {
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKey = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      const key = e.key.toLowerCase();
+      const withCommand = e.ctrlKey || e.metaKey;
+
+      if (withCommand && key === 'k') {
         e.preventDefault();
         setPaletteOpen((prev) => !prev);
+      }
+      if (withCommand && ['g', 'p', 't', 'i'].includes(key)) {
+        e.preventDefault();
+        const actionByKey = {
+          g: 'goal',
+          p: 'project',
+          t: 'task',
+          i: 'issue',
+        };
+        openQuickAction(actionByKey[key]);
       }
       if (e.key === 'Escape') {
         setPaletteOpen(false);
@@ -622,23 +654,16 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [openQuickAction]);
 
   const handlePaletteAction = useCallback((actionId) => {
-    const routes = {
-      goal: ROUTES.GOALS,
-      project: ROUTES.PROJECTS,
-      task: ROUTES.TASKS,
-      issue: ROUTES.ISSUES,
-    };
-    const target = routes[actionId];
-    if (target) handleNavigate(target);
-  }, [handleNavigate]);
+    openQuickAction(actionId);
+  }, [openQuickAction]);
 
   const renderPage = () => {
     switch (routeInfo.route) {
       case ROUTES.DASHBOARD:
-        return <DashboardHome onDateUpdate={setLastUpdatedAt} />;
+        return <DashboardHome onDateUpdate={setLastUpdatedAt} onNavigate={handleNavigate} />;
       case ROUTES.TASKS:
         return <TasksPage />;
       case ROUTES.GOALS:
@@ -667,7 +692,7 @@ export default function App() {
           />
         );
       default:
-        return <DashboardHome onDateUpdate={setLastUpdatedAt} />;
+        return <DashboardHome onDateUpdate={setLastUpdatedAt} onNavigate={handleNavigate} />;
     }
   };
 

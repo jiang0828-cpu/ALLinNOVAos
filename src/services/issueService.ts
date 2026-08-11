@@ -55,3 +55,31 @@ export async function createIssue(payload: {
     workspaceId: DEFAULT_WORKSPACE_ID,
   });
 }
+
+export async function updateIssueStatus(
+  id: string,
+  status: 'OPEN' | 'RESOLVED' | 'IGNORED'
+) {
+  return apiClient.patch(`/issues/${id}`, {
+    workspaceId: DEFAULT_WORKSPACE_ID,
+    status,
+    issueDetail: { status },
+  });
+}
+
+export async function updateIssue(
+  id: string,
+  payload: {
+    title?: string;
+    description?: string;
+    status?: 'OPEN' | 'RESOLVED' | 'IGNORED';
+    level?: 'HIGH' | 'MEDIUM' | 'LOW';
+    domainId?: string;
+    issueDetail?: Record<string, unknown>;
+  }
+) {
+  return apiClient.patch(`/issues/${id}`, {
+    ...payload,
+    workspaceId: DEFAULT_WORKSPACE_ID,
+  });
+}

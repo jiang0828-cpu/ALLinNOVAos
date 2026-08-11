@@ -1,7 +1,5 @@
 // src/components/LatestReview.tsx
-// 最新复盘入口面板
-
-import { BookMarked, ArrowRight } from 'lucide-react';
+import { ArrowRight, BookMarked, ClipboardList } from 'lucide-react';
 
 interface LatestReviewData {
   id: string;
@@ -14,72 +12,97 @@ interface LatestReviewData {
 interface LatestReviewProps {
   review: LatestReviewData | null;
   insightsCount?: number;
+  onCreateReview?: () => void;
+  onOpenReview?: (id: string) => void;
+  onOpenReviews?: () => void;
 }
 
 const REVIEW_TYPE_LABELS: Record<string, string> = {
-  WEEKLY: '周复盘',
   DAILY: '日复盘',
+  WEEKLY: '周复盘',
   MONTHLY: '月复盘',
   QUARTERLY: '季度复盘',
   PROJECT: '项目复盘',
+  CUSTOM: '自定义复盘',
 };
 
-function formatDate(dateStr: string): string {
-  try {
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('zh-CN', {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch {
-    return dateStr;
-  }
+const REVIEW_STATUS_LABELS: Record<string, string> = {
+  DRAFT: '草稿',
+  COMPLETED: '已完成',
+  PUBLISHED: '已发布',
+  ARCHIVED: '已归档',
+};
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '待生成';
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return dateStr;
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 }
 
-export function LatestReview({ review, insightsCount = 0 }: LatestReviewProps) {
+export function LatestReview({
+  review,
+  onCreateReview,
+  onOpenReview,
+  onOpenReviews,
+}: LatestReviewProps) {
+  const typeLabel = review ? REVIEW_TYPE_LABELS[review.reviewType] || review.reviewType || '复盘' : '未开始';
+  const statusLabel = review ? REVIEW_STATUS_LABELS[review.status] || review.status || '草稿' : '待生成';
+
   return (
     <section className="panel latestReviewPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">REVIEW</span>
           <h2>最新复盘</h2>
+          <span className="strictTag">R · REVIEW</span>
         </div>
         <BookMarked size={20} />
       </div>
 
       {!review ? (
-        <div className="emptyState">
-          <p>暂无复盘记录，点击创建首次复盘</p>
-          <button className="primaryButton" style={{ marginTop: 'auto' }}>
-            创建复盘
-          </button>
+        <div className="reviewContent reviewEmptyContent">
+          <div className="reviewEmptyCard compactReviewCard">
+            <ClipboardList size={24} />
+            <h3>暂无复盘记录</h3>
+            <p>进入复盘中心生成草稿。</p>
+          </div>
+
+          <div className="reviewActionRow">
+            <button className="reviewAction primaryReviewAction" onClick={onCreateReview}>
+              <span>生成复盘</span>
+              <ArrowRight size={16} />
+            </button>
+            <button className="reviewAction secondaryReviewAction" onClick={onOpenReviews}>
+              <span>复盘中心</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="reviewContent">
-          <div className="reviewCard">
-            <div className="reviewBadge">
-              {REVIEW_TYPE_LABELS[review.reviewType] || review.reviewType}
-            </div>
-            <h3 className="reviewTitle">{review.title}</h3>
+          <div className="reviewCard compactReviewCard">
+            <h3 className="reviewTitle">{review.title || '未命名复盘'}</h3>
             <div className="reviewMeta">
-              <span className="reviewStatus">{review.status}</span>
+              <span className="reviewTypeText">{typeLabel}</span>
+              <span className="reviewStatus">{statusLabel}</span>
               <span className="reviewDate">{formatDate(review.reviewedAt)}</span>
             </div>
           </div>
 
-          {insightsCount > 0 && (
-            <div className="insightsSummary">
-              <span className="insightsCount">{insightsCount}</span>
-              <span className="insightsLabel">条活跃洞察</span>
-            </div>
-          )}
-
-          <button className="reviewAction">
-            <span>查看复盘详情</span>
-            <ArrowRight size={16} />
-          </button>
+          <div className="reviewActionRow">
+            <button className="reviewAction primaryReviewAction" onClick={() => onOpenReview?.(review.id)}>
+              <span>打开详情</span>
+              <ArrowRight size={16} />
+            </button>
+            <button className="reviewAction secondaryReviewAction" onClick={onOpenReviews}>
+              <span>复盘中心</span>
+            </button>
+          </div>
         </div>
       )}
     </section>
