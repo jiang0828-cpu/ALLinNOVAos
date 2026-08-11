@@ -94,3 +94,7 @@ export async function completeReview(
   await apiClient.patch(`/reviews/${id}/complete`, payload);
   return getReviewById(id);
 }
+
+export async function deleteReview(id: string): Promise<ReviewWorkItem> {
+  return apiClient.delete<ReviewWorkItem>(`/reviews/${id}?workspaceId=${DEFAULT_WORKSPACE_ID}`);
+}

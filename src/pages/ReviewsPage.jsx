@@ -10,7 +10,7 @@ import {
   X,
   Calendar,
 } from 'lucide-react';
-import { getReviews, generateReviewDraft } from '../services/reviewService';
+import { getReviews, generateReviewDraft, deleteReview } from '../services/reviewService';
 import { ReviewItem } from '../components/ReviewItem';
 import { ReviewFilters } from '../components/ReviewFilters';
 import { ReviewSkeleton } from '../components/ReviewSkeleton';
@@ -64,6 +64,7 @@ export function ReviewsPage({ onNavigateToReview }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pendingReviewId, setPendingReviewId] = useState(null);
 
   // 生成草稿弹窗状态
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -170,6 +171,24 @@ export function ReviewsPage({ onNavigateToReview }) {
     onNavigateToReview?.(reviewId);
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('确定删除这条复盘吗？')) return;
+    setPendingReviewId(reviewId);
+    try {
+      await deleteReview(reviewId);
+      setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+      setTotal((prev) => Math.max(0, prev - 1));
+      showToast('success', '复盘已删除');
+      notifyDashboardRefresh();
+      window.dispatchEvent(new CustomEvent('nova:refresh-reviews'));
+    } catch (err) {
+      console.error('[ReviewsPage] deleteReview failed:', err);
+      showToast('error', `删除失败：${err.message || '未知错误'}`);
+    } finally {
+      setPendingReviewId(null);
+    }
+  };
+
   return (
     <div className="reviewsPage">
       <header className="reviewsPageHeader">
@@ -232,6 +251,8 @@ export function ReviewsPage({ onNavigateToReview }) {
               key={review.id}
               review={review}
               onClick={handleCardClick}
+              onDelete={handleDeleteReview}
+              pendingId={pendingReviewId}
             />
           ))}
         </div>

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, RefreshCw, AlertCircle, ShieldCheck, Plus, X, Save } from 'lucide-react';
-import { getIssues, createIssue, updateIssueStatus, updateIssue } from '../services/issueService';
+import { getIssues, createIssue, updateIssueStatus, updateIssue, deleteIssue } from '../services/issueService';
 import { createLocalBackup } from '../services/localBackupStore';
 import { IssueItem } from '../components/IssueItem';
 import { IssueFilters } from '../components/IssueFilters';
@@ -176,6 +176,24 @@ export function IssuesPage() {
     }
   };
 
+  const handleDeleteIssue = async (issueId) => {
+    if (!window.confirm('确定删除这个问题吗？')) return;
+    setPendingIssueId(issueId);
+    try {
+      await deleteIssue(issueId);
+      createLocalBackup();
+      setIssues((prev) => prev.filter((issue) => issue.id !== issueId));
+      setTotal((prev) => Math.max(0, prev - 1));
+      notifyDashboardRefresh();
+      window.dispatchEvent(new CustomEvent('nova:refresh-issues'));
+    } catch (err) {
+      console.error('[IssuesPage] Failed to delete issue:', err);
+      alert('删除问题失败: ' + (err.message || '未知错误'));
+    } finally {
+      setPendingIssueId(null);
+    }
+  };
+
   return (
     <div className="issuesPage">
       <header className="issuesPageHeader">
@@ -236,6 +254,7 @@ export function IssuesPage() {
               onResolve={handleResolveIssue}
               onIgnore={handleIgnoreIssue}
               onEdit={setEditingIssue}
+              onDelete={handleDeleteIssue}
               pendingId={pendingIssueId}
             />
           ))}

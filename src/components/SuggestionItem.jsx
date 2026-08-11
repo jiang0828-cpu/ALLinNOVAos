@@ -1,7 +1,7 @@
 // src/components/SuggestionItem.jsx
 // 建议卡片 —— 展示标题、优先级、原因、证据、关联问题 + 操作按钮
 
-import { CheckCircle2, Ban, Clock, Sparkles, Link2, Pencil } from 'lucide-react';
+import { CheckCircle2, Ban, Clock, Sparkles, Link2, Pencil, Trash2 } from 'lucide-react';
 import {
   SUGGESTION_STATUS_LABELS,
   SUGGESTION_STATUS_CLASS,
@@ -27,7 +27,7 @@ function truncateId(id) {
   return id.length > 8 ? `${id.slice(0, 8)}…` : id;
 }
 
-export function SuggestionItem({ suggestion, onAccept, onDismiss, onDefer, onEdit, pendingId }) {
+export function SuggestionItem({ suggestion, onAccept, onDismiss, onDefer, onEdit, onDelete, pendingId }) {
   const detail = suggestion.suggestionDetail || {};
   const status = detail.status || 'PENDING';
   const statusClass = SUGGESTION_STATUS_CLASS[status] || 'pending';
@@ -64,6 +64,16 @@ export function SuggestionItem({ suggestion, onAccept, onDismiss, onDefer, onEdi
           aria-label="查看/编辑建议"
         >
           <Pencil size={15} />
+        </button>
+        <button
+          type="button"
+          className="suggestionIconBtn danger"
+          onClick={() => onDelete?.(suggestion.id)}
+          title="删除建议"
+          aria-label="删除建议"
+          disabled={isBusy}
+        >
+          <Trash2 size={15} />
         </button>
       </div>
 

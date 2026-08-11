@@ -1,7 +1,7 @@
 // src/components/ReviewItem.jsx
 // 复盘卡片 —— 展示标题、周期、领域、完成率、创建时间、状态
 
-import { Calendar, Clock, TrendingUp, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, TrendingUp, ChevronRight, Trash2 } from 'lucide-react';
 import {
   REVIEW_STATUS_LABELS,
   REVIEW_STATUS_CLASS,
@@ -30,7 +30,7 @@ function formatRate(value) {
   return `${num.toFixed(num < 10 ? 1 : 0)}%`;
 }
 
-export function ReviewItem({ review, onClick }) {
+export function ReviewItem({ review, onClick, onDelete, pendingId }) {
   const detail = review.reviewDetail || {};
   const status = detail.status || 'DRAFT';
   const statusClass = REVIEW_STATUS_CLASS[status] || 'draft';
@@ -38,6 +38,7 @@ export function ReviewItem({ review, onClick }) {
   const cycleType = detail.cycleType || 'CUSTOM';
   const period = detail.period || '--';
   const completionRate = detail.completionRate;
+  const isBusy = pendingId === review.id;
 
   return (
     <article
@@ -56,7 +57,22 @@ export function ReviewItem({ review, onClick }) {
         <span className={`reviewStatusTag status-${statusClass}`}>
           {REVIEW_STATUS_LABELS[status] || '草稿'}
         </span>
-        <ChevronRight size={18} className="reviewCardArrow" />
+        <div className="reviewCardTools">
+          <button
+            type="button"
+            className="reviewIconBtn danger"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete?.(review.id);
+            }}
+            title="删除复盘"
+            aria-label="删除复盘"
+            disabled={isBusy}
+          >
+            <Trash2 size={15} />
+          </button>
+          <ChevronRight size={18} className="reviewCardArrow" />
+        </div>
       </div>
 
       <h3 className="reviewCardTitle">{review.title}</h3>

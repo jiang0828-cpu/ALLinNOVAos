@@ -3932,6 +3932,21 @@ button:disabled {
   color: var(--brand);
 }
 
+.issueIconBtn.danger:hover,
+.suggestionIconBtn.danger:hover,
+.reviewIconBtn.danger:hover {
+  border-color: rgba(187, 77, 53, 0.35);
+  background: rgba(187, 77, 53, 0.08);
+  color: var(--danger);
+}
+
+.issueIconBtn:disabled,
+.suggestionIconBtn:disabled,
+.reviewIconBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .issueCardTitle {
   margin: 0;
   font-size: 16px;
@@ -4534,6 +4549,29 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.reviewCardTools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviewIconBtn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .reviewStatusTag {

@@ -104,3 +104,7 @@ export async function updateSuggestion(
     workspaceId: DEFAULT_WORKSPACE_ID,
   });
 }
+
+export async function deleteSuggestion(id: string): Promise<SuggestionWorkItem> {
+  return apiClient.delete<SuggestionWorkItem>(`/suggestions/${id}?workspaceId=${DEFAULT_WORKSPACE_ID}`);
+}

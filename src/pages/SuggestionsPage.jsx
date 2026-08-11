@@ -9,6 +9,7 @@ import {
   dismissSuggestion,
   deferSuggestion,
   updateSuggestion,
+  deleteSuggestion,
 } from '../services/suggestionService';
 import { createLocalBackup } from '../services/localBackupStore';
 import { SuggestionItem } from '../components/SuggestionItem';
@@ -198,6 +199,25 @@ export function SuggestionsPage() {
     }
   };
 
+  const handleDeleteSuggestion = async (id) => {
+    if (!window.confirm('确定删除这条建议吗？')) return;
+    setPendingId(id);
+    try {
+      await deleteSuggestion(id);
+      createLocalBackup();
+      setSuggestions((prev) => prev.filter((s) => s.id !== id));
+      setTotal((prev) => Math.max(0, prev - 1));
+      showToast('success', '建议已删除');
+      notifyDashboardRefresh();
+      window.dispatchEvent(new CustomEvent('nova:refresh-suggestions'));
+    } catch (err) {
+      console.error('[SuggestionsPage] deleteSuggestion failed:', err);
+      showToast('error', `删除失败：${err.message || '未知错误'}`);
+    } finally {
+      setPendingId(null);
+    }
+  };
+
   return (
     <div className="suggestionsPage">
       <header className="suggestionsPageHeader">
@@ -251,6 +271,7 @@ export function SuggestionsPage() {
               onDismiss={handleDismiss}
               onDefer={handleDefer}
               onEdit={setEditingSuggestion}
+              onDelete={handleDeleteSuggestion}
               pendingId={pendingId}
             />
           ))}

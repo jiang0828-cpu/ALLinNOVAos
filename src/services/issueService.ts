@@ -83,3 +83,7 @@ export async function updateIssue(
     workspaceId: DEFAULT_WORKSPACE_ID,
   });
 }
+
+export async function deleteIssue(id: string) {
+  return apiClient.delete(`/issues/${id}?workspaceId=${DEFAULT_WORKSPACE_ID}`);
+}

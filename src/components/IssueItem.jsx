@@ -1,7 +1,7 @@
 // src/components/IssueItem.jsx
 // 问题卡片 —— 展示标题、严重程度、领域、目标值、实际值、偏差、状态
 
-import { AlertTriangle, CheckCircle2, Ban, Pencil } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Ban, Pencil, Trash2 } from 'lucide-react';
 import {
   ISSUE_LEVEL_LABELS,
   ISSUE_LEVEL_CLASS,
@@ -25,7 +25,7 @@ function formatGap(value) {
   return num > 0 ? `+${text}` : text;
 }
 
-export function IssueItem({ issue, onResolve, onIgnore, onEdit, pendingId }) {
+export function IssueItem({ issue, onResolve, onIgnore, onEdit, onDelete, pendingId }) {
   const detail = issue.issueDetail || {};
   const level = detail.level || 'MEDIUM';
   const status = detail.status || 'OPEN';
@@ -55,6 +55,16 @@ export function IssueItem({ issue, onResolve, onIgnore, onEdit, pendingId }) {
           aria-label="查看/编辑问题"
         >
           <Pencil size={15} />
+        </button>
+        <button
+          type="button"
+          className="issueIconBtn danger"
+          onClick={() => onDelete?.(issue.id)}
+          title="删除问题"
+          aria-label="删除问题"
+          disabled={isBusy}
+        >
+          <Trash2 size={15} />
         </button>
       </div>
 
