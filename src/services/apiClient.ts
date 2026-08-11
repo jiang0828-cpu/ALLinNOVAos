@@ -6,9 +6,10 @@ import {
 } from './localBackupStore';
 
 function getDefaultApiBase(): string {
-  if (typeof window === 'undefined') return '/api';
+  const runtimeWindow = globalThis.window;
+  if (!runtimeWindow) return '/api';
 
-  const { protocol, hostname, port } = window.location;
+  const { protocol, hostname, port } = runtimeWindow.location;
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isVitePreview = port === '4173' || port === '4174';
   const isCloudflarePages = hostname.endsWith('.pages.dev');
@@ -24,11 +25,20 @@ function getDefaultApiBase(): string {
   return '/api';
 }
 
-export const API_BASE = (import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()).replace(/\/+$/, '');
+export function getApiBase(): string {
+  const runtimeWindow = globalThis.window;
+  const hostname = runtimeWindow?.location?.hostname || '';
+
+  if (hostname.endsWith('.pages.dev')) {
+    return 'https://allinnovaos.vercel.app/api';
+  }
+
+  return (import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()).replace(/\/+$/, '');
+}
 
 export function buildApiUrl(path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${API_BASE}${normalizedPath}`;
+  return `${getApiBase()}${normalizedPath}`;
 }
 
 function isMutatingRequest(options: RequestInit = {}) {
