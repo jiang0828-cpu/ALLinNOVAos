@@ -815,7 +815,7 @@ button:disabled {
 }
 
 .feedsSectionTitle {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: var(--text-faint);
@@ -884,6 +884,20 @@ button:disabled {
   margin: 0;
   font-size: 12px;
   line-height: 1.3;
+}
+
+.compactNewsList {
+  gap: 8px;
+}
+
+.compactNewsList .feedItem {
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.compactNewsList .feedItem h3 {
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .feedMeta {

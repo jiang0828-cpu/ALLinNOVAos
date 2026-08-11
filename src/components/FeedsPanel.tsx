@@ -1,6 +1,3 @@
-// src/components/FeedsPanel.tsx
-// 信息资讯 (Feeds) —— NEWS / IDEAS / PLANS 三模块同屏展示
-
 import { BookOpen } from 'lucide-react';
 import type { DashboardSnapshot } from '../types/dashboard';
 
@@ -9,94 +6,62 @@ interface FeedsPanelProps {
 }
 
 export function FeedsPanel({ feeds }: FeedsPanelProps) {
+  const newsItems = [
+    ...feeds.news.map((item) => ({
+      id: item.id,
+      source: item.source || 'NEWS',
+      time: item.time || '最新',
+      title: item.title,
+    })),
+    ...feeds.ideas.map((item) => ({
+      id: `idea-${item.id}`,
+      source: '要闻',
+      time: '观点',
+      title: item.title,
+    })),
+    ...feeds.plans.map((item) => ({
+      id: `plan-${item.id}`,
+      source: '要闻',
+      time: `${item.progress}%`,
+      title: item.title,
+    })),
+  ].filter((item) => item.title);
+
   return (
     <section className="panel feedsPanel">
       <div className="panelHeader">
         <div>
           <span className="sectionEyebrow">FEEDS</span>
           <h2>信息资讯</h2>
-          <span className="strictTag">INFO · API RESERVED</span>
+          <span className="strictTag">NEWS</span>
         </div>
         <BookOpen size={20} />
       </div>
+
       <div className="feedsAllContent">
-        {/* NEWS — 新闻 (绿点) */}
         <div className="feedsSection">
           <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">NEWS</span>
+            <span className="feedsSectionTitle">NEWS · 最新要闻</span>
             <span className="feedsSectionDot news" />
           </div>
-          <div className="feedsList">
-            {feeds.news.length === 0 ? (
+
+          <div className="feedsList compactNewsList">
+            {newsItems.length === 0 ? (
               <div className="feedItem news feedPlaceholder">
                 <div className="feedMeta">
                   <span className="feedSource">API RESERVED</span>
                   <span className="feedTime">待接入</span>
                 </div>
-                <h3>信息资讯 API 预留，暂不与问题风险同步</h3>
+                <h3>最新要闻 API 预留，接入后自动展示资讯摘要</h3>
               </div>
             ) : (
-              feeds.news.map((item) => (
-                <a key={item.id} href="#" className="feedItem news" onClick={(e) => e.preventDefault()}>
+              newsItems.slice(0, 5).map((item) => (
+                <a key={item.id} href="#" className="feedItem news" onClick={(event) => event.preventDefault()}>
                   <div className="feedMeta">
                     <span className="feedSource">{item.source}</span>
                     <span className="feedTime">{item.time}</span>
                   </div>
                   <h3>{item.title}</h3>
-                </a>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* IDEAS — 灵感 (金点) */}
-        <div className="feedsSection">
-          <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">IDEAS</span>
-            <span className="feedsSectionDot ideas" />
-          </div>
-          <div className="ideasList">
-            {feeds.ideas.length === 0 ? (
-              <div className="ideaItem ideas feedPlaceholder">
-                <h3>观点/洞察源后期接入</h3>
-              </div>
-            ) : (
-              feeds.ideas.map((item) => (
-                <a key={item.id} href="#" className="ideaItem ideas" onClick={(e) => e.preventDefault()}>
-                  <h3>{item.title}</h3>
-                </a>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* PLANS — 计划 (深绿点) */}
-        <div className="feedsSection">
-          <div className="feedsSectionHeader">
-            <span className="feedsSectionTitle">PLANS</span>
-            <span className="feedsSectionDot plans" />
-          </div>
-          <div className="plansList">
-            {feeds.plans.length === 0 ? (
-              <div className="planItem plans feedPlaceholder">
-                <div className="planHeader">
-                  <h3>资讯专题/计划源后期接入</h3>
-                  <span className="planProgress">OPEN</span>
-                </div>
-                <div className="progress" aria-label="API 预留">
-                  <span style={{ width: '12%' }} />
-                </div>
-              </div>
-            ) : (
-              feeds.plans.map((item) => (
-                <a key={item.id} href="#" className="planItem plans" onClick={(e) => e.preventDefault()}>
-                  <div className="planHeader">
-                    <h3>{item.title}</h3>
-                    <span className="planProgress">{item.progress}%</span>
-                  </div>
-                  <div className="progress" aria-label={`进度 ${item.progress}%`}>
-                    <span style={{ width: `${item.progress}%` }} />
-                  </div>
                 </a>
               ))
             )}
