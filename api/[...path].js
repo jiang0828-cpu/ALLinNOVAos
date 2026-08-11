@@ -75,6 +75,23 @@ function priority(value, fallback = 'P2') {
   return fallback;
 }
 
+function workItemStatusFor(type, status, fallback) {
+  if (type === 'ISSUE') {
+    if (status === 'OPEN') return 'BLOCKED';
+    if (status === 'RESOLVED') return 'DONE';
+    if (status === 'IGNORED') return 'ARCHIVED';
+  }
+
+  if (type === 'SUGGESTION') {
+    if (status === 'PENDING') return 'TODO';
+    if (status === 'ACCEPTED') return 'DONE';
+    if (status === 'DEFERRED') return 'TODO';
+    if (status === 'DISMISSED' || status === 'EXPIRED') return 'ARCHIVED';
+  }
+
+  return status || fallback;
+}
+
 function listResponse(rows, page, limit, total) {
   return {
     data: rows,
@@ -178,8 +195,8 @@ function workItem(row, detailKey) {
       workItemId: detail.work_item_id,
       suggestionType: detail.suggestion_type,
       confidence: detail.confidence,
-      impactScore: detail.impact_score,
-      urgencyScore: detail.urgency_score,
+      impactScore: detail.impactScore,
+      urgencyScore: detail.urgencyScore,
       evidence: detail.evidence,
       dedupKey: detail.dedup_key,
       expiresAt: toIso(detail.expires_at),
@@ -379,6 +396,41 @@ async function getItem(client, idValue, config, workspaceId = WORKSPACE_ID) {
 async function createWorkItem(client, payload, config) {
   await ensureWorkspace(client, payload.workspaceId || WORKSPACE_ID);
   await ensureCycle(client, payload.workspaceId || WORKSPACE_ID, payload.cycleId, payload.domainId || null);
+
+  if (payload.externalRef) {
+    const existing = await client.query(
+      `select id from work_items
+        where workspace_id = $1 and "itemType" = $2 and "externalRef" = $3 and deleted_at is null
+        order by updated_at desc
+        limit 1`,
+      [payload.workspaceId || WORKSPACE_ID, config.type, payload.externalRef]
+    );
+    if (existing.rowCount) {
+      return patchWorkItem(client, existing.rows[0].id, payload, config);
+    }
+  }
+
+  if (config.type === 'ISSUE') {
+    const duplicate = await client.query(
+      `select wi.id
+         from work_items wi
+         join issue_detail idtl on idtl.work_item_id = wi.id
+        where wi.workspace_id = $1
+          and wi."itemType" = 'ISSUE'
+          and wi.deleted_at is null
+          and idtl.status = 'OPEN'
+          and wi.title = $2
+          and coalesce(wi.description, '') = coalesce($3, '')
+          and coalesce(wi.domain_id, '') = coalesce($4, '')
+        order by wi.updated_at desc
+        limit 1`,
+      [payload.workspaceId || WORKSPACE_ID, payload.title, payload.description || null, payload.domainId || null]
+    );
+    if (duplicate.rowCount) {
+      return patchWorkItem(client, duplicate.rows[0].id, payload, config);
+    }
+  }
+
   const nowId = id(config.idPrefix);
   const metadata = payload.metadata || {};
   if (payload.projectId) metadata.projectId = payload.projectId;
@@ -387,8 +439,8 @@ async function createWorkItem(client, payload, config) {
   await client.query(
     `insert into work_items
       (id, workspace_id, domain_id, cycle_id, "itemType", "pdcaStage", title, description, status, priority,
-       "createdBy", "sourceType", planned_start_at, planned_end_at, completed_at, metadata, parent_id, created_at, updated_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,now(),now())`,
+       "createdBy", "sourceType", planned_start_at, planned_end_at, completed_at, metadata, parent_id, "externalRef", created_at, updated_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,now(),now())`,
     [
       nowId,
       payload.workspaceId || WORKSPACE_ID,
@@ -398,7 +450,7 @@ async function createWorkItem(client, payload, config) {
       config.pdcaStage,
       payload.title,
       payload.description || null,
-      payload.status || config.status,
+      workItemStatusFor(config.type, payload.status, config.status),
       priority(payload.priority, config.priority),
       payload.createdBy || 'user',
       payload.sourceType || 'MANUAL',
@@ -407,6 +459,7 @@ async function createWorkItem(client, payload, config) {
       toDate(payload.completedAt),
       metadata,
       payload.parentId || metadata.goalId || null,
+      payload.externalRef || null,
     ]
   );
 
@@ -441,7 +494,7 @@ async function patchWorkItem(client, idValue, payload, config) {
       idValue,
       payload.title ?? null,
       payload.description ?? null,
-      payload.status ?? null,
+      payload.status ? workItemStatusFor(config.type, payload.status, null) : null,
       payload.priority ? priority(payload.priority) : null,
       payload.domainId ?? null,
       payload.cycleId ?? null,
@@ -669,7 +722,7 @@ async function createSuggestionForIssue(client, issue) {
     async createDetail(innerClient, workItemId, payload) {
       await innerClient.query(
         `insert into suggestion_detail
-         (id, work_item_id, suggestion_type, confidence, impact_score, urgency_score, evidence, dedup_key,
+         (id, work_item_id, suggestion_type, confidence, "impactScore", "urgencyScore", evidence, dedup_key,
           source_type, source_ref_id, issue_id, reason, priority, source, is_converted, status)
          values ($1,$2,'RISK_MITIGATION',0.7,70,70,$3,$4,'ISSUE',$5,$5,$6,$7,'issue',false,'PENDING')`,
         [

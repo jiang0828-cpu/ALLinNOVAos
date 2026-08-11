@@ -201,6 +201,7 @@ export function queueLocalStoreSnapshotForSync() {
       body: JSON.stringify({
         workspaceId: goal.workspaceId || WORKSPACE_ID,
         title: goal.title,
+        externalRef: goal.externalRef || goal.id,
         description: goal.description,
         status: goal.status,
         priority: goal.priority,
@@ -224,6 +225,7 @@ export function queueLocalStoreSnapshotForSync() {
       body: JSON.stringify({
         workspaceId: project.workspaceId || WORKSPACE_ID,
         title: project.title,
+        externalRef: project.externalRef || project.id,
         description: project.description,
         status: project.status,
         priority: project.priority,
@@ -243,6 +245,7 @@ export function queueLocalStoreSnapshotForSync() {
       body: JSON.stringify({
         workspaceId: task.workspaceId || WORKSPACE_ID,
         title: task.title,
+        externalRef: task.externalRef || task.id,
         description: task.description,
         status: task.status,
         priority: task.priority,
@@ -263,6 +266,7 @@ export function queueLocalStoreSnapshotForSync() {
       body: JSON.stringify({
         workspaceId: issue.workspaceId || WORKSPACE_ID,
         title: issue.title,
+        externalRef: issue.externalRef || issue.id,
         description: issue.description || issue.issueDetail?.description,
         domainId: issue.domainId,
         level: issue.issueDetail?.level || issue.level,
