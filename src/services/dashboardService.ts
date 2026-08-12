@@ -20,8 +20,8 @@ export function getLocalDashboardSnapshot(
 
 /**
  * Fetch dashboard snapshot from the real API.
- * Falls back to mock data when the backend is unreachable
- * (so the UI still works during offline development).
+ * The command hub must reflect the online database, so API failures are surfaced
+ * instead of silently falling back to a local snapshot.
  */
 export async function getDashboardSnapshot(
   workspaceId: string = DEFAULT_WORKSPACE_ID,
@@ -43,11 +43,11 @@ export async function getDashboardSnapshot(
       dataSource: 'online',
     };
   } catch (err) {
+    console.warn('[dashboard] API unavailable:', (err as Error).message);
     if (typeof window !== 'undefined') {
-      return getLocalDashboardSnapshot(workspaceId);
+      throw err;
     }
 
-    console.warn('[dashboard] API and local store unavailable, falling back to mock:', (err as Error).message);
     return { ...mockSnapshot, dataSource: 'mock' };
   }
 }

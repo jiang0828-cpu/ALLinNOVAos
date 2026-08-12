@@ -11,7 +11,7 @@ import { OpenIssues } from './OpenIssues';
 import { LatestReview } from './LatestReview';
 import { AiSuggestion } from './AiSuggestion';
 import { DashboardSkeleton } from './Skeleton';
-import { getDashboardSnapshot, getLocalDashboardSnapshot } from '../services/dashboardService';
+import { getDashboardSnapshot } from '../services/dashboardService';
 import { createLocalBackup } from '../services/localBackupStore';
 import { acceptAndCreateTask } from '../services/suggestionService';
 
@@ -82,8 +82,7 @@ export function CommandHub({
 
   const loadData = useCallback(async (silent = false) => {
     if (!silent) {
-      const localData = getLocalDashboardSnapshot();
-      applySnapshot(localData);
+      setLoadState('loading');
     }
     setErrorMessage('');
 
