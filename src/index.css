@@ -606,6 +606,29 @@ button:disabled {
   background: var(--ghost-bg);
 }
 
+.focusItem.completed {
+  background: #f1f3f0;
+  border: 1px solid #d9dfd8;
+  color: #6f7b73;
+}
+
+.focusItem.completed:hover {
+  background: #ecefeb;
+}
+
+.focusItem.completed .priority {
+  background: #d8ded8;
+  color: #5f6c65;
+}
+
+.focusItem.completed h3 {
+  color: #657169;
+}
+
+.focusItem.completed p {
+  color: #7f8b84;
+}
+
 .priority {
   display: grid;
   place-items: center;

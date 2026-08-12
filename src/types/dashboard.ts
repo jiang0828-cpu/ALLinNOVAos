@@ -13,10 +13,10 @@ export type WorkItemType =
   | 'DECISION';
 
 // 优先级
-export type Priority = 'P0' | 'P1' | 'P2';
+export type Priority = 'P0' | 'P1' | 'P2' | 'P3';
 
 // 任务状态
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED';
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED' | 'CANCELLED';
 
 // 问题级别
 export type IssueLevel = 'HIGH' | 'MEDIUM' | 'LOW';
@@ -119,6 +119,8 @@ export interface DashboardSnapshot {
     priority: Priority;
     eta?: string;
     status: TaskStatus;
+    completedAt?: string | null;
+    actualMinutes?: number | null;
   }>;
 
   // 信息资讯 (Feeds)
@@ -186,6 +188,7 @@ export const PRIORITY_COLORS: Record<Priority, string> = {
   P0: '#173a34',
   P1: '#2d7768',
   P2: '#efd38f',
+  P3: '#dce6e1',
 } as const;
 
 // 分数颜色判定
@@ -198,5 +201,6 @@ export function getScoreColor(score: number): string {
 // 优先级文本颜色（P2 需金色文字）
 export function getPriorityTextColor(priority: Priority): string {
   if (priority === 'P2') return '#573a0a';
+  if (priority === 'P3') return '#52625d';
   return '#ffffff';
 }

@@ -582,6 +582,26 @@ function isSameLocalDate(value: string | undefined, reference = new Date()): boo
   );
 }
 
+function getPriorityRank(priority: unknown): number {
+  const ranks: Record<string, number> = { P0: 0, P1: 1, P2: 2, P3: 3 };
+  return ranks[String(priority || 'P2')] ?? 9;
+}
+
+function calculateTaskActualMinutes(task: StoreRecord): number | null {
+  const existing = task.taskDetail?.actualMinutes;
+  if (typeof existing === 'number' && Number.isFinite(existing) && existing > 0) return existing;
+
+  const startedAt = task.plannedStartAt || task.taskDetail?.scheduledStartAt;
+  const completedAt = task.completedAt;
+  if (!startedAt || !completedAt) return null;
+
+  const start = new Date(startedAt);
+  const end = new Date(completedAt);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) return null;
+
+  return Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
+}
+
 function clampScore(value: unknown): number {
   const numberValue = Number(value);
   if (Number.isNaN(numberValue)) return 0;
@@ -605,11 +625,19 @@ function normalizeDomainId(domainId: unknown): string {
 }
 
 function dashboardOverview(store: LocalStore) {
-  const openTasks = store.tasks.filter((task) => !task.deletedAt && task.status !== 'DONE' && task.status !== 'CANCELLED');
-  const todayTasks = openTasks.filter((task) => {
+  const activeTasks = store.tasks.filter((task) => !task.deletedAt && task.status !== 'CANCELLED');
+  const todayTasks = activeTasks.filter((task) => {
     const cycleId = String(task.cycleId || '').toLowerCase();
     const isDailyCycle = cycleId.includes('day') || cycleId.includes('daily');
-    return isDailyCycle || isSameLocalDate(getTaskDueDate(task));
+    return isDailyCycle || isSameLocalDate(getTaskDueDate(task)) || isSameLocalDate(task.completedAt);
+  }).sort((a, b) => {
+    const priorityDiff = getPriorityRank(a.priority) - getPriorityRank(b.priority);
+    if (priorityDiff !== 0) return priorityDiff;
+
+    const doneDiff = Number(a.status === 'DONE') - Number(b.status === 'DONE');
+    if (doneDiff !== 0) return doneDiff;
+
+    return String(a.title || '').localeCompare(String(b.title || ''), 'zh-CN');
   });
   const activeProjects = store.projects.filter((project) => !project.deletedAt);
   const openIssues = store.issues.filter((issue) => !issue.deletedAt && issue.status === 'OPEN');
@@ -636,12 +664,16 @@ function dashboardOverview(store: LocalStore) {
         getGoalProgress
       ),
     })),
-    todayFocus: todayTasks.slice(0, 4).map((task) => ({
+    todayFocus: todayTasks.slice(0, 8).map((task) => ({
       id: task.id,
       title: task.title,
       itemType: 'TASK',
       status: task.status,
       priority: task.priority || 'P1',
+      completedAt: task.completedAt,
+      taskDetail: {
+        actualMinutes: calculateTaskActualMinutes(task),
+      },
     })),
     activeProjects: activeProjects.slice(0, 4).map((project) => ({
       id: project.id,

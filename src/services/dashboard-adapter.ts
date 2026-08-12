@@ -21,6 +21,10 @@ export interface DashboardOverviewResponse {
     itemType: string;
     status?: string;
     priority?: string;
+    completedAt?: string | null;
+    taskDetail?: {
+      actualMinutes?: number | null;
+    };
   }>;
   activeProjects: Array<{
     id: string;
@@ -64,7 +68,7 @@ const DEFAULT_WORKSPACE_ID = 'ws_default';
  * Convert backend priority string to frontend Priority type.
  */
 function toPriority(raw: string | undefined): Priority {
-  if (raw === 'P0' || raw === 'P1' || raw === 'P2') return raw;
+  if (raw === 'P0' || raw === 'P1' || raw === 'P2' || raw === 'P3') return raw;
   return 'P1';
 }
 
@@ -74,6 +78,7 @@ function toTaskStatus(raw: string | undefined): TaskStatus {
     IN_PROGRESS: 'IN_PROGRESS',
     DONE: 'DONE',
     BLOCKED: 'BLOCKED',
+    CANCELLED: 'CANCELLED',
   };
   return map[raw ?? ''] ?? 'TODO';
 }
@@ -132,7 +137,7 @@ export function adaptBackendToSnapshot(
 
   // --- Today Focus ---
   const todayFocus = backend.todayFocus
-    .filter((t) => t.status !== 'DONE' && t.status !== 'CANCELLED')
+    .filter((t) => t.status !== 'CANCELLED')
     .map((t) => ({
       id: t.id,
       title: t.title,
@@ -140,6 +145,8 @@ export function adaptBackendToSnapshot(
       priority: toPriority(t.priority),
       eta: t.status,
       status: toTaskStatus(t.status),
+      completedAt: t.completedAt,
+      actualMinutes: t.taskDetail?.actualMinutes ?? null,
     }));
 
   // --- Feeds ---

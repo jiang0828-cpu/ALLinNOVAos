@@ -70,8 +70,7 @@ function toDate(value) {
 }
 
 function priority(value, fallback = 'P2') {
-  if (['P0', 'P1', 'P2'].includes(value)) return value;
-  if (value === 'P3') return 'P2';
+  if (['P0', 'P1', 'P2', 'P3'].includes(value)) return value;
   return fallback;
 }
 
@@ -903,14 +902,31 @@ async function dashboardOverview(client) {
       [WORKSPACE_ID]
     ),
     client.query(
-      `select wi.*, to_jsonb(td.*) as detail
+      `select wi.*,
+              to_jsonb(td.*) || jsonb_build_object(
+                'actual_minutes',
+                coalesce(
+                  td.actual_minutes,
+                  case
+                    when wi.completed_at is not null and wi.planned_start_at is not null
+                    then greatest(1, round(extract(epoch from (wi.completed_at - wi.planned_start_at)) / 60.0)::int)
+                    else null
+                  end
+                )
+              ) as detail
          from work_items wi
          join task_detail td on td.work_item_id = wi.id
-        where wi.workspace_id = $1 and wi."itemType" = 'TASK' and wi.deleted_at is null
-          and wi.status in ('TODO','IN_PROGRESS','BLOCKED')
-          and (wi.cycle_id = 'DAILY' or td.due_at::date = current_date)
-        order by coalesce(td.due_at, wi.updated_at) asc
-        limit 6`,
+         where wi.workspace_id = $1 and wi."itemType" = 'TASK' and wi.deleted_at is null
+           and wi.status in ('TODO','IN_PROGRESS','BLOCKED','DONE')
+           and (
+             wi.cycle_id = 'DAILY'
+             or td.due_at::date = current_date
+             or wi.completed_at::date = current_date
+           )
+        order by case wi.priority when 'P0' then 0 when 'P1' then 1 when 'P2' then 2 when 'P3' then 3 else 9 end,
+                 case when wi.status = 'DONE' then 1 else 0 end,
+                 coalesce(td.due_at, wi.completed_at, wi.updated_at) asc
+        limit 8`,
       [WORKSPACE_ID]
     ),
     client.query(
