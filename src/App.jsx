@@ -56,7 +56,7 @@ const REFRESH_EVENTS = {
 const NAV_ITEMS = [
   { route: '/#commandhub', icon: LayoutDashboard, label: '全局指挥台', section: '概览' },
   { route: '/#systems-os', icon: BriefcaseBusiness, label: '五大系统OS', section: '概览' },
-  { route: '/#data-management', icon: Database, label: '数据管理', section: '概览' },
+  { route: '/#data-management', icon: Database, label: '要素管理', section: '概览' },
   { route: '/#ai-command', icon: Command, label: 'AI指令区', section: '概览' },
   { route: ROUTES.GOALS, icon: Target, label: '目标', section: '工作台' },
   { route: ROUTES.PROJECTS, icon: FolderKanban, label: '项目', section: '工作台' },
@@ -458,15 +458,15 @@ function DashboardHome({ onDateUpdate, onNavigate, theme, onThemeToggle }) {
 
       <section id="data-management" className="roadmap dashboardAnchor" aria-labelledby="roadmap-title">
         <div>
-          <span className="sectionEyebrow">DATA MANAGEMENT</span>
-          <h2 id="roadmap-title">数据管理</h2>
+          <span className="sectionEyebrow">ELEMENT MANAGEMENT</span>
+          <h2 id="roadmap-title">要素管理</h2>
         </div>
         <div className="roadmapTrack">
-          <span className="current">Local JSON</span>
-          <span>REST API</span>
-          <span>Database</span>
-          <span>AI Agent</span>
-          <span>Automation Engine</span>
+          <span className="current">信息要素/流</span>
+          <span>物质要素/流</span>
+          <span>能量要素/流</span>
+          <span>文档管理</span>
+          <span>其他要素</span>
         </div>
       </section>
 

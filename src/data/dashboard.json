@@ -226,10 +226,10 @@
     }
   ],
   "roadmap": [
-    "Local JSON",
-    "REST API",
-    "Database",
-    "AI Agent",
-    "Automation Engine"
+    "信息要素/流",
+    "物质要素/流",
+    "能量要素/流",
+    "文档管理",
+    "其他要素"
   ]
 }

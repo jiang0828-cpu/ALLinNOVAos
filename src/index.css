@@ -5655,7 +5655,7 @@ body {
 }
 
 .roadmap > div:first-child::after {
-  content: "统一管理数据接入路径，保留 Local JSON、REST API、Database、AI Agent、Automation Engine 演进入口。";
+  content: "统一管理信息、物质、能量、文档与其他关键要素，预留后续流转接口。";
 }
 
 .commandCenter .commandHeader > div::after {
