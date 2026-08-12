@@ -20,8 +20,8 @@ export function getLocalDashboardSnapshot(
 
 /**
  * Fetch dashboard snapshot from the real API.
- * The command hub must reflect the online database, so API failures are surfaced
- * instead of silently falling back to a local snapshot.
+ * Static deployments should still render when the online API is temporarily
+ * unreachable from the visitor's browser, so read failures fall back locally.
  */
 export async function getDashboardSnapshot(
   workspaceId: string = DEFAULT_WORKSPACE_ID,
@@ -45,7 +45,7 @@ export async function getDashboardSnapshot(
   } catch (err) {
     console.warn('[dashboard] API unavailable:', (err as Error).message);
     if (typeof window !== 'undefined') {
-      throw err;
+      return getLocalDashboardSnapshot(workspaceId);
     }
 
     return { ...mockSnapshot, dataSource: 'mock' };
