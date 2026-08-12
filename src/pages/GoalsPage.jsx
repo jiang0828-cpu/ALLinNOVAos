@@ -89,7 +89,7 @@ export function GoalsPage() {
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [cycleFilter, setCycleFilter] = useState('ALL');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
@@ -102,8 +102,9 @@ export function GoalsPage() {
 
     try {
       const response = await getGoals(filters);
-      setGoals(Array.isArray(response.data) ? response.data : []);
-      setTotal(Number(response.total ?? response.data?.length ?? 0));
+      const items = Array.isArray(response.data) ? response.data : [];
+      setGoals(items);
+      setTotal(Number(response.total ?? items.length ?? 0));
     } catch (err) {
       setError(err);
       console.error('[GoalsPage] Failed to load goals:', err);
@@ -213,22 +214,6 @@ export function GoalsPage() {
     setCycleFilter('ALL');
   };
 
-  if (loading) {
-    return (
-      <div className="goalsPage">
-        <div className="goalsPageSkeleton">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="goalSkeletonCard">
-              <div className="skeleton skeleton-line" style={{ width: '40%' }} />
-              <div className="skeleton skeleton-line" style={{ width: '80%' }} />
-              <div className="skeleton skeleton-line" style={{ width: '60%' }} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="goalsPage">
       <div className="goalsPageHeader">
@@ -259,6 +244,65 @@ export function GoalsPage() {
         </div>
       </div>
 
+      <GoalControlSummary summary={goalSummary} />
+
+      <div className="goalsFilters">
+        <div className="filterGroup">
+          <span className="filterLabel">周期</span>
+          {CYCLE_OPTIONS.map((cycle) => (
+            <button
+              key={cycle.key}
+              className={`filterChip ${cycleFilter === cycle.key ? 'active' : ''}`}
+              onClick={() => setCycleFilter(cycle.key)}
+            >
+              {cycle.shortLabel}
+            </button>
+          ))}
+        </div>
+        <div className="filterGroup">
+          <span className="filterLabel">状态</span>
+          {Object.entries(GOAL_STATUS_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              className={`filterChip ${filters.status.includes(key) ? 'active' : ''}`}
+              onClick={() => toggleStatusFilter(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="filterGroup">
+          <span className="filterLabel">优先级</span>
+          {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              className={`filterChip ${filters.priority.includes(key) ? 'active' : ''}`}
+              onClick={() => togglePriorityFilter(key)}
+            >
+              {key} · {label}
+            </button>
+          ))}
+        </div>
+        <div className="filterGroup">
+          <span className="filterLabel">领域</span>
+          <select
+            className="filterSelect"
+            value={filters.domainId || ''}
+            onChange={(e) => setFilters((prev) => ({ ...prev, domainId: e.target.value || undefined }))}
+          >
+            <option value="">全部领域</option>
+            {DOMAIN_OPTIONS.map((d) => (
+              <option key={d.id} value={d.id}>{d.label}</option>
+            ))}
+          </select>
+        </div>
+        {(filters.status.length > 0 || filters.priority.length > 0 || filters.domainId || cycleFilter !== 'ALL') && (
+          <button className="resetButton" onClick={handleResetFilters}>
+            重置筛选
+          </button>
+        )}
+      </div>
+
       {error && (
         <div className="errorState">
           <AlertCircle size={48} />
@@ -270,92 +314,41 @@ export function GoalsPage() {
         </div>
       )}
 
-      {!error && (
-        <>
-          <GoalControlSummary summary={goalSummary} />
+      {!error && loading && goals.length === 0 && (
+        <div className="goalsPageSkeleton">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="goalSkeletonCard">
+              <div className="skeleton skeleton-line" style={{ width: '40%' }} />
+              <div className="skeleton skeleton-line" style={{ width: '80%' }} />
+              <div className="skeleton skeleton-line" style={{ width: '60%' }} />
+            </div>
+          ))}
+        </div>
+      )}
 
-          <div className="goalsFilters">
-            <div className="filterGroup">
-              <span className="filterLabel">周期</span>
-              {CYCLE_OPTIONS.map((cycle) => (
-                <button
-                  key={cycle.key}
-                  className={`filterChip ${cycleFilter === cycle.key ? 'active' : ''}`}
-                  onClick={() => setCycleFilter(cycle.key)}
-                >
-                  {cycle.shortLabel}
-                </button>
-              ))}
-            </div>
-            <div className="filterGroup">
-              <span className="filterLabel">状态</span>
-              {Object.entries(GOAL_STATUS_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  className={`filterChip ${filters.status.includes(key) ? 'active' : ''}`}
-                  onClick={() => toggleStatusFilter(key)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="filterGroup">
-              <span className="filterLabel">优先级</span>
-              {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  className={`filterChip ${filters.priority.includes(key) ? 'active' : ''}`}
-                  onClick={() => togglePriorityFilter(key)}
-                >
-                  {key} · {label}
-                </button>
-              ))}
-            </div>
-            <div className="filterGroup">
-              <span className="filterLabel">领域</span>
-              <select
-                className="filterSelect"
-                value={filters.domainId || ''}
-                onChange={(e) => setFilters((prev) => ({ ...prev, domainId: e.target.value || undefined }))}
-              >
-                <option value="">全部领域</option>
-                {DOMAIN_OPTIONS.map((d) => (
-                  <option key={d.id} value={d.id}>{d.label}</option>
-                ))}
-              </select>
-            </div>
-            {(filters.status.length > 0 || filters.priority.length > 0 || filters.domainId || cycleFilter !== 'ALL') && (
-              <button className="resetButton" onClick={handleResetFilters}>
-                重置筛选
-              </button>
-            )}
-          </div>
+      {!error && !loading && visibleGoals.length === 0 && (
+        <div className="emptyState">
+          <Target size={48} />
+          <h3>暂无目标</h3>
+          <p>点击“新建目标”，从年度、月度或本周重点开始。</p>
+          <button className="primaryButton" onClick={() => setIsCreateModalOpen(true)}>
+            <Plus size={16} />
+            新建目标
+          </button>
+        </div>
+      )}
 
-          {visibleGoals.length === 0 && (
-            <div className="emptyState">
-              <Target size={48} />
-              <h3>暂无目标</h3>
-              <p>点击“新建目标”，从年度、月度或本周重点开始。</p>
-              <button className="primaryButton" onClick={() => setIsCreateModalOpen(true)}>
-                <Plus size={16} />
-                新建目标
-              </button>
-            </div>
-          )}
-
-          {visibleGoals.length > 0 && (
-            <div className="goalsList">
-              {visibleGoals.map((goal) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  onEdit={setEditingGoal}
-                  onDelete={handleDeleteGoal}
-                />
-              ))}
-            </div>
-          )}
-        </>
+      {!error && visibleGoals.length > 0 && (
+        <div className="goalsList">
+          {visibleGoals.map((goal) => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              onEdit={setEditingGoal}
+              onDelete={handleDeleteGoal}
+            />
+          ))}
+        </div>
       )}
 
       {isCreateModalOpen && (
