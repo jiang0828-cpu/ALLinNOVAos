@@ -465,7 +465,13 @@ function DashboardHome({ onDateUpdate, onNavigate, theme, onThemeToggle }) {
           <span className="current">信息要素/流</span>
           <span>物质要素/流</span>
           <span>能量要素/流</span>
-          <span>文档管理</span>
+          <a
+            href="https://ncnpindf9n8d.feishu.cn/drive/home/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            文档管理
+          </a>
           <span>其他要素</span>
         </div>
       </section>

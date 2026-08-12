@@ -1250,7 +1250,8 @@ button:disabled {
   gap: 8px;
 }
 
-.roadmapTrack span {
+.roadmapTrack span,
+.roadmapTrack a {
   border-radius: 8px;
   padding: 12px 10px;
   text-align: center;
@@ -1258,11 +1259,17 @@ button:disabled {
   background: var(--chip-bg);
   font-size: 13px;
   font-weight: 700;
+  text-decoration: none;
 }
 
 .roadmapTrack .current {
   color: var(--brand-contrast);
   background: var(--brand);
+}
+
+.roadmapTrack a:hover {
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand), transparent 64%);
 }
 
 .modalOverlay {
@@ -5930,7 +5937,8 @@ body {
   border-style: dashed;
 }
 
-.roadmapTrack span {
+.roadmapTrack span,
+.roadmapTrack a {
   min-height: 42px;
 }
 
