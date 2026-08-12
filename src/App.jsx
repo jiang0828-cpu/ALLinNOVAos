@@ -91,6 +91,7 @@ const SYSTEM_ENTRIES = [
     metrics: ['重点项目', '今日任务', '客户跟进', '进度'],
     links: [
       { label: '市场工作', href: 'https://m0-marketingcloud.pages.dev/' },
+      { label: '自媒体运营', href: '#' },
       { label: '广和事业', href: 'https://guanghe-zhongan-healthcare.pages.dev/meeting' },
       { label: '其他业务', href: '#' },
     ],
@@ -365,7 +366,7 @@ function BottomNav({ currentPath, currentHash, onNavigate }) {
   );
 }
 
-function DashboardHome({ onDateUpdate, onNavigate, lastUpdatedAt, theme, onThemeToggle }) {
+function DashboardHome({ onDateUpdate, onNavigate, theme, onThemeToggle }) {
   const [activeCommand, setActiveCommand] = useState(QUICK_COMMANDS[0]);
   const [commandText, setCommandText] = useState('');
   const [doneActions, setDoneActions] = useState(() => new Set([SAMPLE_ACTIONS[2]]));
@@ -385,11 +386,10 @@ function DashboardHome({ onDateUpdate, onNavigate, lastUpdatedAt, theme, onTheme
   return (
     <div className="dashboardHome">
       <div id="commandhub" className="dashboardAnchor">
-        <CommandHub
-          onDateUpdate={onDateUpdate}
-          lastUpdatedAt={lastUpdatedAt}
-          theme={theme}
-          onThemeToggle={onThemeToggle}
+          <CommandHub
+            onDateUpdate={onDateUpdate}
+            theme={theme}
+            onThemeToggle={onThemeToggle}
           onOpenGoals={() => onNavigate?.(ROUTES.GOALS)}
           onOpenTasks={() => onNavigate?.(ROUTES.TASKS)}
           onOpenIssues={() => onNavigate?.(ROUTES.ISSUES)}
@@ -573,7 +573,6 @@ export default function App() {
     if (saved === 'light' || saved === 'dark') return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
-  const [lastUpdatedAt, setLastUpdatedAt] = useState('');
   const [routeInfo, setRouteInfo] = useState(() => parseRoute(`${window.location.pathname}${window.location.hash}`));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -662,9 +661,7 @@ export default function App() {
     switch (routeInfo.route) {
       case ROUTES.DASHBOARD:
         return <DashboardHome
-            onDateUpdate={setLastUpdatedAt}
             onNavigate={handleNavigate}
-            lastUpdatedAt={lastUpdatedAt}
             theme={theme}
             onThemeToggle={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
           />;
@@ -697,9 +694,7 @@ export default function App() {
         );
       default:
         return <DashboardHome
-            onDateUpdate={setLastUpdatedAt}
             onNavigate={handleNavigate}
-            lastUpdatedAt={lastUpdatedAt}
             theme={theme}
             onThemeToggle={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
           />;

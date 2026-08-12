@@ -17,7 +17,6 @@ import { acceptAndCreateTask } from '../services/suggestionService';
 
 interface CommandHubProps {
   onDateUpdate?: (date: string) => void;
-  lastUpdatedAt?: string;
   theme?: 'light' | 'dark';
   onThemeToggle?: () => void;
   onOpenGoals?: () => void;
@@ -44,7 +43,6 @@ function formatHeaderDate(value?: string) {
 
 export function CommandHub({
   onDateUpdate,
-  lastUpdatedAt,
   theme = 'light',
   onThemeToggle,
   onOpenGoals,
@@ -58,6 +56,7 @@ export function CommandHub({
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [currentClock, setCurrentClock] = useState(() => new Date().toISOString());
 
   const applySnapshot = useCallback((data: DashboardSnapshot) => {
     const hasData =
@@ -99,6 +98,13 @@ export function CommandHub({
     }, 30_000);
     return () => window.clearInterval(timer);
   }, [loadData]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentClock(new Date().toISOString());
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // 监听其他页面触发的刷新事件，同步更新 Dashboard。
   useEffect(() => {
@@ -219,7 +225,7 @@ export function CommandHub({
           <div className="commandHubTimeTools">
             <div className="datePill">
               <CalendarDays size={16} />
-              {formatHeaderDate(lastUpdatedAt || snapshot.generatedAt)}
+              {formatHeaderDate(currentClock)}
             </div>
             <button
               className="iconButton"

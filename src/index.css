@@ -387,6 +387,15 @@ button:disabled {
   background: var(--chip-bg);
 }
 
+.scorePanel.isClickable {
+  cursor: pointer;
+}
+
+.scorePanel.isClickable:focus-visible {
+  outline: 3px solid rgba(23, 138, 111, 0.22);
+  outline-offset: 3px;
+}
+
 .textLinkButton {
   border: 0;
   background: transparent;

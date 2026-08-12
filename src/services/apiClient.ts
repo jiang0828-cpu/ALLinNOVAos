@@ -15,7 +15,7 @@ function getDefaultApiBase(): string {
   const isCloudflarePages = hostname.endsWith('.pages.dev');
 
   if (isLocalHost && isVitePreview) {
-    return `${protocol}//${hostname}:3003/api`;
+    return 'https://allinnovaos.vercel.app/api';
   }
 
   if (isCloudflarePages) {
