@@ -55,13 +55,15 @@ function getCycleLabel(goal) {
 }
 
 function getKeyElement(description = '') {
-  const match = description.match(/【关键要素】(.+)/);
+  const text = String(description || '');
+  const match = text.match(/【关键要素】(.+)/);
   return match?.[1]?.trim();
 }
 
 function getElementNote(description = '') {
-  const match = description.match(/【要素说明】([\s\S]+)/);
-  return match?.[1]?.trim() || description.replace(/【关键要素】.+/, '').trim();
+  const text = String(description || '');
+  const match = text.match(/【要素说明】([\s\S]+)/);
+  return match?.[1]?.trim() || text.replace(/【关键要素】.+/, '').trim();
 }
 
 function summarizeGoals(goals, cycleType) {

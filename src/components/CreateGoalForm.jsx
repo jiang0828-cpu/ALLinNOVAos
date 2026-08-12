@@ -63,11 +63,12 @@ function dateInputValue(value) {
 }
 
 function parseGoalDescription(description = '') {
-  const keyMatch = description.match(/【关键要素】(.+)/);
-  const noteMatch = description.match(/【要素说明】([\s\S]+)/);
+  const text = String(description || '');
+  const keyMatch = text.match(/【关键要素】(.+)/);
+  const noteMatch = text.match(/【要素说明】([\s\S]+)/);
   return {
     keyElement: keyMatch?.[1]?.trim() || '目标结果',
-    note: noteMatch?.[1]?.trim() || description.replace(/【关键要素】.+/, '').trim() || '',
+    note: noteMatch?.[1]?.trim() || text.replace(/【关键要素】.+/, '').trim() || '',
   };
 }
 
