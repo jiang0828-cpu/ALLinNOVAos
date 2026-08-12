@@ -178,7 +178,7 @@ export function CommandHub({
           <Inbox size={48} />
           <h3>暂无数据</h3>
           <p>系统中还没有任何数据，可以先创建目标和任务。</p>
-          <button className="primaryButton" style={{ maxWidth: 200 }}>
+          <button className="primaryButton" style={{ maxWidth: 200 }} onClick={onOpenGoals}>
             创建第一个目标
           </button>
         </div>

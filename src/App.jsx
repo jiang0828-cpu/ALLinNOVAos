@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { Component, useEffect, useState, useCallback } from 'react';
 import {
   Command,
   LayoutDashboard,
@@ -567,6 +567,51 @@ function EnhancedToastPortal({ toasts, onDismiss }) {
   );
 }
 
+class AppErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('[AppErrorBoundary] Render failed:', error, info);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="appErrorFallback">
+          <div>
+            <span className="sectionEyebrow">NOVA OS</span>
+            <h1>页面加载异常</h1>
+            <p>{this.state.error?.message || '当前页面渲染失败，请刷新或返回首页。'}</p>
+            <div className="appErrorActions">
+              <button type="button" className="primaryButton" onClick={() => window.location.reload()}>
+                重新加载
+              </button>
+              <button type="button" className="secondaryButton" onClick={() => window.location.assign('/')}>
+                返回首页
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [theme, setTheme] = useState(() => {
     const saved = window.localStorage.getItem('nova-theme');
@@ -577,7 +622,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [entered, setEntered] = useState(() => {
-    return window.localStorage.getItem('nova-entered') === 'true';
+    return window.localStorage.getItem('nova-entered') !== 'false';
   });
 
   const currentPath = routeInfo.route;
@@ -587,6 +632,10 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     window.localStorage.setItem('nova-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    window.localStorage.setItem('nova-entered', 'true');
+  }, []);
 
   const handleNavigate = useCallback((path) => {
     window.history.pushState({}, '', path);
@@ -740,7 +789,9 @@ export default function App() {
           </header>
 
           <div className="pageContent">
-            {renderPage()}
+            <AppErrorBoundary resetKey={`${currentPath}${currentHash}`}>
+              {renderPage()}
+            </AppErrorBoundary>
           </div>
 
           <BottomNav currentPath={currentPath} currentHash={currentHash} onNavigate={handleNavigate} />

@@ -1515,6 +1515,40 @@ button:disabled {
   font-size: 14px;
 }
 
+.appErrorFallback {
+  min-height: 64vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.appErrorFallback > div {
+  width: min(520px, 100%);
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.appErrorFallback h1 {
+  margin: 8px 0;
+  font-size: 24px;
+}
+
+.appErrorFallback p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.appErrorActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
 /* ============ 后端状态徽章 ============ */
 .commandHubControls {
   display: flex;
