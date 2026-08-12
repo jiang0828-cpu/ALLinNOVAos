@@ -131,6 +131,7 @@ export interface DashboardSnapshot {
       source: string;
       time: string;
       title: string;
+      url?: string;
     }>;
     // IDEAS — 灵感
     ideas: Array<{

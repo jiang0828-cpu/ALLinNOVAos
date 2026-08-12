@@ -63,6 +63,20 @@ export interface DashboardOverviewResponse {
 
 /** Default workspace ID for local dev */
 const DEFAULT_WORKSPACE_ID = 'ws_default';
+const M2NEWS_LATEST_URL = 'https://lifeos-personal-manager.github.io/M2news/news/latest.html';
+const TODAY_TOP_NEWS = [
+  '中国第九批赴南苏丹（朱巴）维和步兵营完成指挥权交接',
+  '习近平将向《生物多样性公约》第十五次缔约方大会第二阶段高级别会议开幕式致辞',
+  '学习进行时｜二十大后重要外交活动，这些关键词习近平总书记反复提及',
+  '中国多家驻土机构参加土耳其创新周',
+  '匈牙利说就解冻恢复基金与欧盟达成协议',
+].map((title, index) => ({
+  id: `m2news-today-${index + 1}`,
+  source: 'M2NEWS',
+  time: '今日大事',
+  title,
+  url: M2NEWS_LATEST_URL,
+}));
 
 /**
  * Convert backend priority string to frontend Priority type.
@@ -169,7 +183,7 @@ export function adaptBackendToSnapshot(
   // --- Feeds ---
   // 信息资讯模块保持独立 API 预留，不再同步问题、建议或项目数据。
   // 后续接入资讯服务时，可在这里改为读取 news/ideas/plans 专用 DTO。
-  const news: Array<{ id: string; source: string; time: string; title: string }> = [];
+  const news: Array<{ id: string; source: string; time: string; title: string; url?: string }> = TODAY_TOP_NEWS;
   const ideas: Array<{ id: string; title: string }> = [];
   const plans: Array<{ id: string; title: string; progress: number }> = [];
 

@@ -12,18 +12,21 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
       source: item.source || 'NEWS',
       time: item.time || '最新',
       title: item.title,
+      url: item.url,
     })),
     ...feeds.ideas.map((item) => ({
       id: `idea-${item.id}`,
       source: '要闻',
       time: '观点',
       title: item.title,
+      url: undefined,
     })),
     ...feeds.plans.map((item) => ({
       id: `plan-${item.id}`,
       source: '要闻',
       time: `${item.progress}%`,
       title: item.title,
+      url: undefined,
     })),
   ].filter((item) => item.title);
 
@@ -51,7 +54,14 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
               </div>
             ) : (
               newsItems.slice(0, 5).map((item) => (
-                <a key={item.id} href="#" className="feedItem news" onClick={(event) => event.preventDefault()}>
+                <a
+                  key={item.id}
+                  href={item.url || '#'}
+                  className="feedItem news"
+                  target={item.url ? '_blank' : undefined}
+                  rel={item.url ? 'noreferrer' : undefined}
+                  onClick={item.url ? undefined : (event) => event.preventDefault()}
+                >
                   <div className="feedMeta">
                     <span className="feedSource">{item.source}</span>
                     <span className="feedTime">{item.time}</span>
