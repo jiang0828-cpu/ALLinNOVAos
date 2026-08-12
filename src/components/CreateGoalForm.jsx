@@ -36,7 +36,7 @@ function getWeekNumber(date) {
   const dayNumber = target.getUTCDay() || 7;
   target.setUTCDate(target.getUTCDate() + 4 - dayNumber);
   const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-  return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+  return Math.ceil(((target - yearStart) / 86400000 + 1) / 7);
 }
 
 function buildCycleId(cycleType, targetDate) {
@@ -67,7 +67,7 @@ function parseGoalDescription(description = '') {
   const noteMatch = description.match(/【要素说明】([\s\S]+)/);
   return {
     keyElement: keyMatch?.[1]?.trim() || '目标结果',
-    note: noteMatch?.[1]?.trim() || description || '',
+    note: noteMatch?.[1]?.trim() || description.replace(/【关键要素】.+/, '').trim() || '',
   };
 }
 
@@ -96,8 +96,12 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const updateField = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (!formData.title.trim()) {
       setError('请输入目标标题');
       return;
@@ -134,13 +138,13 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
 
   return (
     <div className="modalOverlay" onClick={onClose}>
-      <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+      <div className="modalContent" onClick={(event) => event.stopPropagation()}>
         <div className="modalHeader">
           <div className="modalTitle">
             <Target size={20} />
             <h2>{isEdit ? '编辑目标' : '创建新目标'}</h2>
           </div>
-          <button className="modalClose" onClick={onClose}>
+          <button className="modalClose" type="button" onClick={onClose} aria-label="关闭">
             <X size={18} />
           </button>
         </div>
@@ -151,8 +155,8 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="例如：完成 Work OS 重点项目推进"
+              onChange={(event) => updateField('title', event.target.value)}
+              placeholder="例如：完成本月重点项目推进"
               autoFocus
             />
           </div>
@@ -160,23 +164,17 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
           <div className="formRow">
             <div className="formGroup">
               <label>所属领域</label>
-              <select
-                value={formData.domainId}
-                onChange={(e) => setFormData({ ...formData, domainId: e.target.value })}
-              >
+              <select value={formData.domainId} onChange={(event) => updateField('domainId', event.target.value)}>
                 <option value="">未分类</option>
-                {DOMAIN_OPTIONS.map((d) => (
-                  <option key={d.id} value={d.id}>{d.label}</option>
+                {DOMAIN_OPTIONS.map((domain) => (
+                  <option key={domain.id} value={domain.id}>{domain.label}</option>
                 ))}
               </select>
             </div>
 
             <div className="formGroup">
               <label>关键要素</label>
-              <select
-                value={formData.keyElement}
-                onChange={(e) => setFormData({ ...formData, keyElement: e.target.value })}
-              >
+              <select value={formData.keyElement} onChange={(event) => updateField('keyElement', event.target.value)}>
                 {KEY_ELEMENT_OPTIONS.map((item) => (
                   <option key={item} value={item}>{item}</option>
                 ))}
@@ -188,7 +186,7 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
             <label>要素说明</label>
             <textarea
               value={formData.elementNote}
-              onChange={(e) => setFormData({ ...formData, elementNote: e.target.value })}
+              onChange={(event) => updateField('elementNote', event.target.value)}
               placeholder="说明当前目标的起点、结果、障碍或执行方案，保持一到三句话即可。"
             />
           </div>
@@ -196,14 +194,14 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
           <div className="formGroup">
             <label>周期</label>
             <div className="prioritySelect">
-              {CYCLE_OPTIONS.map((opt) => (
+              {CYCLE_OPTIONS.map((option) => (
                 <button
-                  key={opt.value}
+                  key={option.value}
                   type="button"
-                  className={`priorityOption ${formData.cycleType === opt.value ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, cycleType: opt.value })}
+                  className={`priorityOption ${formData.cycleType === option.value ? 'active' : ''}`}
+                  onClick={() => updateField('cycleType', option.value)}
                 >
-                  {opt.label}
+                  {option.label}
                 </button>
               ))}
             </div>
@@ -212,14 +210,14 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
           <div className="formGroup">
             <label>优先级</label>
             <div className="prioritySelect">
-              {PRIORITY_OPTIONS.map((opt) => (
+              {PRIORITY_OPTIONS.map((option) => (
                 <button
-                  key={opt.value}
+                  key={option.value}
                   type="button"
-                  className={`priorityOption ${formData.priority === opt.value ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, priority: opt.value })}
+                  className={`priorityOption ${formData.priority === option.value ? 'active' : ''}`}
+                  onClick={() => updateField('priority', option.value)}
                 >
-                  {opt.value} · {opt.label}
+                  {option.value} · {option.label}
                 </button>
               ))}
             </div>
@@ -233,7 +231,7 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
                 <input
                   type="date"
                   value={formData.targetDate}
-                  onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+                  onChange={(event) => updateField('targetDate', event.target.value)}
                 />
               </div>
             </div>
@@ -245,7 +243,7 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
                 min="0"
                 max="100"
                 value={formData.progress}
-                onChange={(e) => setFormData({ ...formData, progress: Number(e.target.value) })}
+                onChange={(event) => updateField('progress', Number(event.target.value))}
               />
             </div>
           </div>
@@ -253,10 +251,7 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
           {isEdit && (
             <div className="formGroup">
               <label>状态</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              >
+              <select value={formData.status} onChange={(event) => updateField('status', event.target.value)}>
                 {STATUS_OPTIONS.map((status) => (
                   <option key={status} value={status}>
                     {GOAL_STATUS_LABELS[status] || status}
@@ -266,9 +261,7 @@ export function CreateGoalForm({ goal, onCreate, onUpdate, onClose }) {
             </div>
           )}
 
-          {error && (
-            <div className="formError">{error}</div>
-          )}
+          {error && <div className="formError">{error}</div>}
 
           <div className="formActions">
             <button type="button" className="secondaryButton" onClick={onClose}>

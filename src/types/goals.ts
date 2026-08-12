@@ -86,6 +86,7 @@ export interface UpdateGoalPayload {
   status?: GoalStatus;
   priority?: GoalPriority;
   domainId?: string;
+  cycleId?: string;
   plannedStartAt?: string;
   plannedEndAt?: string;
   progress?: number;

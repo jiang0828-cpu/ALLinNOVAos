@@ -41,6 +41,14 @@ function formatHeaderDate(value?: string) {
   }).format(new Date(value));
 }
 
+function getDaysUntilEndDate(value?: string) {
+  const now = value ? new Date(value) : new Date();
+  const target = new Date('2072-08-28T00:00:00+08:00');
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const targetStart = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  return Math.max(0, Math.ceil((targetStart - todayStart) / 86400000));
+}
+
 export function CommandHub({
   onDateUpdate,
   theme = 'light',
@@ -57,6 +65,7 @@ export function CommandHub({
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [currentClock, setCurrentClock] = useState(() => new Date().toISOString());
+  const daysUntilEnd = getDaysUntilEndDate(currentClock);
 
   const applySnapshot = useCallback((data: DashboardSnapshot) => {
     const hasData =
@@ -226,6 +235,9 @@ export function CommandHub({
             <div className="datePill">
               <CalendarDays size={16} />
               {formatHeaderDate(currentClock)}
+            </div>
+            <div className="countdownPill" title="距离 2072-08-28">
+              {daysUntilEnd} 天
             </div>
             <button
               className="iconButton"

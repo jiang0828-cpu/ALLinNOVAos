@@ -139,6 +139,7 @@ button:disabled {
 .brand,
 .topActions,
 .datePill,
+.countdownPill,
 .globalSearch,
 .panel,
 .scorePanel,
@@ -247,12 +248,14 @@ button:disabled {
 }
 
 .datePill,
+.countdownPill,
 .iconButton {
   height: 36px;
   border-radius: 8px;
 }
 
-.datePill {
+.datePill,
+.countdownPill {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -260,6 +263,14 @@ button:disabled {
   font-size: 13px;
   color: var(--text-soft);
   box-shadow: none;
+}
+
+.countdownPill {
+  color: #fff7e4;
+  background: rgba(218, 158, 43, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .iconButton {
@@ -5705,6 +5716,7 @@ body {
 .brand,
 .topActions,
 .datePill,
+.countdownPill,
 .globalSearch {
   backdrop-filter: blur(18px);
 }

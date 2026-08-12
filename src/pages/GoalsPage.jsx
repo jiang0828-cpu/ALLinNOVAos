@@ -71,6 +71,7 @@ function summarizeGoals(goals, cycleType) {
     items.length === 0
       ? 0
       : Math.round(items.reduce((sum, goal) => sum + getGoalProgress(goal), 0) / items.length);
+
   return {
     count: items.length,
     activeCount: activeItems.length,
@@ -136,12 +137,13 @@ export function GoalsPage() {
 
   const visibleGoals = useMemo(() => {
     return goals.filter((goal) => {
+      if (filters.status.length > 0 && !filters.status.includes(goal.status)) return false;
       if (filters.priority.length > 0 && !filters.priority.includes(goal.priority)) return false;
       if (filters.domainId && goal.domainId !== filters.domainId) return false;
       if (cycleFilter !== 'ALL' && getGoalCycleType(goal) !== cycleFilter) return false;
       return true;
     });
-  }, [goals, filters.priority, filters.domainId, cycleFilter]);
+  }, [goals, filters.status, filters.priority, filters.domainId, cycleFilter]);
 
   const goalSummary = useMemo(() => {
     const yearly = summarizeGoals(goals, 'YEARLY');
@@ -182,7 +184,7 @@ export function GoalsPage() {
     if (!window.confirm('确定删除这个目标吗？')) return;
     try {
       await deleteGoal(goalId);
-      setGoals((prev) => prev.filter((g) => g.id !== goalId));
+      setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
       setTotal((prev) => Math.max(0, prev - 1));
       syncDashboardAfterGoalChange();
     } catch (err) {
@@ -195,7 +197,7 @@ export function GoalsPage() {
     setFilters((prev) => ({
       ...prev,
       status: prev.status.includes(status)
-        ? prev.status.filter((s) => s !== status)
+        ? prev.status.filter((item) => item !== status)
         : [...prev.status, status],
     }));
   };
@@ -204,7 +206,7 @@ export function GoalsPage() {
     setFilters((prev) => ({
       ...prev,
       priority: prev.priority.includes(priority)
-        ? prev.priority.filter((p) => p !== priority)
+        ? prev.priority.filter((item) => item !== priority)
         : [...prev.priority, priority],
     }));
   };
@@ -226,18 +228,10 @@ export function GoalsPage() {
           </span>
         </div>
         <div className="goalsPageActions">
-          <button
-            className="iconButton"
-            onClick={loadGoals}
-            disabled={isRefreshing}
-            title="刷新"
-          >
+          <button className="iconButton" onClick={loadGoals} disabled={isRefreshing} title="刷新">
             <RefreshCw size={18} className={isRefreshing ? 'spin' : ''} />
           </button>
-          <button
-            className="primaryButton"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
+          <button className="primaryButton" onClick={() => setIsCreateModalOpen(true)}>
             <Plus size={18} />
             新建目标
           </button>
@@ -288,11 +282,11 @@ export function GoalsPage() {
           <select
             className="filterSelect"
             value={filters.domainId || ''}
-            onChange={(e) => setFilters((prev) => ({ ...prev, domainId: e.target.value || undefined }))}
+            onChange={(event) => setFilters((prev) => ({ ...prev, domainId: event.target.value || undefined }))}
           >
             <option value="">全部领域</option>
-            {DOMAIN_OPTIONS.map((d) => (
-              <option key={d.id} value={d.id}>{d.label}</option>
+            {DOMAIN_OPTIONS.map((domain) => (
+              <option key={domain.id} value={domain.id}>{domain.label}</option>
             ))}
           </select>
         </div>
@@ -316,8 +310,8 @@ export function GoalsPage() {
 
       {!error && loading && goals.length === 0 && (
         <div className="goalsPageSkeleton">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="goalSkeletonCard">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="goalSkeletonCard">
               <div className="skeleton skeleton-line" style={{ width: '40%' }} />
               <div className="skeleton skeleton-line" style={{ width: '80%' }} />
               <div className="skeleton skeleton-line" style={{ width: '60%' }} />
@@ -443,9 +437,7 @@ function GoalCard({ goal, onEdit, onDelete }) {
         </div>
       </div>
 
-      {elementNote && (
-        <p className="goalCardDesc">{elementNote}</p>
-      )}
+      {elementNote && <p className="goalCardDesc">{elementNote}</p>}
 
       <div className="goalCardProgress">
         <div className="progressBar">
@@ -476,17 +468,11 @@ function GoalCard({ goal, onEdit, onDelete }) {
       </div>
 
       <div className="goalCardActions">
-        <button
-          className="textButton"
-          onClick={() => onEdit(goal)}
-        >
+        <button className="textButton" onClick={() => onEdit(goal)}>
           <Pencil size={14} />
           编辑
         </button>
-        <button
-          className="textButton danger"
-          onClick={() => onDelete(goal.id)}
-        >
+        <button className="textButton danger" onClick={() => onDelete(goal.id)}>
           删除
         </button>
       </div>
