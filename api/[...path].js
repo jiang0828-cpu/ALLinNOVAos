@@ -70,7 +70,8 @@ function toDate(value) {
 }
 
 function priority(value, fallback = 'P2') {
-  if (['P0', 'P1', 'P2', 'P3'].includes(value)) return value;
+  if (['P0', 'P1', 'P2'].includes(value)) return value;
+  if (value === 'P3') return 'P2';
   return fallback;
 }
 
@@ -923,7 +924,7 @@ async function dashboardOverview(client) {
              or td.due_at::date = current_date
              or wi.completed_at::date = current_date
            )
-        order by case wi.priority when 'P0' then 0 when 'P1' then 1 when 'P2' then 2 when 'P3' then 3 else 9 end,
+        order by case wi.priority::text when 'P0' then 0 when 'P1' then 1 when 'P2' then 2 when 'P3' then 3 else 9 end,
                  case when wi.status = 'DONE' then 1 else 0 end,
                  coalesce(td.due_at, wi.completed_at, wi.updated_at) asc
         limit 8`,
