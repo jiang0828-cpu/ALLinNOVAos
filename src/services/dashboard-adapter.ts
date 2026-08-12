@@ -9,12 +9,12 @@ import type { DashboardSnapshot, IssueLevel, Priority, TaskStatus } from '../typ
 
 /** Mirrors the backend DTO exactly. */
 export interface DashboardOverviewResponse {
-  overallScore: number;
+  overallScore?: number | null;
   domainScores: Array<{
-    domainId: string;
-    domainName: string;
-    score: number;
-  }>;
+    domainId?: string | null;
+    domainName?: string | null;
+    score?: number | null;
+  }> | null;
   todayFocus: Array<{
     id: string;
     title: string;
@@ -25,25 +25,25 @@ export interface DashboardOverviewResponse {
     taskDetail?: {
       actualMinutes?: number | null;
     };
-  }>;
+  }> | null;
   activeProjects: Array<{
     id: string;
     title: string;
-    progress: number;
-    healthStatus: string;
-  }>;
+    progress?: number | null;
+    healthStatus?: string | null;
+  }> | null;
   openIssues: Array<{
     id: string;
     title: string;
-    level: string;
-    status: string;
-  }>;
+    level?: string | null;
+    status?: string | null;
+  }> | null;
   pendingSuggestions: Array<{
     id: string;
     title: string;
-    status: string;
-    impactScore?: number;
-  }>;
+    status?: string | null;
+    impactScore?: number | null;
+  }> | null;
   latestReview: {
     id: string;
     title: string;
@@ -57,8 +57,8 @@ export interface DashboardOverviewResponse {
     insightType: string;
     confidence: number;
     impactScore: number;
-  }>;
-  lastUpdatedAt: string;
+  }> | null;
+  lastUpdatedAt?: string | null;
 }
 
 /** Default workspace ID for local dev */
@@ -83,10 +83,18 @@ function toTaskStatus(raw: string | undefined): TaskStatus {
   return map[raw ?? ''] ?? 'TODO';
 }
 
+function asArray<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function toNumber(value: number | null | undefined): number {
+  return Number.isFinite(value) ? Number(value) : 0;
+}
+
 /**
  * Map: backend itemType → frontend "system" label.
  */
-function itemTypeToSystem(itemType: string): string {
+function itemTypeToSystem(itemType: string | null | undefined): string {
   const map: Record<string, string> = {
     TASK: 'Task',
     GOAL: 'Goal',
@@ -98,13 +106,14 @@ function itemTypeToSystem(itemType: string): string {
     IDEA: 'Idea',
     METRIC: 'Metric',
   };
-  return map[itemType] ?? itemType ?? 'Item';
+  const key = String(itemType || '').toUpperCase();
+  return map[key] ?? (itemType ? String(itemType) : 'Item');
 }
 
 /**
  * Map: backend domainName → frontend Chinese label.
  */
-function domainNameToLabel(domainName: string): string {
+function domainNameToLabel(domainName?: string | null, domainId?: string | null): string {
   const map: Record<string, string> = {
     health: '健康',
     wealth: '财富',
@@ -117,7 +126,9 @@ function domainNameToLabel(domainName: string): string {
     personal: '个人',
     career: '事业',
   };
-  return map[domainName.toLowerCase()] ?? domainName;
+  const fallback = String(domainName || domainId || '').trim();
+  const key = fallback.toLowerCase().replace(/^domain_/, '');
+  return map[key] ?? (fallback || '未分类');
 }
 
 /**
@@ -128,15 +139,21 @@ export function adaptBackendToSnapshot(
   backend: DashboardOverviewResponse,
   workspaceId: string = DEFAULT_WORKSPACE_ID
 ): DashboardSnapshot {
+  const domainScores = asArray(backend.domainScores);
+  const todayFocusItems = asArray(backend.todayFocus);
+  const openIssueItems = asArray(backend.openIssues);
+  const suggestionItems = asArray(backend.pendingSuggestions);
+  const activeProjectItems = asArray(backend.activeProjects);
+
   // --- State / Target ---
-  const breakdown = backend.domainScores.map((d) => ({
-    label: domainNameToLabel(d.domainName),
-    value: d.score,
+  const breakdown = domainScores.map((d) => ({
+    label: domainNameToLabel(d.domainName, d.domainId),
+    value: toNumber(d.score),
     weight: 0,
   }));
 
   // --- Today Focus ---
-  const todayFocus = backend.todayFocus
+  const todayFocus = todayFocusItems
     .filter((t) => t.status !== 'CANCELLED')
     .map((t) => ({
       id: t.id,
@@ -157,7 +174,7 @@ export function adaptBackendToSnapshot(
   const plans: Array<{ id: string; title: string; progress: number }> = [];
 
   // --- Open Issues (当前问题/风险) ---
-  const openIssues = backend.openIssues.map((i) => ({
+  const openIssues = openIssueItems.map((i) => ({
     id: i.id,
     title: i.title,
     level: (i.level || 'MEDIUM') as IssueLevel,
@@ -176,10 +193,10 @@ export function adaptBackendToSnapshot(
     : null;
 
   // --- Active Insights Count ---
-  const activeInsightsCount = backend.activeInsights?.length ?? 0;
+  const activeInsightsCount = asArray(backend.activeInsights).length;
 
   // --- AI Suggestions ---
-  const aiSuggestions = backend.pendingSuggestions.map((s) => ({
+  const aiSuggestions = suggestionItems.map((s) => ({
     id: s.id,
     title: s.title,
     source: `Suggestion · ${s.status}`,
@@ -192,18 +209,18 @@ export function adaptBackendToSnapshot(
   }));
 
   const operatingLayers = {
-    targets: backend.domainScores.slice(0, 5).map((d) => ({
-      id: d.domainId,
-      label: domainNameToLabel(d.domainName),
-      value: Math.round(d.score),
+    targets: domainScores.slice(0, 5).map((d) => ({
+      id: d.domainId || d.domainName || 'domain_unknown',
+      label: domainNameToLabel(d.domainName, d.domainId),
+      value: Math.round(toNumber(d.score)),
     })),
-    projects: backend.activeProjects.slice(0, 4).map((p) => ({
+    projects: activeProjectItems.slice(0, 4).map((p) => ({
       id: p.id,
       title: p.title,
-      progress: Math.round(p.progress),
-      healthStatus: p.healthStatus,
+      progress: Math.round(toNumber(p.progress)),
+      healthStatus: p.healthStatus || 'ON_TRACK',
     })),
-    tasks: backend.todayFocus.slice(0, 4).map((t) => ({
+    tasks: todayFocusItems.slice(0, 4).map((t) => ({
       id: t.id,
       title: t.title,
       status: toTaskStatus(t.status),
@@ -213,10 +230,10 @@ export function adaptBackendToSnapshot(
 
   return {
     workspaceId,
-    generatedAt: backend.lastUpdatedAt,
+    generatedAt: backend.lastUpdatedAt || new Date().toISOString(),
     operatingLayers,
     stateTarget: {
-      lifeScore: Math.round(backend.overallScore),
+      lifeScore: Math.round(toNumber(backend.overallScore)),
       breakdown,
     },
     todayFocus,

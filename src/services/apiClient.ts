@@ -13,12 +13,13 @@ function getDefaultApiBase(): string {
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isVitePreview = port === '4173' || port === '4174';
   const isCloudflarePages = hostname.endsWith('.pages.dev');
+  const isSitesDeployment = hostname.endsWith('.chatgpt.site');
 
   if (isLocalHost && isVitePreview) {
     return 'https://allinnovaos.vercel.app/api';
   }
 
-  if (isCloudflarePages) {
+  if (isCloudflarePages || isSitesDeployment) {
     return 'https://allinnovaos.vercel.app/api';
   }
 
@@ -29,7 +30,7 @@ export function getApiBase(): string {
   const runtimeWindow = globalThis.window;
   const hostname = runtimeWindow?.location?.hostname || '';
 
-  if (hostname.endsWith('.pages.dev')) {
+  if (hostname.endsWith('.pages.dev') || hostname.endsWith('.chatgpt.site')) {
     return 'https://allinnovaos.vercel.app/api';
   }
 
