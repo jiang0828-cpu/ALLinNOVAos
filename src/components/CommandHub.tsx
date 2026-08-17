@@ -68,16 +68,9 @@ export function CommandHub({
   const daysUntilEnd = getDaysUntilEndDate(currentClock);
 
   const applySnapshot = useCallback((data: DashboardSnapshot) => {
-    const hasData =
-      data.stateTarget.lifeScore > 0 ||
-      data.todayFocus.length > 0 ||
-      data.openIssues.length > 0 ||
-      data.aiSuggestions.length > 0 ||
-      data.latestReview !== null;
-
     setSnapshot(data);
     onDateUpdate?.(data.generatedAt);
-    setLoadState(hasData ? 'success' : 'empty');
+    setLoadState('success');
   }, [onDateUpdate]);
 
   const loadData = useCallback(async (silent = false) => {
