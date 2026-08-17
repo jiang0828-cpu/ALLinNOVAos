@@ -7,7 +7,7 @@ export interface M2NewsItem {
 }
 
 export const M2NEWS_LATEST_URL =
-  'https://lifeos-personal-manager.github.io/M2news/news/latest.html';
+  'https://lifeos-personal-manager.github.io/M2news/latest.html';
 
 function textContent(element: Element | null): string {
   return element?.textContent?.replace(/\s+/g, ' ').trim() || '';

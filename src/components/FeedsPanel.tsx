@@ -3,6 +3,8 @@ import { BookOpen } from 'lucide-react';
 import type { DashboardSnapshot } from '../types/dashboard';
 import { getLatestM2News, type M2NewsItem } from '../services/m2NewsService';
 
+const M2NEWS_LATEST_URL = 'https://lifeos-personal-manager.github.io/M2news/latest.html';
+
 interface FeedsPanelProps {
   feeds: DashboardSnapshot['feeds'];
 }
@@ -107,6 +109,14 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
             )}
           </div>
         </div>
+        <a
+          href={M2NEWS_LATEST_URL}
+          className="feedsExternalLink"
+          target="_blank"
+          rel="noreferrer"
+        >
+          打开 M2news 最新要闻
+        </a>
       </div>
     </section>
   );

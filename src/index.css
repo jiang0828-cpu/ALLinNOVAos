@@ -949,6 +949,25 @@ button:disabled {
   line-height: 1.45;
 }
 
+.feedsExternalLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  margin-top: 2px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--ghost-bg);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.feedsExternalLink:hover {
+  background: var(--chip-bg);
+}
+
 .feedMeta {
   display: flex;
   gap: 6px;

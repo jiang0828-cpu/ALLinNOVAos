@@ -63,7 +63,7 @@ export interface DashboardOverviewResponse {
 
 /** Default workspace ID for local dev */
 const DEFAULT_WORKSPACE_ID = 'ws_default';
-const M2NEWS_LATEST_URL = 'https://lifeos-personal-manager.github.io/M2news/news/latest.html';
+const M2NEWS_LATEST_URL = 'https://lifeos-personal-manager.github.io/M2news/latest.html';
 const TODAY_TOP_NEWS = [
   '中国第九批赴南苏丹（朱巴）维和步兵营完成指挥权交接',
   '习近平将向《生物多样性公约》第十五次缔约方大会第二阶段高级别会议开幕式致辞',
