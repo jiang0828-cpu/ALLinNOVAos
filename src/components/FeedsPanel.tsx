@@ -4,6 +4,7 @@ import type { DashboardSnapshot } from '../types/dashboard';
 import { getLatestM2News, type M2NewsItem } from '../services/m2NewsService';
 
 const M2NEWS_LATEST_URL = 'https://lifeos-personal-manager.github.io/M2news/latest.html';
+const M2NEWS_REFRESH_MS = 5 * 60 * 1000;
 
 interface FeedsPanelProps {
   feeds: DashboardSnapshot['feeds'];
@@ -23,18 +24,24 @@ export function FeedsPanel({ feeds }: FeedsPanelProps) {
   useEffect(() => {
     let ignore = false;
 
-    getLatestM2News()
-      .then((items) => {
-        if (!ignore) {
-          setLatestNews(items);
-        }
-      })
-      .catch((error) => {
-        console.warn('[FeedsPanel] Failed to load M2news:', error);
-      });
+    const loadLatestNews = () => {
+      getLatestM2News()
+        .then((items) => {
+          if (!ignore) {
+            setLatestNews(items);
+          }
+        })
+        .catch((error) => {
+          console.warn('[FeedsPanel] Failed to load M2news:', error);
+        });
+    };
+
+    loadLatestNews();
+    const timer = window.setInterval(loadLatestNews, M2NEWS_REFRESH_MS);
 
     return () => {
       ignore = true;
+      window.clearInterval(timer);
     };
   }, []);
 
