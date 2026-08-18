@@ -5,6 +5,7 @@ import { Target } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
 import { getScoreColor } from '../types/dashboard';
 import type { DashboardSnapshot } from '../types/dashboard';
+import { LifeDashboard } from './LifeDashboard';
 
 interface StateTargetProps {
   lifeScore: DashboardSnapshot['stateTarget']['lifeScore'];
@@ -85,6 +86,7 @@ export function StateTarget({ lifeScore, breakdown, onOpen }: StateTargetProps) 
             </div>
           ))}
         </div>
+        <LifeDashboard />
       </div>
     </section>
   );

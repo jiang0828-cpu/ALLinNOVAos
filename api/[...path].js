@@ -1009,6 +1009,206 @@ async function dashboardOverview(client) {
   };
 }
 
+function numberOrNull(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function intOrNull(value) {
+  const parsed = numberOrNull(value);
+  return parsed === null ? null : Math.round(parsed);
+}
+
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeEntryDate(value) {
+  if (!value) return todayDate();
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  const text = String(value).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : todayDate();
+}
+
+function generateLifeTags(entry) {
+  const tags = [];
+  if (entry.bloodGlucose !== null) {
+    tags.push(entry.bloodGlucose > 7.8 ? '血糖关注' : '血糖稳定');
+  }
+  if (entry.exerciseMinutes !== null) {
+    tags.push(entry.exerciseMinutes >= 30 ? '运动达标' : '补充运动');
+  }
+  if (entry.sleepHours !== null) {
+    if (entry.sleepHours >= 7) tags.push('睡眠充足');
+    if (entry.sleepHours < 6) tags.push('睡眠不足');
+  }
+  if (entry.income !== null || entry.expense !== null) {
+    const net = Number(entry.income || 0) - Number(entry.expense || 0);
+    tags.push(net >= 0 ? '收支为正' : '支出预警');
+  }
+  if (/清淡|蔬菜|低糖|高蛋白|控糖/.test(entry.diet || '')) {
+    tags.push('饮食稳');
+  }
+  return [...new Set(tags)].slice(0, 6);
+}
+
+function lifeEntry(row) {
+  return {
+    id: row.id,
+    workspaceId: row.workspace_id,
+    entryDate: normalizeEntryDate(row.entry_date),
+    weight: row.weight === null ? null : Number(row.weight),
+    bloodGlucose: row.blood_glucose === null ? null : Number(row.blood_glucose),
+    insulin: row.insulin === null ? null : Number(row.insulin),
+    exerciseMinutes: row.exercise_minutes === null ? null : Number(row.exercise_minutes),
+    diet: row.diet || '',
+    sleepHours: row.sleep_hours === null ? null : Number(row.sleep_hours),
+    income: row.income === null ? null : Number(row.income),
+    expense: row.expense === null ? null : Number(row.expense),
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    createdAt: toIso(row.created_at),
+    updatedAt: toIso(row.updated_at),
+  };
+}
+
+function buildLifeDashboard(entries) {
+  const latest = entries[0] || null;
+  const recent = entries.slice(0, 7);
+  const totals = entries.reduce(
+    (sum, entry) => ({
+      income: sum.income + Number(entry.income || 0),
+      expense: sum.expense + Number(entry.expense || 0),
+      exercise: sum.exercise + Number(entry.exerciseMinutes || 0),
+    }),
+    { income: 0, expense: 0, exercise: 0 }
+  );
+  const healthScore = latest
+    ? Math.round(
+        [
+          latest.bloodGlucose === null ? 70 : latest.bloodGlucose <= 7.8 ? 92 : 58,
+          latest.exerciseMinutes === null ? 70 : latest.exerciseMinutes >= 30 ? 90 : 62,
+          latest.sleepHours === null ? 70 : latest.sleepHours >= 7 ? 90 : latest.sleepHours >= 6 ? 76 : 55,
+        ].reduce((sum, value) => sum + value, 0) / 3
+      )
+    : 0;
+  const wealthScore = latest
+    ? Math.max(0, Math.min(100, 70 + (Number(latest.income || 0) - Number(latest.expense || 0) >= 0 ? 18 : -22)))
+    : 0;
+
+  return {
+    summary: {
+      healthScore,
+      wealthScore,
+      netWorthFlow: Math.round((totals.income - totals.expense) * 100) / 100,
+      totalIncome: Math.round(totals.income * 100) / 100,
+      totalExpense: Math.round(totals.expense * 100) / 100,
+      exerciseMinutes: totals.exercise,
+      latest,
+      entryCount: entries.length,
+    },
+    entries,
+    chart: recent
+      .slice()
+      .reverse()
+      .map((entry) => ({
+        date: entry.entryDate,
+        weight: entry.weight,
+        bloodGlucose: entry.bloodGlucose,
+        sleepHours: entry.sleepHours,
+        balance: Number(entry.income || 0) - Number(entry.expense || 0),
+      })),
+    tags: [...new Set(recent.flatMap((entry) => entry.tags || []))].slice(0, 8),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function ensureLifeDashboardTable(client) {
+  await ensureWorkspace(client);
+  await client.query(`
+    create table if not exists life_dashboard_entries (
+      id text primary key,
+      workspace_id text not null references workspace(id) on delete cascade,
+      entry_date date not null,
+      weight numeric,
+      blood_glucose numeric,
+      insulin numeric,
+      exercise_minutes integer,
+      diet text,
+      sleep_hours numeric,
+      income numeric,
+      expense numeric,
+      tags jsonb not null default '[]'::jsonb,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      unique (workspace_id, entry_date)
+    )
+  `);
+}
+
+async function listLifeDashboard(client, workspaceId = WORKSPACE_ID) {
+  await ensureLifeDashboardTable(client);
+  const result = await client.query(
+    `select *
+       from life_dashboard_entries
+      where workspace_id = $1
+      order by entry_date desc, updated_at desc
+      limit 30`,
+    [workspaceId]
+  );
+  return buildLifeDashboard(result.rows.map(lifeEntry));
+}
+
+async function upsertLifeDashboardEntry(client, body) {
+  const entry = {
+    workspaceId: body.workspaceId || WORKSPACE_ID,
+    entryDate: normalizeEntryDate(body.entryDate || body.date),
+    weight: numberOrNull(body.weight),
+    bloodGlucose: numberOrNull(body.bloodGlucose),
+    insulin: numberOrNull(body.insulin),
+    exerciseMinutes: intOrNull(body.exerciseMinutes),
+    diet: String(body.diet || '').trim(),
+    sleepHours: numberOrNull(body.sleepHours),
+    income: numberOrNull(body.income),
+    expense: numberOrNull(body.expense),
+  };
+  const tags = generateLifeTags(entry);
+
+  await ensureLifeDashboardTable(client);
+  await client.query(
+    `insert into life_dashboard_entries
+       (id, workspace_id, entry_date, weight, blood_glucose, insulin, exercise_minutes, diet, sleep_hours, income, expense, tags, created_at, updated_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb, now(), now())
+     on conflict (workspace_id, entry_date) do update set
+       weight = excluded.weight,
+       blood_glucose = excluded.blood_glucose,
+       insulin = excluded.insulin,
+       exercise_minutes = excluded.exercise_minutes,
+       diet = excluded.diet,
+       sleep_hours = excluded.sleep_hours,
+       income = excluded.income,
+       expense = excluded.expense,
+       tags = excluded.tags,
+       updated_at = now()`,
+    [
+      id('life'),
+      entry.workspaceId,
+      entry.entryDate,
+      entry.weight,
+      entry.bloodGlucose,
+      entry.insulin,
+      entry.exerciseMinutes,
+      entry.diet || null,
+      entry.sleepHours,
+      entry.income,
+      entry.expense,
+      JSON.stringify(tags),
+    ]
+  );
+
+  return listLifeDashboard(client, entry.workspaceId);
+}
+
 async function route(req, res, client) {
   const { pathname, searchParams } = normalizePath(req);
   const method = req.method.toUpperCase();
@@ -1026,6 +1226,14 @@ async function route(req, res, client) {
 
   if (pathname === '/dashboard/overview' && method === 'GET') {
     return ok(res, await dashboardOverview(client));
+  }
+
+  if (pathname === '/life-dashboard' && method === 'GET') {
+    return ok(res, await listLifeDashboard(client, searchParams.get('workspaceId') || WORKSPACE_ID));
+  }
+
+  if (pathname === '/life-dashboard/entries' && method === 'POST') {
+    return ok(res, await upsertLifeDashboardEntry(client, body), 201);
   }
 
   const resourceMap = {

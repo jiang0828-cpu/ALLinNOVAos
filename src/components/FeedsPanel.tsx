@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import type { DashboardSnapshot } from '../types/dashboard';
-import { getLatestM2News, type M2NewsItem } from '../services/m2NewsService';
+import { M2NEWS_LATEST_URL, getLatestM2News, type M2NewsItem } from '../services/m2NewsService';
 
-const M2NEWS_LATEST_URL = 'https://lifeos-personal-manager.github.io/M2news/latest.html';
 const M2NEWS_REFRESH_MS = 5 * 60 * 1000;
 
 interface FeedsPanelProps {

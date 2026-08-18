@@ -583,6 +583,294 @@ button:disabled {
   background: linear-gradient(90deg, var(--accent), var(--accent-gold));
 }
 
+.lifeDashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  cursor: default;
+}
+
+.lifeTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.lifeTopline strong {
+  color: var(--accent);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.lifeTabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.lifeTab {
+  min-width: 0;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lifeTab.isActive {
+  border-color: rgba(23, 138, 111, 0.28);
+  background: var(--chip-bg);
+  color: var(--text);
+}
+
+.lifeView,
+.lifeList,
+.lifeChart {
+  min-height: 150px;
+}
+
+.lifeMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lifeMetric {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lifeMetric svg {
+  color: var(--accent);
+}
+
+.lifeMetric strong {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.lifeFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 10px;
+  margin-top: 8px;
+  color: var(--text-soft);
+  font-size: 11px;
+}
+
+.lifeFacts span,
+.lifeTags span,
+.lifeListRow span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lifeTags {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+.lifeTags svg {
+  flex: 0 0 auto;
+  color: var(--accent-gold);
+}
+
+.lifeTags span {
+  flex: 0 0 auto;
+  max-width: 80px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--text-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.lifeForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.lifeForm label {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.lifeForm input {
+  min-width: 0;
+  height: 28px;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.lifeWideField,
+.lifeSaveButton {
+  grid-column: 1 / -1;
+}
+
+.lifeSaveButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lifeSaveButton:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.lifeList {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.lifeList p,
+.lifeChart p {
+  margin: 20px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.lifeListRow {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lifeListRow svg {
+  color: var(--accent);
+}
+
+.lifeListRow strong,
+.lifeListRow span {
+  display: block;
+  font-size: 11px;
+}
+
+.lifeListRow span {
+  margin-top: 2px;
+  color: var(--text-soft);
+}
+
+.lifeChart {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.lifeChartColumn {
+  display: grid;
+  gap: 4px;
+  align-items: end;
+  min-width: 0;
+  height: 118px;
+}
+
+.lifeBars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: 2px;
+  height: 92px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lifeBars span {
+  display: block;
+  min-height: 4px;
+  border-radius: 4px 4px 0 0;
+}
+
+.lifeBars span:nth-child(1) {
+  background: var(--accent);
+}
+
+.lifeBars span:nth-child(2) {
+  background: var(--accent-gold);
+}
+
+.lifeBars span:nth-child(3) {
+  background: #64748b;
+}
+
+.lifeChartColumn small {
+  color: var(--text-faint);
+  font-size: 9px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.lifeLegend {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  gap: 6px;
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.lifeChartIcon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--accent);
+}
+
 .emptyState {
   margin-top: 10px;
   padding: 16px;
