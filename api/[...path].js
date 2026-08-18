@@ -1039,6 +1039,12 @@ function generateLifeTags(entry) {
   if (entry.exerciseMinutes !== null) {
     tags.push(entry.exerciseMinutes >= 30 ? '运动达标' : '补充运动');
   }
+  if (entry.exerciseType) {
+    tags.push(entry.exerciseType === '其他' ? '运动记录' : entry.exerciseType);
+  }
+  if (entry.insulinSite && entry.insulinDose !== null) {
+    tags.push(`${entry.insulinSite} 注射`);
+  }
   if (entry.sleepHours !== null) {
     if (entry.sleepHours >= 7) tags.push('睡眠充足');
     if (entry.sleepHours < 6) tags.push('睡眠不足');
@@ -1060,7 +1066,10 @@ function lifeEntry(row) {
     entryDate: normalizeEntryDate(row.entry_date),
     weight: row.weight === null ? null : Number(row.weight),
     bloodGlucose: row.blood_glucose === null ? null : Number(row.blood_glucose),
-    insulin: row.insulin === null ? null : Number(row.insulin),
+    insulinSite: row.insulin_site || '',
+    insulinDose: row.insulin_dose === null || row.insulin_dose === undefined ? (row.insulin === null ? null : Number(row.insulin)) : Number(row.insulin_dose),
+    insulin: row.insulin_dose === null || row.insulin_dose === undefined ? (row.insulin === null ? null : Number(row.insulin)) : Number(row.insulin_dose),
+    exerciseType: row.exercise_type || '',
     exerciseMinutes: row.exercise_minutes === null ? null : Number(row.exercise_minutes),
     diet: row.diet || '',
     sleepHours: row.sleep_hours === null ? null : Number(row.sleep_hours),
@@ -1133,6 +1142,9 @@ async function ensureLifeDashboardTable(client) {
       weight numeric,
       blood_glucose numeric,
       insulin numeric,
+      insulin_site text,
+      insulin_dose numeric,
+      exercise_type text,
       exercise_minutes integer,
       diet text,
       sleep_hours numeric,
@@ -1144,6 +1156,9 @@ async function ensureLifeDashboardTable(client) {
       unique (workspace_id, entry_date)
     )
   `);
+  await client.query(`alter table life_dashboard_entries add column if not exists insulin_site text`);
+  await client.query(`alter table life_dashboard_entries add column if not exists insulin_dose numeric`);
+  await client.query(`alter table life_dashboard_entries add column if not exists exercise_type text`);
 }
 
 async function listLifeDashboard(client, workspaceId = WORKSPACE_ID) {
@@ -1165,7 +1180,10 @@ async function upsertLifeDashboardEntry(client, body) {
     entryDate: normalizeEntryDate(body.entryDate || body.date),
     weight: numberOrNull(body.weight),
     bloodGlucose: numberOrNull(body.bloodGlucose),
-    insulin: numberOrNull(body.insulin),
+    insulinSite: String(body.insulinSite || body.insulin_site || '').trim(),
+    insulinDose: numberOrNull(body.insulinDose ?? body.insulin_dose ?? body.insulin),
+    insulin: numberOrNull(body.insulinDose ?? body.insulin_dose ?? body.insulin),
+    exerciseType: String(body.exerciseType || body.exercise_type || '').trim(),
     exerciseMinutes: intOrNull(body.exerciseMinutes),
     diet: String(body.diet || '').trim(),
     sleepHours: numberOrNull(body.sleepHours),
@@ -1177,12 +1195,15 @@ async function upsertLifeDashboardEntry(client, body) {
   await ensureLifeDashboardTable(client);
   await client.query(
     `insert into life_dashboard_entries
-       (id, workspace_id, entry_date, weight, blood_glucose, insulin, exercise_minutes, diet, sleep_hours, income, expense, tags, created_at, updated_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb, now(), now())
+       (id, workspace_id, entry_date, weight, blood_glucose, insulin, insulin_site, insulin_dose, exercise_type, exercise_minutes, diet, sleep_hours, income, expense, tags, created_at, updated_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, now(), now())
      on conflict (workspace_id, entry_date) do update set
        weight = excluded.weight,
        blood_glucose = excluded.blood_glucose,
        insulin = excluded.insulin,
+       insulin_site = excluded.insulin_site,
+       insulin_dose = excluded.insulin_dose,
+       exercise_type = excluded.exercise_type,
        exercise_minutes = excluded.exercise_minutes,
        diet = excluded.diet,
        sleep_hours = excluded.sleep_hours,
@@ -1197,6 +1218,9 @@ async function upsertLifeDashboardEntry(client, body) {
       entry.weight,
       entry.bloodGlucose,
       entry.insulin,
+      entry.insulinSite || null,
+      entry.insulinDose,
+      entry.exerciseType || null,
       entry.exerciseMinutes,
       entry.diet || null,
       entry.sleepHours,

@@ -1,5 +1,5 @@
-import { BarChart3, HeartPulse, ListChecks, Save, Tags, WalletCards } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { HeartPulse, ListChecks, Save, Tags, WalletCards } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
   getLifeDashboard,
   saveLifeDashboardEntry,
@@ -7,7 +7,7 @@ import {
   type LifeDashboardInput,
 } from '../services/lifeDashboardService';
 
-type LifeTab = 'home' | 'entry' | 'list' | 'chart';
+type LifeTab = 'home' | 'entry' | 'list';
 
 const emptyDashboard: LifeDashboardData = {
   summary: {
@@ -30,8 +30,13 @@ const tabs: Array<{ key: LifeTab; label: string }> = [
   { key: 'home', label: '首页' },
   { key: 'entry', label: '录入' },
   { key: 'list', label: '列表' },
-  { key: 'chart', label: '图表' },
 ];
+
+const insulinRegions = ['LU', 'LD', 'RU', 'RD'];
+const insulinSites = insulinRegions.flatMap((region) =>
+  Array.from({ length: 7 }, (_, index) => `${region}${index + 1}`),
+);
+const exerciseTypes = ['跑步', '游泳', '骑行', '篮球', '其他'];
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -40,11 +45,6 @@ function today() {
 function formatValue(value: number | null | undefined, suffix = '') {
   if (value === null || value === undefined) return '--';
   return `${value}${suffix}`;
-}
-
-function chartHeight(value: number | null | undefined, max: number) {
-  if (value === null || value === undefined || max <= 0) return 4;
-  return Math.max(6, Math.min(100, (Math.abs(value) / max) * 100));
 }
 
 export function LifeDashboard() {
@@ -77,19 +77,14 @@ export function LifeDashboard() {
     };
   }, []);
 
-  const maxChartValue = useMemo(() => {
-    const values = dashboard.chart.flatMap((point) => [
-      point.bloodGlucose || 0,
-      point.sleepHours || 0,
-      Math.abs(point.balance || 0),
-    ]);
-    return Math.max(1, ...values);
-  }, [dashboard.chart]);
-
   const updateForm = (key: keyof LifeDashboardInput, value: string) => {
     setForm((current) => ({
       ...current,
-      [key]: key === 'diet' || key === 'entryDate' ? value : value === '' ? null : Number(value),
+      [key]: ['diet', 'entryDate', 'insulinSite', 'exerciseType'].includes(key)
+        ? value
+        : value === ''
+          ? null
+          : Number(value),
     }));
   };
 
@@ -146,8 +141,8 @@ export function LifeDashboard() {
           <div className="lifeFacts">
             <span>体重 {formatValue(latest?.weight, 'kg')}</span>
             <span>血糖 {formatValue(latest?.bloodGlucose, 'mmol/L')}</span>
-            <span>胰岛素 {formatValue(latest?.insulin, 'U')}</span>
-            <span>运动 {formatValue(latest?.exerciseMinutes, 'min')}</span>
+            <span>胰岛素 {latest?.insulinSite || '--'} {formatValue(latest?.insulinDose ?? latest?.insulin, 'U')}</span>
+            <span>运动 {latest?.exerciseType || '--'} {formatValue(latest?.exerciseMinutes, 'min')}</span>
             <span>睡眠 {formatValue(latest?.sleepHours, 'h')}</span>
             <span>净流 {dashboard.summary.netWorthFlow}</span>
           </div>
@@ -175,11 +170,33 @@ export function LifeDashboard() {
             <input type="number" inputMode="decimal" value={form.bloodGlucose ?? ''} onChange={(event) => updateForm('bloodGlucose', event.target.value)} />
           </label>
           <label>
-            <span>胰岛素</span>
-            <input type="number" inputMode="decimal" value={form.insulin ?? ''} onChange={(event) => updateForm('insulin', event.target.value)} />
+            <span>方位</span>
+            <select value={form.insulinSite || ''} onChange={(event) => updateForm('insulinSite', event.target.value)}>
+              <option value="">选择位点</option>
+              {insulinSites.map((site) => (
+                <option key={site} value={site}>
+                  {site}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
-            <span>运动</span>
+            <span>剂量</span>
+            <input type="number" inputMode="decimal" value={form.insulinDose ?? ''} onChange={(event) => updateForm('insulinDose', event.target.value)} />
+          </label>
+          <label>
+            <span>运动类型</span>
+            <select value={form.exerciseType || ''} onChange={(event) => updateForm('exerciseType', event.target.value)}>
+              <option value="">选择类型</option>
+              {exerciseTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>运动时间</span>
             <input type="number" inputMode="numeric" value={form.exerciseMinutes ?? ''} onChange={(event) => updateForm('exerciseMinutes', event.target.value)} />
           </label>
           <label>
@@ -216,38 +233,14 @@ export function LifeDashboard() {
                 <div>
                   <strong>{entry.entryDate}</strong>
                   <span>
-                    血糖 {formatValue(entry.bloodGlucose)} · 睡眠 {formatValue(entry.sleepHours, 'h')} · 收支{' '}
+                    {entry.insulinSite || '未定位'} {formatValue(entry.insulinDose ?? entry.insulin, 'U')} · {entry.exerciseType || '运动'}{' '}
+                    {formatValue(entry.exerciseMinutes, 'min')} · 收支{' '}
                     {Number(entry.income || 0) - Number(entry.expense || 0)}
                   </span>
                 </div>
               </div>
             ))
           )}
-        </div>
-      )}
-
-      {tab === 'chart' && (
-        <div className="lifeChart">
-          {dashboard.chart.length === 0 ? (
-            <p>录入后生成趋势图</p>
-          ) : (
-            dashboard.chart.map((point) => (
-              <div key={point.date} className="lifeChartColumn">
-                <div className="lifeBars">
-                  <span style={{ height: `${chartHeight(point.bloodGlucose, maxChartValue)}%` }} title="血糖" />
-                  <span style={{ height: `${chartHeight(point.sleepHours, maxChartValue)}%` }} title="睡眠" />
-                  <span style={{ height: `${chartHeight(point.balance, maxChartValue)}%` }} title="收支" />
-                </div>
-                <small>{point.date.slice(5)}</small>
-              </div>
-            ))
-          )}
-          <div className="lifeLegend">
-            <span>血糖</span>
-            <span>睡眠</span>
-            <span>收支</span>
-          </div>
-          <BarChart3 size={14} className="lifeChartIcon" />
         </div>
       )}
     </div>

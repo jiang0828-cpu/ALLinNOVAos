@@ -612,7 +612,7 @@ button:disabled {
 
 .lifeTabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -726,7 +726,8 @@ button:disabled {
   font-weight: 800;
 }
 
-.lifeForm input {
+.lifeForm input,
+.lifeForm select {
   min-width: 0;
   height: 28px;
   padding: 4px 7px;
@@ -735,6 +736,10 @@ button:disabled {
   background: var(--surface-solid);
   color: var(--text);
   font-size: 12px;
+}
+
+.lifeForm select {
+  appearance: auto;
 }
 
 .lifeWideField,

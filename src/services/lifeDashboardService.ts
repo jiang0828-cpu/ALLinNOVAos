@@ -9,7 +9,10 @@ export interface LifeDashboardEntry {
   entryDate: string;
   weight: number | null;
   bloodGlucose: number | null;
+  insulinSite: string;
+  insulinDose: number | null;
   insulin: number | null;
+  exerciseType: string;
   exerciseMinutes: number | null;
   diet: string;
   sleepHours: number | null;
@@ -49,7 +52,9 @@ export type LifeDashboardInput = Partial<
     | 'entryDate'
     | 'weight'
     | 'bloodGlucose'
-    | 'insulin'
+    | 'insulinSite'
+    | 'insulinDose'
+    | 'exerciseType'
     | 'exerciseMinutes'
     | 'diet'
     | 'sleepHours'
@@ -75,6 +80,12 @@ function generateTags(entry: LifeDashboardEntry) {
   }
   if (entry.exerciseMinutes !== null) {
     tags.push(entry.exerciseMinutes >= 30 ? '运动达标' : '补充运动');
+  }
+  if (entry.exerciseType) {
+    tags.push(entry.exerciseType === '其他' ? '运动记录' : entry.exerciseType);
+  }
+  if (entry.insulinSite && entry.insulinDose !== null) {
+    tags.push(`${entry.insulinSite} 注射`);
   }
   if (entry.sleepHours !== null) {
     if (entry.sleepHours >= 7) tags.push('睡眠充足');
@@ -159,7 +170,10 @@ function writeLocalEntry(input: LifeDashboardInput) {
     entryDate: input.entryDate || today(),
     weight: numberOrNull(input.weight),
     bloodGlucose: numberOrNull(input.bloodGlucose),
-    insulin: numberOrNull(input.insulin),
+    insulinSite: String(input.insulinSite || '').trim(),
+    insulinDose: numberOrNull(input.insulinDose),
+    insulin: numberOrNull(input.insulinDose),
+    exerciseType: String(input.exerciseType || '').trim(),
     exerciseMinutes: numberOrNull(input.exerciseMinutes),
     diet: String(input.diet || '').trim(),
     sleepHours: numberOrNull(input.sleepHours),
