@@ -462,7 +462,14 @@ function DashboardHome({ onDateUpdate, onNavigate, theme, onThemeToggle }) {
           <h2 id="roadmap-title">要素管理</h2>
         </div>
         <div className="roadmapTrack">
-          <span className="current">信息要素/流</span>
+          <a
+            href="https://m0element.pages.dev"
+            className="current"
+            target="_blank"
+            rel="noreferrer"
+          >
+            信息要素/流
+          </a>
           <span>物质要素/流</span>
           <span>能量要素/流</span>
           <a
